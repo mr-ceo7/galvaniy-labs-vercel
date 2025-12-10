@@ -93,7 +93,7 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="Enter Experiment Code (e.g., B-7, C-12)"
+              placeholder="Enter your experiment code to instantly generate a comprehensive report."
               className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-4 text-lg text-white focus:outline-none focus:border-blue-500 transition-colors uppercase placeholder:normal-case"
             />
           </div>

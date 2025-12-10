@@ -97,10 +97,13 @@ const App: React.FC = () => {
                 <>
                   <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-2">
-                      Physics Lab Companion
+                      Galvaniy Labs
                     </h1>
                     <p className="text-slate-300">
                       Enter your experiment code to instantly generate a comprehensive report.
+                    </p>
+                    <p className="text-slate-400 text-sm mt-1 italic">
+                      "your lab companion"
                     </p>
                   </div>
                   <Generator user={user} onReportGenerated={handleReportGenerated} />
