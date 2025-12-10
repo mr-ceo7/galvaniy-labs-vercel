@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { PHYSICS_LAB_MANUAL_CONTEXT } from "../constants";
+import { storageService } from "./storageService";
 
 export const generateLabReport = async (experimentCode: string): Promise<string> => {
   if (!process.env.API_KEY) {
@@ -8,6 +8,9 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
+  // Get dynamic context from storage
+  const context = storageService.getFullContext();
+
   const prompt = `
   You are an expert physics lab assistant at the University of Nairobi.
   
@@ -49,7 +52,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   - **Calculations**: Ensure 'calculationScript' is valid ES6 JavaScript code that does not use external libraries.
   
   MANUAL CONTEXT:
-  ${PHYSICS_LAB_MANUAL_CONTEXT}
+  ${context}
   `;
 
   try {

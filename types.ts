@@ -4,6 +4,7 @@ export interface User {
   registeredAt: string;
   isRevoked: boolean;
   reportsGenerated: number;
+  customLimit?: number; // Added for admin overrides
 }
 
 export interface Report {
@@ -29,4 +30,5 @@ export interface Theme {
 export interface DbSchema {
   users: User[];
   reports: Record<string, Report[]>; // key is email
+  references: string[]; // Added for dynamic AI context
 }
