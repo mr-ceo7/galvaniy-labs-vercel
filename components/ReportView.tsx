@@ -134,14 +134,30 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
               <p className="text-xs text-slate-400">Live Preview • Editable Data • Simulations</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button onClick={handleDownloadPDF} className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm transition-colors">
-              <Download size={16} /> PDF
-            </button>
-            <button onClick={handleDownloadHTML} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-sm transition-colors">
-              <Download size={16} /> HTML
-            </button>
-            <button onClick={onClose} className="p-2 hover:bg-red-500/20 hover:text-red-400 rounded-full transition-colors text-slate-400">
+          <div className="flex gap-2 items-center">
+            {/* PDF Button with Tooltip */}
+            <div className="group relative">
+              <button onClick={handleDownloadPDF} className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-white text-sm transition-colors">
+                <Download size={16} /> PDF
+              </button>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-black/90 backdrop-blur text-xs text-center text-white rounded-lg border border-white/10 shadow-xl z-50 pointer-events-none">
+                Download static PDF document suitable for printing
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-black/90"></div>
+              </div>
+            </div>
+
+            {/* HTML Button with Tooltip */}
+            <div className="group relative">
+              <button onClick={handleDownloadHTML} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white text-sm transition-colors">
+                <Download size={16} /> HTML
+              </button>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-black/90 backdrop-blur text-xs text-center text-white rounded-lg border border-white/10 shadow-xl z-50 pointer-events-none">
+                Download interactive report with simulations & live graphs
+                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-black/90"></div>
+              </div>
+            </div>
+
+            <button onClick={onClose} className="p-2 hover:bg-red-500/20 hover:text-red-400 rounded-full transition-colors text-slate-400" title="Close Preview">
               <X size={20} />
             </button>
           </div>
@@ -202,12 +218,12 @@ function generateInteractiveHTML(data: any, code: string) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${code} - Physics Lab Report</title>
+    <title>${code} - Galvaniy Labs Report</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; overflow-x: hidden; }
         .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
@@ -259,11 +275,42 @@ function generateInteractiveHTML(data: any, code: string) {
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         canvas { max-width: 100%; }
+
+        /* Splash Screen Overlay */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background: #0f172a;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease-out;
+        }
+        .atom-spinner {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 4px solid rgba(56, 189, 248, 0.3);
+            border-top-color: #38bdf8;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]">
 
-    <div class="max-w-5xl mx-auto space-y-8">
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="atom-spinner mb-6"></div>
+        <h1 class="text-4xl font-bold text-white tracking-tight">Galvaniy <span class="text-sky-400">Labs</span></h1>
+        <p class="text-slate-400 text-sm mt-2 uppercase tracking-widest">Your Smart Lab Companion</p>
+    </div>
+
+    <div class="max-w-5xl mx-auto space-y-8 opacity-0 transition-opacity duration-1000 delay-500" id="main-content">
         <!-- Header -->
         <header class="glass rounded-2xl p-8 text-center relative overflow-hidden">
             <div class="absolute inset-0 bg-blue-500/10 blur-3xl"></div>
@@ -406,7 +453,7 @@ function generateInteractiveHTML(data: any, code: string) {
         </section>
 
         <footer class="text-center text-slate-600 text-sm py-8">
-            Generated by Physics Labs App | Galvaniy Technologies
+            Generated by Galvaniy Labs - Your Smart Lab Companion
         </footer>
     </div>
 
@@ -433,6 +480,17 @@ function generateInteractiveHTML(data: any, code: string) {
             }
             updateAnalysis();
             simulation.init();
+            
+            // Remove splash screen logic
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                const main = document.getElementById('main-content');
+                if (splash && main) {
+                    splash.style.opacity = '0';
+                    main.style.opacity = '1';
+                    setTimeout(() => splash.remove(), 800);
+                }
+            }, 2000);
         }
 
         // --- TABLE LOGIC ---

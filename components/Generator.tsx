@@ -23,8 +23,17 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
     e.preventDefault();
     setError('');
 
-    if (!code.trim()) {
+    const trimmedCode = code.trim();
+
+    if (!trimmedCode) {
       setError('Please enter an experiment code.');
+      return;
+    }
+
+    // Validate format: Letter(s)-Number(s) e.g., A-2, B-7, C-12
+    const codeRegex = /^[a-zA-Z]+-\d+$/;
+    if (!codeRegex.test(trimmedCode)) {
+      setError('Invalid format. Please use format like "A-2", "B-7" or "C-12".');
       return;
     }
 
@@ -35,7 +44,7 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
 
     setLoading(true);
     try {
-      const content = await generateLabReport(code);
+      const content = await generateLabReport(trimmedCode);
       
       // Validate JSON
       try {
@@ -46,7 +55,7 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
 
       const newReport: Report = {
         id: Date.now().toString(),
-        experimentCode: code.toUpperCase(),
+        experimentCode: trimmedCode.toUpperCase(),
         date: new Date().toISOString(),
         content // Now stores JSON string
       };
