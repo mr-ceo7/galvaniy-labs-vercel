@@ -130,6 +130,12 @@ export const storageService = {
     saveDb(db);
   },
 
+  clearReferences: () => {
+    const db = getDb();
+    db.references = [];
+    saveDb(db);
+  },
+
   getFullContext: (): string => {
     const db = getDb();
     const customRefs = db.references.join('\n\n');

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { generateLabReport } from '../services/geminiService';
 import { storageService } from '../services/storageService';
 import { User, Report, Theme } from '../types';
-import { Zap, Loader2, AlertCircle } from 'lucide-react';
+import { Zap, Loader2, AlertCircle, Image as ImageIcon, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface GeneratorProps {
@@ -13,11 +13,27 @@ interface GeneratorProps {
 
 export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, theme }) => {
   const [code, setCode] = useState('');
+  const [imageFile, setImageFile] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const dailyCount = storageService.getDailyCount(user.email);
   const remaining = 3 - dailyCount;
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageFile(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+  };
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,10 +46,9 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
       return;
     }
 
-    // Validate format: Letter(s)-Number(s) e.g., A-2, B-7, C-12
-    const codeRegex = /^[a-zA-Z]+-\d+$/;
+    const codeRegex = /^[a-zA-Z0-9-]+$/;
     if (!codeRegex.test(trimmedCode)) {
-      setError('Invalid format. Please use format like "A-2", "B-7" or "C-12".');
+      setError('Invalid format. Use alphanumeric codes e.g. "A-2" or "CHEM-101".');
       return;
     }
 
@@ -44,9 +59,9 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
 
     setLoading(true);
     try {
-      const content = await generateLabReport(trimmedCode);
+      // Pass imageFile (base64) to the service
+      const content = await generateLabReport(trimmedCode, imageFile || undefined);
       
-      // Validate JSON
       try {
         JSON.parse(content);
       } catch (jsonErr) {
@@ -57,13 +72,14 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
         id: Date.now().toString(),
         experimentCode: trimmedCode.toUpperCase(),
         date: new Date().toISOString(),
-        content // Now stores JSON string
+        content
       };
 
       storageService.saveReport(user.email, newReport);
       storageService.incrementDailyLimit(user.email);
       onReportGenerated(newReport);
       setCode('');
+      setImageFile(null);
     } catch (err: any) {
       setError(err.message || 'Generation failed.');
     } finally {
@@ -93,9 +109,37 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="Enter your experiment code to instantly generate a comprehensive report."
+              placeholder="Enter Experiment Code (e.g., A-2, CHEM-101)"
               className="w-full bg-slate-900/50 border border-slate-700 rounded-xl p-4 text-lg text-white focus:outline-none focus:border-blue-500 transition-colors uppercase placeholder:normal-case"
             />
+          </div>
+
+          {/* Image Upload Area */}
+          <div className="flex flex-col gap-2">
+             <label className="text-xs text-slate-400 font-semibold uppercase tracking-wider ml-1">
+                Optional: Upload Diagram
+             </label>
+             {!imageFile ? (
+               <label className="w-full border-2 border-dashed border-slate-700 hover:border-blue-500/50 rounded-xl p-4 flex items-center justify-center gap-3 cursor-pointer transition-colors bg-slate-900/30 hover:bg-slate-900/50">
+                 <ImageIcon className="text-slate-500" />
+                 <span className="text-sm text-slate-400">Click to upload diagram/photo of experiment</span>
+                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+               </label>
+             ) : (
+               <div className="relative w-full h-32 bg-slate-900/50 rounded-xl overflow-hidden border border-blue-500/30">
+                 <img src={imageFile} alt="Preview" className="w-full h-full object-contain opacity-80" />
+                 <button 
+                    type="button" 
+                    onClick={clearImage}
+                    className="absolute top-2 right-2 p-1 bg-black/50 hover:bg-red-500/80 rounded-full text-white transition-colors"
+                 >
+                   <X size={16} />
+                 </button>
+                 <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 rounded text-xs text-white flex items-center gap-1">
+                   <ImageIcon size={12} /> Image Attached
+                 </div>
+               </div>
+             )}
           </div>
           
           {error && (
@@ -110,7 +154,7 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
             className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] ${loading || (remaining <= 0 && user.role !== 'admin') ? 'bg-slate-700 opacity-50 cursor-not-allowed' : `bg-gradient-to-r ${theme?.primary} shadow-${theme?.accent.split('-')[1]}-500/30`}`}
           >
             {loading ? (
-              <><Loader2 className="animate-spin" /> Generating Interactive Report...</>
+              <><Loader2 className="animate-spin" /> Analyzing Text & Diagrams...</>
             ) : (
               'Generate Report'
             )}
@@ -118,7 +162,7 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
         </form>
 
         <p className="text-slate-500 text-xs text-center mt-4">
-          The AI references the 2025 Edition Manual. Now generates <b>Interactive HTML</b> with editable data & simulations.
+          <b>Note:</b> If the experiment relies on a specific circuit diagram, please upload a photo of it above for best results.
         </p>
       </motion.div>
     </div>

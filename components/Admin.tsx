@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { storageService } from '../services/storageService';
 import { User, Theme } from '../types';
-import { Shield, Ban, CheckCircle, RefreshCcw, Users, FileText, Trash2, Plus } from 'lucide-react';
+import { Shield, Ban, CheckCircle, RefreshCcw, Users, FileText, Trash2, Plus, Upload, AlertTriangle, Loader2 } from 'lucide-react';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure the worker to match the library version
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs`;
 
 interface AdminProps {
   theme?: Theme;
@@ -11,6 +15,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [references, setReferences] = useState<string[]>([]);
   const [newRef, setNewRef] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const loadData = () => {
     setUsers(storageService.getAllUsers());
@@ -47,9 +52,76 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     }
   };
 
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    // Load the document using pdfjs-dist
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join(' ');
+        fullText += `--- PDF Page ${i} ---\n${pageText}\n\n`;
+    }
+    return fullText;
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    // Reset the input so the same file can be selected again if needed
+    e.target.value = '';
+
+    try {
+        if (file.type === 'application/pdf') {
+            const text = await extractTextFromPDF(file);
+            if (text.trim().length === 0) {
+                 alert("Could not extract text from this PDF. It might be an image-only PDF.");
+            } else if (text.length > 500000) {
+                 alert("PDF content too large. Please split it.");
+            } else {
+                 storageService.addReference(`[PDF: ${file.name}]\n\n${text}`);
+                 loadData();
+            }
+        } else {
+            // Default text handling for other types
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const text = event.target?.result as string;
+                if (text) {
+                    if (text.length > 500000) {
+                        alert("File too large. Please split it.");
+                        return;
+                    }
+                    storageService.addReference(`[File: ${file.name}]\n\n${text}`);
+                    loadData();
+                }
+            };
+            reader.readAsText(file);
+        }
+    } catch (error) {
+        console.error("Upload error:", error);
+        alert("Failed to read file. If it is a PDF, ensure it contains selectable text.");
+    } finally {
+        setUploading(false);
+    }
+  };
+
   const handleRemoveReference = (index: number) => {
     storageService.removeReference(index);
     loadData();
+  };
+
+  const handleClearAllRefs = () => {
+    if (window.confirm("Are you sure you want to delete ALL manual content? This cannot be undone.")) {
+      storageService.clearReferences();
+      loadData();
+    }
   };
 
   // Statistics
@@ -158,43 +230,68 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
 
       {/* Reference Material Management */}
       <div className="glass-panel rounded-2xl p-6">
-        <h2 className="text-xl font-bold flex items-center gap-2 mb-6 text-white">
-          <FileText className="text-yellow-400" /> Lab Manual References
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                <FileText className="text-yellow-400" /> Lab Manual Management
+            </h2>
+            <div className="flex gap-2">
+                <label className={`cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                    {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                    {uploading ? 'Processing...' : 'Upload File'}
+                    <input type="file" onChange={handleFileUpload} className="hidden" accept=".txt,.md,.json,.csv,.pdf" />
+                </label>
+                {references.length > 0 && (
+                    <button 
+                        onClick={handleClearAllRefs}
+                        className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                    >
+                        <Trash2 size={16} /> Clear Manual
+                    </button>
+                )}
+            </div>
+        </div>
         
-        <form onSubmit={handleAddReference} className="mb-6 flex gap-2">
-            <input 
-                type="text" 
-                value={newRef}
-                onChange={(e) => setNewRef(e.target.value)}
-                placeholder="Paste new experiment theory or lab instructions here..."
-                className="flex-1 bg-black/20 border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:border-yellow-500/50 text-slate-200 placeholder:text-slate-500"
-            />
-            <button 
-                type="submit"
-                className="bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-300 border border-yellow-600/30 px-6 rounded-xl flex items-center gap-2 font-medium transition-colors"
-            >
-                <Plus size={18} /> Add
-            </button>
+        <form onSubmit={handleAddReference} className="mb-6">
+            <div className="relative">
+                <textarea 
+                    value={newRef}
+                    onChange={(e) => setNewRef(e.target.value)}
+                    placeholder="Or paste experiment theory, procedures, or instructions here..."
+                    className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:border-yellow-500/50 text-slate-200 placeholder:text-slate-500 min-h-[120px]"
+                />
+                <button 
+                    type="submit"
+                    disabled={!newRef.trim()}
+                    className="absolute bottom-3 right-3 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-300 border border-yellow-600/30 px-4 py-1.5 rounded-lg flex items-center gap-2 font-medium transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <Plus size={14} /> Add Text
+                </button>
+            </div>
         </form>
 
-        <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+        <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
             {references.map((ref, idx) => (
                 <div key={idx} className="bg-white/5 p-4 rounded-xl flex items-start justify-between group border border-white/5 hover:border-white/10 transition-colors">
-                    <p className="text-xs text-slate-300 line-clamp-2 font-mono flex-1 mr-4 opacity-80 group-hover:opacity-100">{ref}</p>
+                    <div className="flex-1 mr-4">
+                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Entry #{idx + 1}</span>
+                         <p className="text-sm text-slate-300 line-clamp-3 font-mono opacity-80 group-hover:opacity-100 whitespace-pre-wrap">{ref}</p>
+                    </div>
                     <button 
                         onClick={() => handleRemoveReference(idx)}
-                        className="text-slate-500 hover:text-red-400 opacity-50 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/10 rounded"
-                        title="Remove Reference"
+                        className="text-slate-500 hover:text-red-400 opacity-50 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-500/10 rounded-lg"
+                        title="Remove Entry"
                     >
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                     </button>
                 </div>
             ))}
             {references.length === 0 && (
-                <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-xl">
-                    <p className="text-slate-500 text-sm">No custom references added.</p>
-                    <p className="text-slate-600 text-xs mt-1">The system is using the default 2025 Manual context.</p>
+                <div className="text-center py-12 border-2 border-dashed border-white/5 rounded-xl bg-white/5">
+                    <AlertTriangle className="mx-auto mb-3 text-yellow-500/50" size={32} />
+                    <p className="text-slate-400 font-medium">Manual is Empty</p>
+                    <p className="text-slate-500 text-sm mt-1 max-w-sm mx-auto">
+                        The AI has no context. Upload a manual (PDF, Text) to enable report generation.
+                    </p>
                 </div>
             )}
         </div>
