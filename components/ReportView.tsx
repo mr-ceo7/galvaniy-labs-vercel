@@ -182,7 +182,9 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
 
 // This function generates the standalone HTML file string
 function generateInteractiveHTML(data: any, code: string) {
-  const jsonString = JSON.stringify(data);
+  // CRITICAL: Escape script closing tags to prevent breaking the HTML output
+  const jsonString = JSON.stringify(data).replace(/<\/script>/g, '<\\/script>');
+  const simType = (data.simulationType || 'general').toLowerCase(); 
   
   // Define controls for each simulation type
   const simConfigs: Record<string, any[]> = {
@@ -211,7 +213,7 @@ function generateInteractiveHTML(data: any, code: string) {
     ]
   };
 
-  const activeControls = simConfigs[data.simulationType] || simConfigs['general'];
+  const activeControls = simConfigs[simType] || simConfigs['general'];
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -637,7 +639,7 @@ function generateInteractiveHTML(data: any, code: string) {
         const simulation = {
             active: false,
             frame: 0,
-            type: reportData.simulationType || 'general',
+            type: (reportData.simulationType || 'general').toLowerCase(), // Force lowercase type matching
             params: initialParams, 
             
             toggle: function() {
