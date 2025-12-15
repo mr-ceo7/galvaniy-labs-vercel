@@ -14,7 +14,10 @@ export function validateReport(report: any, experimentCode: string): ValidationR
   if (!report.apparatus || !Array.isArray(report.apparatus)) errors.push('Missing apparatus array');
   if (!report.procedure || !Array.isArray(report.procedure)) errors.push('Missing procedure array');
   if (!report.tableData || !Array.isArray(report.tableData) || report.tableData.length === 0) errors.push('Missing or empty tableData');
-  if (!report.simulationType) warnings.push('Missing simulationType, defaulting to generic');
+  
+  if (!report.simulationScript) {
+      warnings.push('Missing simulationScript - Canvas will be empty');
+  }
   
   if (errors.length > 0) {
     return { valid: false, errors, warnings };

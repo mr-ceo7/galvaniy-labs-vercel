@@ -2,6 +2,29 @@ import { GoogleGenAI } from "@google/genai";
 import { storageService } from "./storageService";
 import { validateReport } from "./reportValidator";
 
+// Helper to convert Blob/File to Base64 String (without data URI prefix)
+const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: string; mimeType: string } }> => {
+    const base64EncodedDataPromise = new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+                resolve(reader.result.split(',')[1]);
+            } else {
+                reject(new Error("Failed to convert file to base64"));
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+    
+    return {
+        inlineData: {
+            data: await base64EncodedDataPromise,
+            mimeType: "application/pdf",
+        },
+    };
+};
+
 export const generateLabReport = async (experimentCode: string): Promise<string> => {
   if (!process.env.API_KEY) {
     throw new Error("API Key is missing. Please set process.env.API_KEY");
@@ -9,53 +32,45 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
-  // 1. Context Search: Find pages that contain the experiment code
-  const relevantPages = storageService.findRelevantPages(experimentCode);
+  // 1. Get the Full Manual from Storage
+  const fullManualFile = await storageService.getFullManualBlob();
   
-  // Validation: Ensure manual exists
-  if (relevantPages.length === 0) {
-      throw new Error("No relevant pages found in the Manual for this code. Please contact Admin to upload the correct manual.");
+  if (!fullManualFile) {
+      throw new Error("No Manual Found. Please contact Admin to upload the PDF manual.");
   }
 
-  // 2. Build Multimodal Request
-  // We send the text content of the pages AND the images of the pages to the AI.
-  // We instruct the AI to identify which page has the relevant diagram.
-  const contentParts: any[] = [];
+  // 2. Build Multimodal Request (PDF + Prompt)
+  const pdfPart = await fileToGenerativePart(fullManualFile);
   
-  let combinedTextContext = "";
-  relevantPages.forEach((page) => {
-      combinedTextContext += `--- PAGE ${page.id} (Index: ${page.pageNumber}) ---\n${page.text}\n\n`;
-      if (page.image) {
-          const base64Data = page.image.split(',')[1]; // Strip header
-          contentParts.push({ text: `Image for Page ID: ${page.id}` });
-          contentParts.push({
-             inlineData: {
-                 mimeType: "image/jpeg",
-                 data: base64Data
-             }
-          });
-      }
-  });
-
   const systemPrompt = `
   You are an expert Physics Laboratory Assistant.
-  Your task is to generate a lab report for Experiment Code: "${experimentCode}".
+  Your task is to generate a comprehensive lab report for Experiment Code: "${experimentCode}".
   
-  I have provided text and images from the relevant pages of the uploaded manual.
-  
+  I have attached the FULL Laboratory Manual as a PDF. 
+  SEARCH through this PDF to find the experiment labeled "${experimentCode}". It might be titled differently or located anywhere in the document. Find it.
+
   STRICT RULES:
-  1. **Strict Adherence**: Extract Title, Objectives, Apparatus, Theory, and Procedure VERBATIM from the manual text provided.
-  2. **Visual Awareness**: Look at the provided images. 
-     - If you see a circuit diagram or apparatus setup in the images for this experiment, you MUST return the "relevantPageId" of that image in the JSON.
-     - Use the visual information in the image to accurately describe the "Procedure" (e.g. "Connect as shown in the diagram...").
-  3. **Realistic Data**: Generate imperfect, realistic "tableData" with experimental error.
-  4. **Graphing**: Only include "graphConfig" if the manual explicitly asks for a graph.
+  1. **Strict Adherence**: Extract Title, Objectives, Apparatus, Theory, and Procedure VERBATIM from the manual text for this specific experiment.
+  2. **Visual Awareness**: Look at the diagrams in the PDF for this experiment.
+     - Use the visual information to accurately describe the "Procedure".
+     - Note: You cannot return the image itself, but you must describe the setup if procedure text is missing.
+  
+  3. **Realistic Data**: 
+     - Generate "tableData" with imperfect, realistic values (include random experimental error).
+     - Ensure "tableHeaders" includes units.
+  
+  4. **Interactive Simulation (CRITICAL)**:
+     - You must generate a **Custom HTML5 Canvas Animation** for this specific experiment.
+     - **controls**: Define the sliders needed.
+     - **simulationScript**: Write the JavaScript function body that draws the experiment frame-by-frame on a 2D Canvas.
+       - Available variables: \`ctx\` (CanvasContext), \`width\` (800), \`height\` (300), \`frame\` (int counter), \`params\` (object matching control IDs).
+       - The script must clear the canvas and draw the apparatus state based on \`params\`.
+  
+  5. **Analysis**:
+     - **graphConfig**: If the experiment involves finding a relationship, provide a graph config.
+     - **calculationScript**: Provide a JavaScript function body to calculate results from 'rows' (the table data).
+     - **analysisTemplate**: Provide a string that uses {{placeholders}} matching the keys returned by calculationScript.
 
-  MANUAL TEXT CONTEXT:
-  ${combinedTextContext}
-  `;
-
-  const schemaInstruction = `
   STRICT JSON SCHEMA:
   {
     "title": "String",
@@ -67,19 +82,28 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
     "tableData": [[number, number]], 
     "graphConfig": { "xColumnIndex": 0, "yColumnIndex": 1, "xLabel": "Str", "yLabel": "Str", "title": "Str" } or null, 
     "questions": [{ "question": "Str", "answer": "Str" }],
+    
+    "controls": [
+      { "id": "string", "label": "string", "min": number, "max": number, "val": number, "unit": "string" }
+    ],
+    "simulationScript": "String (The JS code for the canvas draw loop)",
+    
     "calculationScript": "JavaScript function body string",
     "analysisTemplate": "Analysis text using {{placeholders}}",
     "discussion": "String",
     "conclusion": "String",
-    "simulationType": "String",
-    "relevantPageId": "String (The ID of the page containing the diagram, or null)"
+    "relevantPageId": "String (Leave null as we are using full PDF)"
   }
   
   Return ONLY the JSON. No Markdown.
   `;
 
-  // Add system prompt to parts
-  contentParts.push({ text: systemPrompt + schemaInstruction });
+  // Request Construction
+  // Note: We use gemini-1.5-flash which supports PDF input natively via inlineData
+  const parts = [
+      pdfPart, 
+      { text: systemPrompt }
+  ];
 
   let attempts = 0;
   const MAX_ATTEMPTS = 3;
@@ -87,11 +111,11 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   while (attempts < MAX_ATTEMPTS) {
     try {
       attempts++;
-      console.log(`[AI] Generation Attempt ${attempts} for ${experimentCode}`);
+      console.log(`[AI] Generation Attempt ${attempts} for ${experimentCode} using Full PDF`);
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: { parts: contentParts },
+        contents: { parts: parts },
         config: { responseMimeType: 'application/json' }
       });
 
@@ -109,28 +133,20 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
 
       if (json.error) throw new Error(json.error);
 
-      // Post-Processing: Inject Diagram Image
-      if (json.relevantPageId) {
-          const pageWithDiagram = relevantPages.find(p => p.id === json.relevantPageId);
-          if (pageWithDiagram && pageWithDiagram.image) {
-              json.diagram = pageWithDiagram.image; // Inject the full base64 string
-          }
-      }
-
       // Validate
       const validation = validateReport(json, experimentCode);
       if (validation.valid) {
         return JSON.stringify(json);
       } else {
-        contentParts.push({ text: `PREVIOUS INVALID. Fix: ${validation.errors.join(', ')}` });
+        // Retry with error context
+        console.warn(`Validation failed: ${validation.errors.join(', ')}`);
       }
 
     } catch (error: any) {
       console.error(`[AI] Error:`, error);
-      if (error.message.includes("not found")) throw error;
       if (attempts === MAX_ATTEMPTS) break;
     }
   }
 
-  throw new Error(`Failed to generate report for ${experimentCode}.`);
+  throw new Error(`Failed to generate report for ${experimentCode}. Ensure the code exists in the manual.`);
 };

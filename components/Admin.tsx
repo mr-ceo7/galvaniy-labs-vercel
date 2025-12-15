@@ -14,12 +14,22 @@ interface AdminProps {
 export const Admin: React.FC<AdminProps> = ({ theme }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [pages, setPages] = useState<ManualPage[]>([]);
+  const [loadingPages, setLoadingPages] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
 
-  const loadData = () => {
+  const loadData = async () => {
     setUsers(storageService.getAllUsers());
-    setPages(storageService.getManualPages());
+    try {
+        setLoadingPages(true);
+        const storedPages = await storageService.getManualPages();
+        // Sort by page number
+        setPages(storedPages.sort((a,b) => a.pageNumber - b.pageNumber));
+    } catch (err) {
+        console.error("Failed to load pages from DB", err);
+    } finally {
+        setLoadingPages(false);
+    }
   };
 
   useEffect(() => {
@@ -28,7 +38,8 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
 
   const toggleRevoke = (email: string) => {
     storageService.revokeUser(email);
-    loadData();
+    // Refresh user list only
+    setUsers(storageService.getAllUsers());
   };
 
   const handleUpdateLimit = (email: string, delta: number) => {
@@ -37,64 +48,80 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     const currentLimit = user.customLimit !== undefined ? user.customLimit : 3;
     const newLimit = Math.max(0, currentLimit + delta);
     storageService.updateUserLimit(email, newLimit);
-    loadData();
+    setUsers(storageService.getAllUsers());
   };
 
-  const handleClearManual = () => {
+  const handleClearManual = async () => {
     if (window.confirm("Are you sure you want to delete ALL manual content? This cannot be undone.")) {
-      storageService.clearManual();
+      await storageService.clearManual();
       loadData();
     }
   };
 
   const processPDF = async (file: File) => {
     setUploading(true);
-    setUploadProgress('Loading PDF...');
-    
+    setUploadProgress('Saving Raw Manual...');
+
     try {
+        // 1. Save the raw file for the AI to use directly
+        await storageService.saveFullManualBlob(file);
+
+        setUploadProgress('Initializing Page Preview...');
+        
+        // 2. Process pages for the Admin UI preview (keeps visual feedback)
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const numPages = Math.min(pdf.numPages, 20); // Limit to 20 pages for demo to avoid LocalStorage overflow
+        const numPages = pdf.numPages; 
         
-        const newPages: ManualPage[] = [];
+        // Clear existing pages in DB to match new file
+        await storageService.clearPages();
+        
+        const batchSize = 5;
+        let processedCount = 0;
 
-        for (let i = 1; i <= numPages; i++) {
-            setUploadProgress(`Processing Page ${i} of ${numPages}...`);
-            const page = await pdf.getPage(i);
-            
-            // Extract Text
-            const textContent = await page.getTextContent();
-            const text = textContent.items.map((item: any) => item.str).join(' ');
+        for (let i = 1; i <= numPages; i += batchSize) {
+            const batch: ManualPage[] = [];
+            const end = Math.min(i + batchSize - 1, numPages);
 
-            // Render Image
-            const viewport = page.getViewport({ scale: 1.0 });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            
-            // Resize for storage efficiency (Max width 800px)
-            const scale = Math.min(1, 800 / viewport.width);
-            const scaledViewport = page.getViewport({ scale });
-            
-            canvas.height = scaledViewport.height;
-            canvas.width = scaledViewport.width;
-
-            if (context) {
-                // Cast render parameters to any to resolve type mismatch with pdfjs-dist RenderParameters
-                await page.render({ canvasContext: context, viewport: scaledViewport } as any).promise;
-                const imageBase64 = canvas.toDataURL('image/jpeg', 0.6); // Compress JPEG
+            for (let j = i; j <= end; j++) {
+                setUploadProgress(`Processing Preview ${j} of ${numPages}...`);
+                const page = await pdf.getPage(j);
                 
-                newPages.push({
-                    id: `${Date.now()}-${i}`,
-                    pageNumber: i,
-                    text: text,
-                    image: imageBase64
-                });
+                // Extract Text (Used for fallback or lightweight search if needed)
+                const textContent = await page.getTextContent();
+                const text = textContent.items.map((item: any) => item.str).join(' ');
+
+                // Render Image
+                const viewport = page.getViewport({ scale: 1.0 });
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                // Resize for storage efficiency (Max width 800px)
+                const scale = Math.min(1, 800 / viewport.width);
+                const scaledViewport = page.getViewport({ scale });
+                
+                canvas.height = scaledViewport.height;
+                canvas.width = scaledViewport.width;
+
+                if (context) {
+                    await page.render({ canvasContext: context, viewport: scaledViewport } as any).promise;
+                    const imageBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                    
+                    batch.push({
+                        id: `${Date.now()}-${j}`,
+                        pageNumber: j,
+                        text: text,
+                        image: imageBase64
+                    });
+                }
             }
+            
+            await storageService.addManualPages(batch);
+            processedCount += batch.length;
         }
         
-        storageService.addManualPages(newPages);
         loadData();
-        alert(`Successfully uploaded ${newPages.length} pages.`);
+        alert(`Successfully uploaded manual. Saved raw file and processed ${processedCount} pages for preview.`);
 
     } catch (error) {
         console.error("PDF Processing Error", error);
@@ -112,13 +139,13 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     if (file.type === 'application/pdf') {
         processPDF(file);
     } else {
-        alert("Please upload a PDF file to enable diagram extraction.");
+        alert("Please upload a PDF file.");
     }
     e.target.value = ''; // Reset input
   };
 
-  const handleDeletePage = (id: string) => {
-      storageService.removePage(id);
+  const handleDeletePage = async (id: string) => {
+      await storageService.removePage(id);
       loadData();
   };
 
@@ -156,7 +183,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
           <h2 className="text-xl font-bold flex items-center gap-2 text-white">
             <Shield className="text-red-400" /> User Management
           </h2>
-          <button onClick={loadData} className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"><RefreshCcw size={18} className="text-slate-400" /></button>
+          <button onClick={() => setUsers(storageService.getAllUsers())} className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"><RefreshCcw size={18} className="text-slate-400" /></button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -195,13 +222,19 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
       {/* Manual Management */}
       <div className="glass-panel rounded-2xl p-6">
         <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-                <FileText className="text-yellow-400" /> Lab Manual (Text & Diagrams)
-            </h2>
+            <div className="flex items-center gap-4">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                    <FileText className="text-yellow-400" /> Lab Manual
+                </h2>
+                <span className="bg-white/10 px-2 py-1 rounded text-xs text-slate-300">
+                    {loadingPages ? 'Loading...' : `${pages.length} Pages Stored`}
+                </span>
+            </div>
+            
             <div className="flex gap-2">
                 <label className={`cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
                     {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-                    {uploading ? uploadProgress : 'Upload PDF Manual'}
+                    {uploading ? uploadProgress : 'Upload Full Manual'}
                     <input type="file" onChange={handleFileUpload} className="hidden" accept=".pdf" />
                 </label>
                 {pages.length > 0 && (
@@ -212,9 +245,10 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
             </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto custom-scrollbar p-1">
+        {/* Manual Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 max-h-[600px] overflow-y-auto custom-scrollbar p-1">
             {pages.map((page) => (
-                <div key={page.id} className="bg-black/40 rounded-xl overflow-hidden border border-white/5 group relative">
+                <div key={page.id} className="bg-black/40 rounded-lg overflow-hidden border border-white/5 group relative">
                     {page.image ? (
                         <div className="aspect-[3/4] relative">
                              <img src={page.image} alt={`Page ${page.pageNumber}`} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
@@ -225,19 +259,19 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
                             <FileText size={32} />
                         </div>
                     )}
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <p className="text-xs font-bold text-white">Page {page.pageNumber}</p>
-                        <p className="text-[10px] text-slate-400 line-clamp-2">{page.text.substring(0, 50)}...</p>
+                    <div className="absolute bottom-0 left-0 right-0 p-2">
+                        <p className="text-xs font-bold text-white">Pg {page.pageNumber}</p>
                     </div>
                     <button 
                         onClick={() => handleDeletePage(page.id)}
-                        className="absolute top-2 right-2 bg-red-500/80 p-1.5 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-1 right-1 bg-red-500/80 p-1 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                        <Trash2 size={12} />
+                        <Trash2 size={10} />
                     </button>
                 </div>
             ))}
-            {pages.length === 0 && (
+            
+            {!loadingPages && pages.length === 0 && (
                 <div className="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-xl bg-white/5">
                     <AlertTriangle className="mx-auto mb-3 text-yellow-500/50" size={32} />
                     <p className="text-slate-400 font-medium">No Manual Uploaded</p>

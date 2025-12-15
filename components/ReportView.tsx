@@ -91,8 +91,12 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
     y += 5;
 
     addText("Analysis:", 12, true);
-    // Strip placeholders for PDF
-    addText(parsedReport.analysisTemplate.replace(/\{\{.*?\}\}/g, '[calculated]'));
+    if (parsedReport.analysisTemplate) {
+        // Strip placeholders for PDF
+        addText(parsedReport.analysisTemplate.replace(/\{\{.*?\}\}/g, '[calculated]'));
+    } else {
+        addText("No automated analysis provided.");
+    }
     y += 5;
 
     if (parsedReport.questions && parsedReport.questions.length > 0) {
@@ -184,36 +188,11 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
 function generateInteractiveHTML(data: any, code: string) {
   // CRITICAL: Escape script closing tags to prevent breaking the HTML output
   const jsonString = JSON.stringify(data).replace(/<\/script>/g, '<\\/script>');
-  const simType = (data.simulationType || 'general').toLowerCase(); 
   
-  // Define controls for each simulation type (same as before)
-  const simConfigs: Record<string, any[]> = {
-    pendulum: [
-      { id: 'length', label: 'Length (L)', min: 50, max: 280, val: 200, unit: 'cm' },
-      { id: 'gravity', label: 'Gravity (g)', min: 1, max: 20, val: 9.8, unit: 'm/s²' }
-    ],
-    heating: [
-      { id: 'heat', label: 'Heat Intensity', min: 0, max: 100, val: 50, unit: '%' },
-      { id: 'ambient', label: 'Ambient Temp', min: 0, max: 40, val: 25, unit: '°C' }
-    ],
-    spring: [
-      { id: 'mass', label: 'Mass Load', min: 10, max: 100, val: 50, unit: 'g' },
-      { id: 'k', label: 'Spring Constant', min: 1, max: 10, val: 5, unit: 'N/m' }
-    ],
-    circuit: [
-      { id: 'voltage', label: 'Voltage (V)', min: 0, max: 24, val: 12, unit: 'V' },
-      { id: 'resistance', label: 'Resistance (R)', min: 10, max: 500, val: 100, unit: 'Ω' }
-    ],
-    wave: [
-      { id: 'frequency', label: 'Frequency', min: 1, max: 20, val: 5, unit: 'Hz' },
-      { id: 'amplitude', label: 'Amplitude', min: 10, max: 100, val: 50, unit: 'px' }
-    ],
-    general: [
-      { id: 'speed', label: 'Sim Speed', min: 0, max: 5, val: 1, unit: 'x' }
-    ]
-  };
-
-  const activeControls = simConfigs[simType] || simConfigs['general'];
+  // Default to a simple speed control if AI forgets to generate controls
+  const controls = data.controls && data.controls.length > 0 
+    ? data.controls 
+    : [{ id: 'speed', label: 'Sim Speed', min: 0, max: 5, val: 1, unit: 'x' }];
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -301,7 +280,7 @@ function generateInteractiveHTML(data: any, code: string) {
                 <div class="space-y-4 p-4 bg-white/5 rounded-xl border border-white/5">
                     <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Controls</h3>
                     <div id="simControls" class="space-y-4">
-                        ${activeControls.map((ctrl: any) => `
+                        ${controls.map((ctrl: any) => `
                             <div>
                                 <div class="flex justify-between text-xs text-slate-300 mb-1">
                                     <label for="ctrl-${ctrl.id}">${ctrl.label}</label>
@@ -340,7 +319,9 @@ function generateInteractiveHTML(data: any, code: string) {
 
         <section class="glass rounded-2xl p-6 border-l-4 border-cyan-500">
             <h2 class="text-xl font-semibold text-cyan-400 mb-4">Data Analysis</h2>
-            <div id="analysisContent" class="prose prose-invert max-w-none text-slate-300">Loading analysis...</div>
+            <div id="analysisContent" class="prose prose-invert max-w-none text-slate-300">
+                ${data.analysisTemplate ? 'Loading analysis...' : 'No automated analysis available.'}
+            </div>
         </section>
 
         ${data.questions && data.questions.length > 0 ? `
@@ -364,12 +345,10 @@ function generateInteractiveHTML(data: any, code: string) {
 
     <script>
         const reportData = ${jsonString};
-        // ... (Existing interactive script logic for charts and simulation)
-        // Re-injecting standard interactive logic here for brevity in this specific update block
         
         let chartInstance = null;
         const initialParams = {};
-        ${JSON.stringify(activeControls)}.forEach(c => initialParams[c.id] = c.val);
+        ${JSON.stringify(controls)}.forEach(c => initialParams[c.id] = c.val);
         
         const tableBody = document.getElementById('dataTableBody');
         const analysisDiv = document.getElementById('analysisContent');
@@ -430,6 +409,7 @@ function generateInteractiveHTML(data: any, code: string) {
         }
 
         function updateAnalysis() {
+            if (!reportData.calculationScript || !reportData.analysisTemplate) return;
             try {
                 const calcFunc = new Function('rows', reportData.calculationScript);
                 const results = calcFunc(reportData.tableData);
@@ -439,7 +419,7 @@ function generateInteractiveHTML(data: any, code: string) {
                     template = template.replace(regex, \`<span class="text-cyan-300 font-bold">\${typeof value === 'number' ? value.toFixed(4) : value}</span>\`);
                 }
                 analysisDiv.innerHTML = template.replace(/\\n/g, '<br>');
-            } catch (e) { analysisDiv.innerHTML = "Error calculating."; }
+            } catch (e) { analysisDiv.innerHTML = "Error calculating analysis."; }
         }
 
         function updateSimParam(id, val, unit) {
@@ -447,23 +427,37 @@ function generateInteractiveHTML(data: any, code: string) {
             simulation.params[id] = parseFloat(val);
         }
 
+        // DYNAMIC SIMULATION ENGINE
+        // This takes the AI-generated JS string and executes it safely inside the animation loop
+        let drawFunc = null;
+        try {
+            if (reportData.simulationScript) {
+                drawFunc = new Function('ctx', 'width', 'height', 'frame', 'params', reportData.simulationScript);
+            }
+        } catch (e) { console.error("Invalid Simulation Script", e); }
+
         const simulation = {
-            active: false, frame: 0, params: initialParams, type: '${simType}',
+            active: false, frame: 0, params: initialParams,
             toggle: function() { this.active = !this.active; document.getElementById('simOverlay').style.opacity = this.active ? 0 : 1; if(this.active) this.loop(); },
             init: function() { this.draw(); },
             loop: function() { if(!this.active) return; this.frame++; this.draw(); requestAnimationFrame(() => this.loop()); },
             draw: function() {
-                simCtx.clearRect(0,0,800,300);
-                simCtx.fillStyle = '#1e293b'; simCtx.fillRect(0,0,800,300);
-                // Basic generic visualizer as placeholder for the specific logic
-                simCtx.fillStyle = '#fff'; simCtx.fillText("Simulation Running: " + this.type, 10, 20);
+                const w = 800; const h = 300;
+                // Default background
+                simCtx.clearRect(0,0,w,h);
+                simCtx.fillStyle = '#1e293b'; simCtx.fillRect(0,0,w,h);
                 
-                // (Full simulation logic from previous file would go here for production)
-                // Re-implementing a simple pendulum for visual confirmation
-                if(this.type === 'pendulum') {
-                    const x = 400 + Math.sin(this.frame * 0.05) * (this.params.length || 100);
-                    simCtx.strokeStyle='#fff'; simCtx.beginPath(); simCtx.moveTo(400,0); simCtx.lineTo(x, 200); simCtx.stroke();
-                    simCtx.beginPath(); simCtx.arc(x, 200, 10, 0, 6.28); simCtx.fill();
+                if (drawFunc) {
+                    try {
+                        drawFunc(simCtx, w, h, this.frame, this.params);
+                    } catch (e) {
+                        simCtx.fillStyle = 'red';
+                        simCtx.fillText("Sim Error: " + e.message, 10, 20);
+                    }
+                } else {
+                    simCtx.fillStyle = '#64748b';
+                    simCtx.font = "20px Inter";
+                    simCtx.fillText("No visual simulation provided for this experiment.", 200, 150);
                 }
             }
         };
