@@ -26,9 +26,16 @@ export interface Theme {
   gradient: string;
 }
 
+export interface ManualPage {
+  id: string;
+  pageNumber: number;
+  text: string;
+  image?: string; // Base64 string of the page
+}
+
 // Simulated Database Structure stored in LocalStorage
 export interface DbSchema {
   users: User[];
   reports: Record<string, Report[]>; // key is email
-  references: string[]; // Added for dynamic AI context
+  manualPages: ManualPage[]; // Replaces simple references
 }

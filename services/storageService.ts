@@ -1,5 +1,4 @@
-import { User, Report, DbSchema } from '../types';
-import { PHYSICS_LAB_MANUAL_CONTEXT } from '../constants';
+import { User, Report, DbSchema, ManualPage } from '../types';
 
 const DB_KEY = 'physics_labs_db';
 const SESSION_KEY = 'physics_labs_session';
@@ -7,16 +6,34 @@ const SESSION_KEY = 'physics_labs_session';
 const getDb = (): DbSchema => {
   const data = localStorage.getItem(DB_KEY);
   if (!data) {
-    return { users: [], reports: {}, references: [] };
+    return { users: [], reports: {}, manualPages: [] };
   }
   const db = JSON.parse(data);
-  // Migration for existing DBs without references
-  if (!db.references) db.references = [];
+  // Migration for old DBs
+  if (!db.manualPages) {
+      db.manualPages = [];
+      // If there were old references, migrate them as text-only pages
+      if ((db as any).references) {
+          (db as any).references.forEach((text: string, idx: number) => {
+              db.manualPages.push({
+                  id: `legacy-${idx}`,
+                  pageNumber: idx + 1,
+                  text: text
+              });
+          });
+          delete (db as any).references;
+      }
+  }
   return db;
 };
 
 const saveDb = (data: DbSchema) => {
-  localStorage.setItem(DB_KEY, JSON.stringify(data));
+  try {
+    localStorage.setItem(DB_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error("Storage Quota Exceeded", e);
+    alert("Storage limit reached. Please clear some manual pages or reports.");
+  }
 };
 
 export const storageService = {
@@ -113,33 +130,47 @@ export const storageService = {
     return parseInt(localStorage.getItem(key) || '0');
   },
 
-  // --- References Management ---
-  getReferences: (): string[] => {
-    return getDb().references;
+  // --- Manual Pages Management ---
+  getManualPages: (): ManualPage[] => {
+    return getDb().manualPages;
   },
 
-  addReference: (ref: string) => {
+  addManualPages: (pages: ManualPage[]) => {
     const db = getDb();
-    db.references.push(ref);
+    db.manualPages.push(...pages);
     saveDb(db);
   },
 
-  removeReference: (index: number) => {
+  clearManual: () => {
     const db = getDb();
-    db.references.splice(index, 1);
+    db.manualPages = [];
     saveDb(db);
   },
 
-  clearReferences: () => {
+  removePage: (id: string) => {
     const db = getDb();
-    db.references = [];
+    db.manualPages = db.manualPages.filter(p => p.id !== id);
     saveDb(db);
   },
 
-  getFullContext: (): string => {
+  // Finds pages that contain the experiment code in their text
+  // Returns top matches (limit 5 to save context)
+  findRelevantPages: (experimentCode: string): ManualPage[] => {
     const db = getDb();
-    const customRefs = db.references.join('\n\n');
-    return `${PHYSICS_LAB_MANUAL_CONTEXT}\n\nADDITIONAL ADMIN REFERENCES:\n${customRefs}`;
+    const normalizedCode = experimentCode.toLowerCase().replace('-', '');
+    
+    // Filter pages containing the code
+    const matches = db.manualPages.filter(p => {
+        const text = p.text.toLowerCase().replace('-', '');
+        return text.includes(normalizedCode);
+    });
+
+    // If matches found, return them (up to 5)
+    if (matches.length > 0) return matches.slice(0, 5);
+
+    // Fallback: If no exact matches, return first 3 pages (often index/content) + random sample
+    // This is a last resort to provide some context
+    return db.manualPages.slice(0, 3);
   },
 
   // --- Session Management ---

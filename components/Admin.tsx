@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { storageService } from '../services/storageService';
-import { User, Theme } from '../types';
-import { Shield, Ban, CheckCircle, RefreshCcw, Users, FileText, Trash2, Plus, Upload, AlertTriangle, Loader2 } from 'lucide-react';
+import { User, Theme, ManualPage } from '../types';
+import { Shield, Ban, CheckCircle, RefreshCcw, Users, FileText, Trash2, Plus, Upload, AlertTriangle, Loader2, Image as ImageIcon } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Configure the worker to match the library version
@@ -13,13 +13,13 @@ interface AdminProps {
 
 export const Admin: React.FC<AdminProps> = ({ theme }) => {
   const [users, setUsers] = useState<User[]>([]);
-  const [references, setReferences] = useState<string[]>([]);
-  const [newRef, setNewRef] = useState('');
+  const [pages, setPages] = useState<ManualPage[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   const loadData = () => {
     setUsers(storageService.getAllUsers());
-    setReferences(storageService.getReferences());
+    setPages(storageService.getManualPages());
   };
 
   useEffect(() => {
@@ -34,94 +34,92 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
   const handleUpdateLimit = (email: string, delta: number) => {
     const user = users.find(u => u.email === email);
     if (!user) return;
-    
-    // Default is 3 if customLimit is undefined
     const currentLimit = user.customLimit !== undefined ? user.customLimit : 3;
     const newLimit = Math.max(0, currentLimit + delta);
-    
     storageService.updateUserLimit(email, newLimit);
     loadData();
   };
 
-  const handleAddReference = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newRef.trim()) {
-      storageService.addReference(newRef);
-      setNewRef('');
+  const handleClearManual = () => {
+    if (window.confirm("Are you sure you want to delete ALL manual content? This cannot be undone.")) {
+      storageService.clearManual();
       loadData();
     }
   };
 
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    // Load the document using pdfjs-dist
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-            .map((item: any) => item.str)
-            .join(' ');
-        fullText += `--- PDF Page ${i} ---\n${pageText}\n\n`;
-    }
-    return fullText;
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processPDF = async (file: File) => {
     setUploading(true);
-    // Reset the input so the same file can be selected again if needed
-    e.target.value = '';
-
+    setUploadProgress('Loading PDF...');
+    
     try {
-        if (file.type === 'application/pdf') {
-            const text = await extractTextFromPDF(file);
-            if (text.trim().length === 0) {
-                 alert("Could not extract text from this PDF. It might be an image-only PDF.");
-            } else if (text.length > 500000) {
-                 alert("PDF content too large. Please split it.");
-            } else {
-                 storageService.addReference(`[PDF: ${file.name}]\n\n${text}`);
-                 loadData();
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const numPages = Math.min(pdf.numPages, 20); // Limit to 20 pages for demo to avoid LocalStorage overflow
+        
+        const newPages: ManualPage[] = [];
+
+        for (let i = 1; i <= numPages; i++) {
+            setUploadProgress(`Processing Page ${i} of ${numPages}...`);
+            const page = await pdf.getPage(i);
+            
+            // Extract Text
+            const textContent = await page.getTextContent();
+            const text = textContent.items.map((item: any) => item.str).join(' ');
+
+            // Render Image
+            const viewport = page.getViewport({ scale: 1.0 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            // Resize for storage efficiency (Max width 800px)
+            const scale = Math.min(1, 800 / viewport.width);
+            const scaledViewport = page.getViewport({ scale });
+            
+            canvas.height = scaledViewport.height;
+            canvas.width = scaledViewport.width;
+
+            if (context) {
+                // Cast render parameters to any to resolve type mismatch with pdfjs-dist RenderParameters
+                await page.render({ canvasContext: context, viewport: scaledViewport } as any).promise;
+                const imageBase64 = canvas.toDataURL('image/jpeg', 0.6); // Compress JPEG
+                
+                newPages.push({
+                    id: `${Date.now()}-${i}`,
+                    pageNumber: i,
+                    text: text,
+                    image: imageBase64
+                });
             }
-        } else {
-            // Default text handling for other types
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const text = event.target?.result as string;
-                if (text) {
-                    if (text.length > 500000) {
-                        alert("File too large. Please split it.");
-                        return;
-                    }
-                    storageService.addReference(`[File: ${file.name}]\n\n${text}`);
-                    loadData();
-                }
-            };
-            reader.readAsText(file);
         }
+        
+        storageService.addManualPages(newPages);
+        loadData();
+        alert(`Successfully uploaded ${newPages.length} pages.`);
+
     } catch (error) {
-        console.error("Upload error:", error);
-        alert("Failed to read file. If it is a PDF, ensure it contains selectable text.");
+        console.error("PDF Processing Error", error);
+        alert("Failed to process PDF. Ensure it is a valid file.");
     } finally {
         setUploading(false);
+        setUploadProgress('');
     }
   };
 
-  const handleRemoveReference = (index: number) => {
-    storageService.removeReference(index);
-    loadData();
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.type === 'application/pdf') {
+        processPDF(file);
+    } else {
+        alert("Please upload a PDF file to enable diagram extraction.");
+    }
+    e.target.value = ''; // Reset input
   };
 
-  const handleClearAllRefs = () => {
-    if (window.confirm("Are you sure you want to delete ALL manual content? This cannot be undone.")) {
-      storageService.clearReferences();
+  const handleDeletePage = (id: string) => {
+      storageService.removePage(id);
       loadData();
-    }
   };
 
   // Statistics
@@ -146,7 +144,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
             <FileText size={28} />
           </div>
           <div>
-            <p className="text-slate-400 text-sm uppercase tracking-wide">Total Reports Generated</p>
+            <p className="text-slate-400 text-sm uppercase tracking-wide">Total Reports</p>
             <p className="text-3xl font-bold text-white">{totalReports}</p>
           </div>
         </div>
@@ -158,69 +156,35 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
           <h2 className="text-xl font-bold flex items-center gap-2 text-white">
             <Shield className="text-red-400" /> User Management
           </h2>
-          <button 
-            onClick={loadData} 
-            className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
-            title="Refresh Data"
-          >
-            <RefreshCcw size={18} className="text-slate-400" />
-          </button>
+          <button onClick={loadData} className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"><RefreshCcw size={18} className="text-slate-400" /></button>
         </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="text-xs text-slate-400 uppercase bg-black/20">
               <tr>
-                <th className="px-4 py-3 rounded-tl-lg">Email</th>
+                <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Role</th>
                 <th className="px-4 py-3 text-center">Reports</th>
-                <th className="px-4 py-3 text-center">Daily Limit</th>
+                <th className="px-4 py-3 text-center">Limit</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 rounded-tr-lg">Action</th>
+                <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {users.map((u) => (
                 <tr key={u.email} className="hover:bg-white/5 transition-colors">
                   <td className="px-4 py-3 font-medium text-slate-200">{u.email}</td>
-                  <td className="px-4 py-3 text-xs">
-                    <span className={`px-2 py-1 rounded border ${u.role === 'admin' ? 'bg-purple-500/10 text-purple-300 border-purple-500/20' : 'bg-blue-500/10 text-blue-300 border-blue-500/20'}`}>
-                      {u.role}
-                    </span>
-                  </td>
+                  <td className="px-4 py-3 text-xs"><span className="px-2 py-1 rounded border border-white/10">{u.role}</span></td>
                   <td className="px-4 py-3 text-center text-slate-300">{u.reportsGenerated}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-center gap-3">
-                        <button 
-                            onClick={() => handleUpdateLimit(u.email, -1)}
-                            className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs text-slate-400 hover:text-white transition-colors border border-white/10"
-                        >-</button>
-                        <span className="w-6 text-center font-mono font-bold text-yellow-400">
-                            {u.customLimit !== undefined ? u.customLimit : 3}
-                        </span>
-                        <button 
-                            onClick={() => handleUpdateLimit(u.email, 1)}
-                            className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs text-slate-400 hover:text-white transition-colors border border-white/10"
-                        >+</button>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                        <button onClick={() => handleUpdateLimit(u.email, -1)} className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 text-slate-400">-</button>
+                        <span className="text-yellow-400 font-mono">{u.customLimit ?? 3}</span>
+                        <button onClick={() => handleUpdateLimit(u.email, 1)} className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 text-slate-400">+</button>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    {u.isRevoked ? (
-                      <span className="text-red-400 text-xs flex items-center gap-1 font-medium bg-red-500/10 px-2 py-1 rounded border border-red-500/20 w-fit"><Ban size={12}/> Revoked</span>
-                    ) : (
-                      <span className="text-green-400 text-xs flex items-center gap-1 font-medium bg-green-500/10 px-2 py-1 rounded border border-green-500/20 w-fit"><CheckCircle size={12}/> Active</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {u.role !== 'admin' && (
-                      <button
-                        onClick={() => toggleRevoke(u.email)}
-                        className={`text-xs px-3 py-1.5 rounded border transition-colors ${u.isRevoked ? 'border-green-500/30 text-green-400 hover:bg-green-500/10' : 'border-red-500/30 text-red-400 hover:bg-red-500/10'}`}
-                      >
-                        {u.isRevoked ? 'Restore Access' : 'Revoke Access'}
-                      </button>
-                    )}
-                  </td>
+                  <td className="px-4 py-3">{u.isRevoked ? <span className="text-red-400 text-xs">Revoked</span> : <span className="text-green-400 text-xs">Active</span>}</td>
+                  <td className="px-4 py-3">{u.role !== 'admin' && <button onClick={() => toggleRevoke(u.email)} className="text-xs underline text-slate-400 hover:text-white">{u.isRevoked ? 'Restore' : 'Revoke'}</button>}</td>
                 </tr>
               ))}
             </tbody>
@@ -228,70 +192,56 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
         </div>
       </div>
 
-      {/* Reference Material Management */}
+      {/* Manual Management */}
       <div className="glass-panel rounded-2xl p-6">
         <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-                <FileText className="text-yellow-400" /> Lab Manual Management
+                <FileText className="text-yellow-400" /> Lab Manual (Text & Diagrams)
             </h2>
             <div className="flex gap-2">
                 <label className={`cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
                     {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-                    {uploading ? 'Processing...' : 'Upload File'}
-                    <input type="file" onChange={handleFileUpload} className="hidden" accept=".txt,.md,.json,.csv,.pdf" />
+                    {uploading ? uploadProgress : 'Upload PDF Manual'}
+                    <input type="file" onChange={handleFileUpload} className="hidden" accept=".pdf" />
                 </label>
-                {references.length > 0 && (
-                    <button 
-                        onClick={handleClearAllRefs}
-                        className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                    >
-                        <Trash2 size={16} /> Clear Manual
+                {pages.length > 0 && (
+                    <button onClick={handleClearManual} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+                        <Trash2 size={16} /> Clear
                     </button>
                 )}
             </div>
         </div>
-        
-        <form onSubmit={handleAddReference} className="mb-6">
-            <div className="relative">
-                <textarea 
-                    value={newRef}
-                    onChange={(e) => setNewRef(e.target.value)}
-                    placeholder="Or paste experiment theory, procedures, or instructions here..."
-                    className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:border-yellow-500/50 text-slate-200 placeholder:text-slate-500 min-h-[120px]"
-                />
-                <button 
-                    type="submit"
-                    disabled={!newRef.trim()}
-                    className="absolute bottom-3 right-3 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-300 border border-yellow-600/30 px-4 py-1.5 rounded-lg flex items-center gap-2 font-medium transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <Plus size={14} /> Add Text
-                </button>
-            </div>
-        </form>
 
-        <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-            {references.map((ref, idx) => (
-                <div key={idx} className="bg-white/5 p-4 rounded-xl flex items-start justify-between group border border-white/5 hover:border-white/10 transition-colors">
-                    <div className="flex-1 mr-4">
-                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Entry #{idx + 1}</span>
-                         <p className="text-sm text-slate-300 line-clamp-3 font-mono opacity-80 group-hover:opacity-100 whitespace-pre-wrap">{ref}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto custom-scrollbar p-1">
+            {pages.map((page) => (
+                <div key={page.id} className="bg-black/40 rounded-xl overflow-hidden border border-white/5 group relative">
+                    {page.image ? (
+                        <div className="aspect-[3/4] relative">
+                             <img src={page.image} alt={`Page ${page.pageNumber}`} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                        </div>
+                    ) : (
+                        <div className="aspect-[3/4] flex items-center justify-center bg-slate-800 text-slate-600">
+                            <FileText size={32} />
+                        </div>
+                    )}
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <p className="text-xs font-bold text-white">Page {page.pageNumber}</p>
+                        <p className="text-[10px] text-slate-400 line-clamp-2">{page.text.substring(0, 50)}...</p>
                     </div>
                     <button 
-                        onClick={() => handleRemoveReference(idx)}
-                        className="text-slate-500 hover:text-red-400 opacity-50 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-500/10 rounded-lg"
-                        title="Remove Entry"
+                        onClick={() => handleDeletePage(page.id)}
+                        className="absolute top-2 right-2 bg-red-500/80 p-1.5 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                        <Trash2 size={18} />
+                        <Trash2 size={12} />
                     </button>
                 </div>
             ))}
-            {references.length === 0 && (
-                <div className="text-center py-12 border-2 border-dashed border-white/5 rounded-xl bg-white/5">
+            {pages.length === 0 && (
+                <div className="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-xl bg-white/5">
                     <AlertTriangle className="mx-auto mb-3 text-yellow-500/50" size={32} />
-                    <p className="text-slate-400 font-medium">Manual is Empty</p>
-                    <p className="text-slate-500 text-sm mt-1 max-w-sm mx-auto">
-                        The AI has no context. Upload a manual (PDF, Text) to enable report generation.
-                    </p>
+                    <p className="text-slate-400 font-medium">No Manual Uploaded</p>
+                    <p className="text-slate-500 text-sm mt-1">Upload a PDF to extract text and diagrams for the AI.</p>
                 </div>
             )}
         </div>

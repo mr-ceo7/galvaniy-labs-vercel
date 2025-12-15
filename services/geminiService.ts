@@ -2,71 +2,57 @@ import { GoogleGenAI } from "@google/genai";
 import { storageService } from "./storageService";
 import { validateReport } from "./reportValidator";
 
-export const generateLabReport = async (experimentCode: string, imageBase64?: string): Promise<string> => {
+export const generateLabReport = async (experimentCode: string): Promise<string> => {
   if (!process.env.API_KEY) {
     throw new Error("API Key is missing. Please set process.env.API_KEY");
   }
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const context = storageService.getFullContext();
+  
+  // 1. Context Search: Find pages that contain the experiment code
+  const relevantPages = storageService.findRelevantPages(experimentCode);
   
   // Validation: Ensure manual exists
-  if (!context || context.trim().length < 50) {
-      throw new Error("No Lab Manual found. Please contact the Admin to upload the relevant laboratory manual references.");
+  if (relevantPages.length === 0) {
+      throw new Error("No relevant pages found in the Manual for this code. Please contact Admin to upload the correct manual.");
   }
 
-  // Generic System Prompt for Scalability
-  let systemPrompt = `
-  You are an expert laboratory assistant and strictly constrained database interface.
-  Your task is to extract experiment details for the Experiment Code: "${experimentCode}" from the provided MANUAL CONTEXT and the ATTACHED IMAGE (if provided).
+  // 2. Build Multimodal Request
+  // We send the text content of the pages AND the images of the pages to the AI.
+  // We instruct the AI to identify which page has the relevant diagram.
+  const contentParts: any[] = [];
+  
+  let combinedTextContext = "";
+  relevantPages.forEach((page) => {
+      combinedTextContext += `--- PAGE ${page.id} (Index: ${page.pageNumber}) ---\n${page.text}\n\n`;
+      if (page.image) {
+          const base64Data = page.image.split(',')[1]; // Strip header
+          contentParts.push({ text: `Image for Page ID: ${page.id}` });
+          contentParts.push({
+             inlineData: {
+                 mimeType: "image/jpeg",
+                 data: base64Data
+             }
+          });
+      }
+  });
 
-  MANUAL CONTEXT:
-  ---------------------------------------------------
-  ${context}
-  ---------------------------------------------------
+  const systemPrompt = `
+  You are an expert Physics Laboratory Assistant.
+  Your task is to generate a lab report for Experiment Code: "${experimentCode}".
+  
+  I have provided text and images from the relevant pages of the uploaded manual.
+  
+  STRICT RULES:
+  1. **Strict Adherence**: Extract Title, Objectives, Apparatus, Theory, and Procedure VERBATIM from the manual text provided.
+  2. **Visual Awareness**: Look at the provided images. 
+     - If you see a circuit diagram or apparatus setup in the images for this experiment, you MUST return the "relevantPageId" of that image in the JSON.
+     - Use the visual information in the image to accurately describe the "Procedure" (e.g. "Connect as shown in the diagram...").
+  3. **Realistic Data**: Generate imperfect, realistic "tableData" with experimental error.
+  4. **Graphing**: Only include "graphConfig" if the manual explicitly asks for a graph.
 
-  DOMAIN EXPERTISE & DATA REALISM (CRITICAL):
-  1. **Subject Adherence**: Use precise, accepted terminology for the specific subject (e.g., Physics, Chemistry). Obey the fundamental laws of science.
-  2. **Realistic Data Simulation**:
-     - **NO PERFECT DATA**: The generated "tableData" MUST NOT be perfect. You must simulate **real-world experimental error**.
-     - **Noise & Scatter**: Introduce random fluctuations, reading errors, and slight systematic errors.
-     - **Precision**: Use realistic significant figures.
-     - **Trend**: The data should generally follow the theoretical relationship but points should scatter slightly.
-
-  STRICT OPERATING RULES:
-  1. **Search Phase**: 
-     - Look for the exact experiment code "${experimentCode}" in the context.
-     - IF AN IMAGE IS PROVIDED: Use the image to identify apparatus setup, circuit diagrams, or procedural steps that might be missing from the text.
-     - If the experiment is NOT found in text OR image, return JSON: { "error": "Experiment '${experimentCode}' not found in the uploaded manual." }.
-
-  2. **Extraction Phase (Verbatim)**:
-     - **Title**: Use the title exactly as in the manual.
-     - **Objectives**: Extract strictly from the manual.
-     - **Apparatus**: List ONLY equipment mentioned in the manual text or VISIBLE in the provided image.
-     - **Theory**: Extract the theory provided.
-     - **Procedure**: Extract steps exactly. If the text says "connect as shown in Fig 1" and you have the image, describe the connection seen in the image.
-
-  3. **Graphing Rule (Strict)**:
-     - Default "graphConfig": null
-     - Change "graphConfig" to a valid object ONLY if the manual EXPLICITLY commands to "plot", "graph", or "draw" a relationship.
-
-  4. **Questions Rule (Strict)**:
-     - Default "questions": []
-     - Only extract questions listed under a "Questions" or "Discussion" section.
-     - Answer ONLY the questions listed.
-
-  5. **Data Phase**:
-     - Generate "tableData" and "tableHeaders" based on the table or measurements described in the manual.
-     - Ensure columns have units.
-
-  SIMULATION CONFIGURATION:
-  You must choose the best "simulationType" from the following list based on the experiment topic:
-  - 'pendulum' (For pendulum/gravity experiments)
-  - 'heating' (For cooling, heating, thermodynamics)
-  - 'spring' (For elasticity, Hooke's law, oscillations)
-  - 'circuit' (For electricity, Ohm's law, electronics)
-  - 'wave' (For sound, waves, vibration, sonometer)
-  - 'general' (For anything else)
+  MANUAL TEXT CONTEXT:
+  ${combinedTextContext}
   `;
 
   const schemaInstruction = `
@@ -81,17 +67,20 @@ export const generateLabReport = async (experimentCode: string, imageBase64?: st
     "tableData": [[number, number]], 
     "graphConfig": { "xColumnIndex": 0, "yColumnIndex": 1, "xLabel": "Str", "yLabel": "Str", "title": "Str" } or null, 
     "questions": [{ "question": "Str", "answer": "Str" }],
-    "calculationScript": "JavaScript function body string returning object e.g. 'const m=rows[0][0]; return {slope: m};'",
-    "analysisTemplate": "Analysis text using placeholders like {{slope}}",
+    "calculationScript": "JavaScript function body string",
+    "analysisTemplate": "Analysis text using {{placeholders}}",
     "discussion": "String",
     "conclusion": "String",
-    "simulationType": "String" 
+    "simulationType": "String",
+    "relevantPageId": "String (The ID of the page containing the diagram, or null)"
   }
   
-  Return ONLY the JSON. No Markdown. No \`\`\`json blocks.
+  Return ONLY the JSON. No Markdown.
   `;
 
-  let currentPrompt = systemPrompt + schemaInstruction;
+  // Add system prompt to parts
+  contentParts.push({ text: systemPrompt + schemaInstruction });
+
   let attempts = 0;
   const MAX_ATTEMPTS = 3;
 
@@ -100,71 +89,48 @@ export const generateLabReport = async (experimentCode: string, imageBase64?: st
       attempts++;
       console.log(`[AI] Generation Attempt ${attempts} for ${experimentCode}`);
 
-      let contentParts: any[] = [{ text: currentPrompt }];
-      
-      // If image is provided, strip base64 header if present and add to parts
-      if (imageBase64) {
-        const base64Data = imageBase64.split(',')[1] || imageBase64;
-        contentParts.push({
-          inlineData: {
-            mimeType: "image/png", // Assuming PNG/JPEG, Gemini handles mostly standard formats
-            data: base64Data
-          }
-        });
-      }
-
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash', // Supports multimodal
+        model: 'gemini-2.5-flash',
         contents: { parts: contentParts },
-        config: {
-          responseMimeType: 'application/json'
-        }
+        config: { responseMimeType: 'application/json' }
       });
 
       let text = response.text;
       if (!text) throw new Error("Empty response");
       
-      // Robust JSON extraction
-      text = text.replace(/```json/g, '').replace(/```/g, '');
-      const firstBrace = text.indexOf('{');
-      const lastBrace = text.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace !== -1) {
-        text = text.substring(firstBrace, lastBrace + 1);
-      }
-      text = text.trim();
-
-      // Parse
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      
       let json;
       try {
         json = JSON.parse(text);
       } catch (e) {
-        console.error(`[AI] JSON Parse Error on attempt ${attempts}:`, text);
         throw new Error("Invalid JSON from AI");
       }
 
-      // Check for explicit not found error from AI
-      if (json.error) {
-          throw new Error(json.error);
+      if (json.error) throw new Error(json.error);
+
+      // Post-Processing: Inject Diagram Image
+      if (json.relevantPageId) {
+          const pageWithDiagram = relevantPages.find(p => p.id === json.relevantPageId);
+          if (pageWithDiagram && pageWithDiagram.image) {
+              json.diagram = pageWithDiagram.image; // Inject the full base64 string
+          }
       }
 
-      // Validate Structure
+      // Validate
       const validation = validateReport(json, experimentCode);
-
       if (validation.valid) {
         return JSON.stringify(json);
       } else {
-        console.error("[AI] Validation Errors:", validation.errors);
-        currentPrompt += `\n\nPREVIOUS ATTEMPT WAS INVALID. Fix these errors:\n- ${validation.errors.join('\n- ')}\n`;
+        contentParts.push({ text: `PREVIOUS INVALID. Fix: ${validation.errors.join(', ')}` });
       }
 
     } catch (error: any) {
-      console.error(`[AI] Attempt ${attempts} failed:`, error);
-      if (error.message.includes("not found")) {
-          throw error;
-      }
+      console.error(`[AI] Error:`, error);
+      if (error.message.includes("not found")) throw error;
       if (attempts === MAX_ATTEMPTS) break;
     }
   }
 
-  throw new Error(`Failed to generate report for ${experimentCode}. Ensure the code matches the manual exactly.`);
+  throw new Error(`Failed to generate report for ${experimentCode}.`);
 };
