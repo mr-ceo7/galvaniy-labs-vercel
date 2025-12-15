@@ -2,6 +2,7 @@ import { User, Report, DbSchema, ManualPage } from '../types';
 
 const DB_KEY = 'physics_labs_db';
 const SESSION_KEY = 'physics_labs_session';
+const DEFAULT_LIMIT_KEY = 'physics_labs_default_limit';
 
 // --- IndexedDB Setup for Large Manuals ---
 const IDB_NAME = 'GalvaniyLabsManualDB';
@@ -50,6 +51,16 @@ const saveDb = (data: DbSchema) => {
 };
 
 export const storageService = {
+  // --- Global Settings ---
+  getDefaultLimit: (): number => {
+    const val = localStorage.getItem(DEFAULT_LIMIT_KEY);
+    return val ? parseInt(val, 10) : 3;
+  },
+
+  setDefaultLimit: (limit: number) => {
+    localStorage.setItem(DEFAULT_LIMIT_KEY, limit.toString());
+  },
+
   // --- User & Session (Sync - LocalStorage) ---
   getUser: (email: string): User | undefined => {
     const db = getDb();
@@ -60,13 +71,15 @@ export const storageService = {
     const db = getDb();
     let user = db.users.find((u: User) => u.email === email);
     if (!user) {
+      // Use the stored default limit instead of hardcoded 3
+      const defaultLimit = storageService.getDefaultLimit();
       user = {
         email,
         role: email.includes('admin') ? 'admin' : 'student',
         registeredAt: new Date().toISOString(),
         isRevoked: false,
         reportsGenerated: 0,
-        customLimit: 3
+        customLimit: defaultLimit
       };
       db.users.push(user);
       saveDb(db);
@@ -119,7 +132,7 @@ export const storageService = {
     if (email.includes('admin')) return true;
     const db = getDb();
     const user = db.users.find(u => u.email === email);
-    const limit = user?.customLimit !== undefined ? user.customLimit : 3;
+    const limit = user?.customLimit !== undefined ? user.customLimit : storageService.getDefaultLimit();
 
     const today = new Date().toDateString();
     const key = `limit_${email}_${today}`;

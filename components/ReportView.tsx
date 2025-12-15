@@ -17,7 +17,21 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
   useEffect(() => {
     if (report) {
       try {
-        const data = JSON.parse(report.content);
+        let data = JSON.parse(report.content);
+        
+        // --- Backward Compatibility Migration ---
+        // If report uses old schema (tableData/tableHeaders), convert to new 'tables' array
+        if (!data.tables && data.tableData && data.tableHeaders) {
+            data.tables = [{
+                title: "Observation Table",
+                headers: data.tableHeaders,
+                rows: data.tableData
+            }];
+            // Cleanup old fields to avoid confusion
+            delete data.tableData;
+            delete data.tableHeaders;
+        }
+        
         setParsedReport(data);
         const html = generateInteractiveHTML(data, report.experimentCode);
         const blob = new Blob([html], { type: 'text/html' });
@@ -82,13 +96,20 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
     parsedReport.procedure.forEach((step: string, i: number) => addText(`${i+1}. ${step}`));
     y += 5;
 
-    addText("Results (Data Table):", 12, true);
-    const headers = parsedReport.tableHeaders.join(" | ");
-    addText(headers, 10, true);
-    parsedReport.tableData.forEach((row: number[]) => {
-      addText(row.join(" | "));
+    // Handle Multiple Tables
+    parsedReport.tables.forEach((table: any, idx: number) => {
+        const title = table.title || `Table ${idx + 1}`;
+        addText(title, 12, true);
+        
+        const headers = table.headers.join(" | ");
+        addText(headers, 10, true);
+        
+        table.rows.forEach((row: any[]) => {
+            const rowText = row.map((cell: any) => (cell === null || cell === undefined) ? '' : cell).join(" | ");
+            addText(rowText);
+        });
+        y += 5;
     });
-    y += 5;
 
     addText("Analysis:", 12, true);
     if (parsedReport.analysisTemplate) {
@@ -186,8 +207,11 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
 
 // This function generates the standalone HTML file string
 function generateInteractiveHTML(data: any, code: string) {
-  // CRITICAL: Escape script closing tags to prevent breaking the HTML output
-  const jsonString = JSON.stringify(data).replace(/<\/script>/g, '<\\/script>');
+  // CRITICAL: Escape script closing tags AND Unicode line separators to prevent JS SyntaxErrors
+  const jsonString = JSON.stringify(data)
+    .replace(/<\/script>/g, '<\\/script>')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
   
   // Default to a simple speed control if AI forgets to generate controls
   const controls = data.controls && data.controls.length > 0 
@@ -211,6 +235,61 @@ function generateInteractiveHTML(data: any, code: string) {
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
+        
+        /* STRICT TABLE STYLING */
+        .data-table-container {
+           border: 1px solid rgba(255,255,255,0.2);
+           border-radius: 8px;
+           overflow: hidden;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse; /* Ensure borders touch */
+          background: rgba(0,0,0,0.4);
+        }
+        th {
+          background-color: rgba(30, 41, 59, 0.9);
+          color: #93c5fd;
+          font-weight: 700;
+          text-align: left;
+          padding: 12px 16px;
+          border-bottom: 2px solid rgba(255,255,255,0.2);
+          border-right: 1px solid rgba(255,255,255,0.1);
+          text-transform: uppercase;
+          font-size: 0.75rem;
+          letter-spacing: 0.05em;
+        }
+        th:last-child { border-right: none; }
+        td {
+          padding: 0; /* Remove padding to let input fill cell */
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+          border-right: 1px solid rgba(255,255,255,0.1);
+          color: #e2e8f0;
+          vertical-align: middle;
+          position: relative;
+        }
+        td:last-child { border-right: none; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) { background-color: rgba(255,255,255,0.03); }
+        tr:hover { background-color: rgba(255,255,255,0.08); }
+        
+        /* Input Styling */
+        td input {
+            background: transparent;
+            color: white;
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 10px 16px;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        td input:focus {
+            background: rgba(59, 130, 246, 0.2); /* Blue highlight on focus */
+            box-shadow: inset 0 0 0 2px #3b82f6;
+        }
+        
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -294,19 +373,14 @@ function generateInteractiveHTML(data: any, code: string) {
             </div>
         </section>
 
-        <!-- Dynamic Data Section -->
+        <!-- Dynamic Data Section (Supports Multiple Tables) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <section class="glass rounded-2xl p-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-orange-400">Observation Table</h2>
+                    <h2 class="text-xl font-semibold text-orange-400">Observation Data</h2>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-slate-400 uppercase bg-white/5">
-                            <tr>${data.tableHeaders.map((h: string) => `<th class="px-4 py-3">${h}</th>`).join('')}</tr>
-                        </thead>
-                        <tbody id="dataTableBody"></tbody>
-                    </table>
+                <div id="tablesContainer" class="space-y-8">
+                    <!-- Tables will be rendered here via JS -->
                 </div>
             </section>
             
@@ -319,7 +393,7 @@ function generateInteractiveHTML(data: any, code: string) {
 
         <section class="glass rounded-2xl p-6 border-l-4 border-cyan-500">
             <h2 class="text-xl font-semibold text-cyan-400 mb-4">Data Analysis</h2>
-            <div id="analysisContent" class="prose prose-invert max-w-none text-slate-300">
+            <div id="analysisContent" class="prose prose-invert max-w-none text-slate-300 text-sm font-mono p-4 bg-black/20 rounded-xl">
                 ${data.analysisTemplate ? 'Loading analysis...' : 'No automated analysis available.'}
             </div>
         </section>
@@ -350,42 +424,86 @@ function generateInteractiveHTML(data: any, code: string) {
         const initialParams = {};
         ${JSON.stringify(controls)}.forEach(c => initialParams[c.id] = c.val);
         
-        const tableBody = document.getElementById('dataTableBody');
+        const tablesContainer = document.getElementById('tablesContainer');
         const analysisDiv = document.getElementById('analysisContent');
         const simCanvas = document.getElementById('simCanvas');
         const simCtx = simCanvas.getContext('2d');
         
         function init() {
-            renderTable();
+            renderTables();
             if (reportData.graphConfig) initChart();
             updateAnalysis();
             simulation.init();
         }
 
-        function renderTable() {
-            tableBody.innerHTML = '';
-            reportData.tableData.forEach((row, rIndex) => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-white/5 hover:bg-white/5 transition";
-                row.forEach((cell, cIndex) => {
-                    const td = document.createElement('td');
-                    td.className = "p-1";
-                    const input = document.createElement('input');
-                    input.type = "number";
-                    input.step = "any";
-                    input.value = cell;
-                    input.className = "w-full bg-transparent p-2 text-right font-mono text-sm border rounded border-white/10";
-                    input.onchange = (e) => updateData(rIndex, cIndex, e.target.value);
-                    td.appendChild(input);
-                    tr.appendChild(td);
+        function renderTables() {
+            tablesContainer.innerHTML = '';
+            
+            reportData.tables.forEach((table, tIdx) => {
+                // Create a dedicated container for each table to ensure separation
+                const tableBlock = document.createElement('div');
+                tableBlock.className = "mb-8 last:mb-0";
+
+                // Table Title
+                if (reportData.tables.length > 0 || table.title) {
+                    const titleText = table.title || \`Table \${tIdx + 1}\`;
+                    const h3 = document.createElement('h3');
+                    h3.className = "text-sm font-bold text-slate-300 mt-2 mb-3 uppercase tracking-wide flex items-center gap-2";
+                    h3.innerHTML = \`<span class="w-2 h-2 rounded-full bg-orange-500"></span> \${titleText}\`;
+                    tableBlock.appendChild(h3);
+                }
+                
+                // Table Wrapper (for styling and scroll)
+                const wrapper = document.createElement('div');
+                wrapper.className = "data-table-container overflow-x-auto";
+                
+                const tbl = document.createElement('table');
+                
+                // Headers
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                table.headers.forEach(h => {
+                    const th = document.createElement('th');
+                    th.innerText = h;
+                    headerRow.appendChild(th);
                 });
-                tableBody.appendChild(tr);
+                thead.appendChild(headerRow);
+                tbl.appendChild(thead);
+
+                // Body
+                const tbody = document.createElement('tbody');
+                table.rows.forEach((row, rIdx) => {
+                    const tr = document.createElement('tr');
+                    row.forEach((cell, cIdx) => {
+                        const td = document.createElement('td');
+                        const input = document.createElement('input');
+                        input.type = "text"; 
+                        input.value = (cell === null || cell === undefined) ? '' : cell;
+                        input.onchange = (e) => updateData(tIdx, rIdx, cIdx, e.target.value);
+                        td.appendChild(input);
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+                tbl.appendChild(tbody);
+                
+                wrapper.appendChild(tbl);
+                tableBlock.appendChild(wrapper);
+                tablesContainer.appendChild(tableBlock);
             });
         }
 
-        function updateData(row, col, value) {
-            reportData.tableData[row][col] = parseFloat(value) || 0;
-            if (reportData.graphConfig) updateChart();
+        function updateData(tableIdx, row, col, value) {
+            // Try parse number, fallback to string
+            const num = parseFloat(value);
+            const finalVal = isNaN(num) ? value : num;
+            
+            reportData.tables[tableIdx].rows[row][col] = finalVal;
+            
+            // If this is the table used for graphing, update chart
+            if (reportData.graphConfig && (reportData.graphConfig.tableIndex || 0) === tableIdx) {
+                updateChart();
+            }
             updateAnalysis();
         }
 
@@ -399,9 +517,17 @@ function generateInteractiveHTML(data: any, code: string) {
         }
 
         function getChartData() {
+            const tIdx = reportData.graphConfig.tableIndex || 0;
+            if (!reportData.tables[tIdx]) return [];
+            
             const x = reportData.graphConfig.xColumnIndex;
             const y = reportData.graphConfig.yColumnIndex;
-            return reportData.tableData.map(r => ({x: r[x], y: r[y]}));
+            
+            return reportData.tables[tIdx].rows.map(r => {
+                const vx = parseFloat(r[x]);
+                const vy = parseFloat(r[y]);
+                return { x: isNaN(vx) ? 0 : vx, y: isNaN(vy) ? 0 : vy };
+            });
         }
 
         function updateChart() {
@@ -411,15 +537,21 @@ function generateInteractiveHTML(data: any, code: string) {
         function updateAnalysis() {
             if (!reportData.calculationScript || !reportData.analysisTemplate) return;
             try {
-                const calcFunc = new Function('rows', reportData.calculationScript);
-                const results = calcFunc(reportData.tableData);
+                // Pass all tables to the calculation script
+                const calcFunc = new Function('tables', reportData.calculationScript);
+                const results = calcFunc(reportData.tables);
+                
                 let template = reportData.analysisTemplate;
                 for (const [key, value] of Object.entries(results)) {
                     const regex = new RegExp(\`{{\${key}}}\`, 'g');
-                    template = template.replace(regex, \`<span class="text-cyan-300 font-bold">\${typeof value === 'number' ? value.toFixed(4) : value}</span>\`);
+                    const displayVal = typeof value === 'number' ? value.toFixed(4) : value;
+                    template = template.replace(regex, \`<span class="text-cyan-300 font-bold">\${displayVal}</span>\`);
                 }
                 analysisDiv.innerHTML = template.replace(/\\n/g, '<br>');
-            } catch (e) { analysisDiv.innerHTML = "Error calculating analysis."; }
+            } catch (e) { 
+                console.error("Analysis Error", e);
+                analysisDiv.innerHTML = \`<span class="text-red-400">Analysis Error: \${e.message}</span><br><span class="text-xs text-slate-500">Check console for details or edit data.</span>\`; 
+            }
         }
 
         function updateSimParam(id, val, unit) {
@@ -428,7 +560,6 @@ function generateInteractiveHTML(data: any, code: string) {
         }
 
         // DYNAMIC SIMULATION ENGINE
-        // This takes the AI-generated JS string and executes it safely inside the animation loop
         let drawFunc = null;
         try {
             if (reportData.simulationScript) {
@@ -443,7 +574,6 @@ function generateInteractiveHTML(data: any, code: string) {
             loop: function() { if(!this.active) return; this.frame++; this.draw(); requestAnimationFrame(() => this.loop()); },
             draw: function() {
                 const w = 800; const h = 300;
-                // Default background
                 simCtx.clearRect(0,0,w,h);
                 simCtx.fillStyle = '#1e293b'; simCtx.fillRect(0,0,w,h);
                 
@@ -462,7 +592,8 @@ function generateInteractiveHTML(data: any, code: string) {
             }
         };
 
-        init();
+        // Delay init slightly to ensure DOM is ready in all environments
+        setTimeout(init, 100);
     </script>
 </body>
 </html>`;

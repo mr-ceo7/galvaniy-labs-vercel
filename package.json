@@ -16,7 +16,8 @@
     "framer-motion": "^12.23.26",
     "jspdf": "^3.0.4",
     "marked": "15.0.6",
-    "pdfjs-dist": "4.10.38"
+    "pdfjs-dist": "4.10.38",
+    "jszip": "^3.10.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

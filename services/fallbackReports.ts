@@ -10,9 +10,15 @@ export function generateFallbackReport(experimentCode: string): string {
     apparatus: ['Standard Laboratory Equipment'],
     theory: 'Manual generation failed. This is a placeholder report.',
     procedure: ['Set up apparatus.', 'Take readings.', 'Analyze data.'],
-    tableHeaders: ['Variable X', 'Variable Y'],
-    tableData: data,
+    tables: [
+      {
+        title: "Observation Table 1",
+        headers: ['Variable X', 'Variable Y'],
+        rows: data
+      }
+    ],
     graphConfig: {
+      tableIndex: 0,
       xColumnIndex: 0,
       yColumnIndex: 1,
       xLabel: 'X',
