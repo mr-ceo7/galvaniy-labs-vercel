@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#grad)" opacity="0.9"/>
+  
+  <!-- Atom symbol -->
+  <circle cx="50" cy="50" r="20" fill="none" stroke="white" stroke-width="2" opacity="0.8"/>
+  <circle cx="50" cy="50" r="12" fill="white" opacity="0.9"/>
+  
+  <!-- Orbital paths -->
+  <ellipse cx="50" cy="50" rx="30" ry="8" fill="none" stroke="white" stroke-width="1.5" opacity="0.6" transform="rotate(45 50 50)"/>
+  <ellipse cx="50" cy="50" rx="30" ry="8" fill="none" stroke="white" stroke-width="1.5" opacity="0.6" transform="rotate(-45 50 50)"/>
+  
+  <!-- Small particles -->
+  <circle cx="30" cy="30" r="2" fill="white" opacity="0.7"/>
+  <circle cx="70" cy="30" r="2" fill="white" opacity="0.7"/>
+  <circle cx="30" cy="70" r="2" fill="white" opacity="0.7"/>
+  <circle cx="70" cy="70" r="2" fill="white" opacity="0.7"/>
+</svg>
+

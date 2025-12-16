@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { generateLabReport } from '../services/geminiService';
+import React, { useState, useEffect } from 'react';
+import { apiService } from '../services/apiService';
 import { storageService } from '../services/storageService';
 import { User, Report, Theme } from '../types';
-import { Zap, Loader2, AlertCircle } from 'lucide-react';
+import { Zap, Loader2, AlertCircle, Network } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface GeneratorProps {
@@ -15,6 +15,24 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [currentProvider, setCurrentProvider] = useState<'gemini' | 'custom'>('gemini');
+
+  useEffect(() => {
+    setCurrentProvider(apiService.getProvider());
+    // Listen for storage changes (when admin switches API)
+    const handleStorageChange = () => {
+      setCurrentProvider(apiService.getProvider());
+    };
+    window.addEventListener('storage', handleStorageChange);
+    // Also check periodically in case of same-tab changes
+    const interval = setInterval(() => {
+      setCurrentProvider(apiService.getProvider());
+    }, 1000);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   const dailyCount = storageService.getDailyCount(user.email);
   const remaining = 3 - dailyCount;
@@ -37,7 +55,7 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
 
     setLoading(true);
     try {
-      const content = await generateLabReport(trimmedCode);
+      const content = await apiService.generateLabReport(trimmedCode);
       
       try {
         JSON.parse(content);
@@ -74,9 +92,19 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
           <h2 className="text-xl font-semibold flex items-center gap-2">
             <Zap className={theme?.accent} /> Generate Report
           </h2>
-          <span className={`text-xs px-3 py-1 rounded-full ${remaining > 0 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
-            {user.role === 'admin' ? 'Unlimited Access' : `${remaining} credits left today`}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+              currentProvider === 'gemini' 
+                ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+            }`}>
+              <Network size={12} />
+              {currentProvider === 'gemini' ? 'Gemini' : 'Custom API'}
+            </span>
+            <span className={`text-xs px-3 py-1 rounded-full ${remaining > 0 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+              {user.role === 'admin' ? 'Unlimited Access' : `${remaining} credits left today`}
+            </span>
+          </div>
         </div>
 
         <form onSubmit={handleGenerate} className="flex flex-col gap-4">

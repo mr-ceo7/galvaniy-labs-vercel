@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { storageService } from "./storageService";
 import { validateReport } from "./reportValidator";
+import { buildSectionPrompt, getTextContentInstructions, getDataLogicInstructions, getSimulationInstructions, JSON_EXAMPLES } from "./promptTemplates";
 
 // --- Helper: File to Base64 ---
 const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: string; mimeType: string } }> => {
@@ -37,20 +38,8 @@ const generateSection = async (
     let attempts = 0;
     const MAX_ATTEMPTS = 3;
 
-    const finalPrompt = `
-    You are an expert Physics Laboratory Assistant.
-    Your task is to generate the "${sectionName}" section for the requested experiment using the attached PDF Manual.
-    
-    ${instructions}
-
-    ### STRICT JSON FORMAT REQUIRED
-    Return ONLY valid JSON matching the provided schema.
-    Do not include markdown formatting like \`\`\`json.
-    Do not include any text before or after the JSON object.
-    
-    ### JSON FORMAT EXAMPLE:
-    ${jsonExample}
-    `;
+    // Use shared prompt template
+    const finalPrompt = buildSectionPrompt(sectionName, instructions, jsonExample, 'PDF Manual');
 
     // Add the specific prompt to the parts for this request
     const requestParts = [...parts, { text: finalPrompt }];
@@ -154,28 +143,8 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
       ai, 
       commonParts, 
       "Text Content",
-      `{
-        "title": "Exp Title",
-        "objectives": ["Obj 1", "Obj 2"],
-        "apparatus": ["Item 1"],
-        "theory": "Detailed theory text...",
-        "procedure": ["Step 1", "Step 2"],
-        "discussion": "Sources of error...",
-        "conclusion": "Summary...",
-        "questions": [{"question": "Q1?", "answer": "A1"}]
-      }`,
-      `
-      SEARCH the manual for experiment code "${experimentCode}".
-      Extract the following text sections VERBATIM where possible:
-      1. Title
-      2. Objectives (array)
-      3. Apparatus (array)
-      4. Theory (comprehensive text)
-      5. Procedure (array of steps, include references to Figures if seen in PDF)
-      6. Questions (if present in manual, include answers. If not, generate 2 relevant questions)
-      7. Discussion (Generate a generic discussion on sources of error relevant to this physics experiment)
-      8. Conclusion (Summarize based on objectives)
-      `,
+      JSON_EXAMPLES.textContent,
+      getTextContentInstructions(experimentCode),
       textSchema
   );
 
@@ -221,38 +190,8 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
       ai, 
       commonParts, 
       "Data & Logic",
-      `{
-        "tables": [{ "title": "Table 1", "headers": ["Col 1", "Col 2"], "rows": [["1", "2"], ["3", "4"]] }],
-        "calculationScriptLines": [
-            "const r = tables[0].rows[0];",
-            "return { res: parseFloat(r[1]) * 2 };"
-        ],
-        "analysisTemplate": "Result: {{res}} units",
-        "graphConfig": { "tableIndex": 0, "xColumnIndex": 0, "yColumnIndex": 1, "title": "A vs B" }
-      }`,
-      `
-      SEARCH the manual for experiment code "${experimentCode}".
-      Focus on DATA COLLECTION and ANALYSIS.
-      
-      1. **Tables**: Generate tables for ALL measurements described in the procedure.
-         - **Header Format**: ["Parameter", "Value", "Error", "Unit"] for single values.
-         - **Series Data**: Use specific headers (e.g., ["Volts (V)", "Amps (A)"]).
-         - **Content**: Fill with 5 rows of REALISTIC DUMMY DATA (with noise) that fits the theory.
-         - **IMPORTANT**: All cell values in 'rows' must be STRINGS. Convert numbers to strings.
-         
-      2. **Calculation Script (JavaScript)**:
-         - **IMPORTANT**: Return this as "calculationScriptLines" (Array of Strings).
-         - Each string is a line of code. Do not use a single string field.
-         - Input: 'tables' array. 
-         - Logic: Parse values using 'parseFloat' since they are strings, perform physics calculations.
-         - Output: Return object matching placeholders in analysisTemplate.
-         
-      3. **Analysis Template**:
-         - Text summary with {{placeholder}} for calculated results.
-         
-      4. **Graph Config** (Optional):
-         - If a graph is standard for this experiment, provide config.
-      `,
+      JSON_EXAMPLES.dataLogic,
+      getDataLogicInstructions(experimentCode),
       dataSchema
   );
 
@@ -284,27 +223,8 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
       ai, 
       commonParts, 
       "Simulation",
-      `{
-        "simulationScriptLines": [
-            "ctx.fillStyle='red';",
-            "ctx.fillRect(10,10,50,50);"
-        ],
-        "controls": [{ "id": "mass", "label": "Mass", "min": 0, "max": 10, "val": 5, "unit": "kg" }]
-      }`,
-      `
-      Create a HTML5 Canvas Visualization for experiment "${experimentCode}".
-      
-      1. **Simulation Script**:
-         - **IMPORTANT**: Return this as "simulationScriptLines" (Array of Strings).
-         - Each string is a line of code.
-         - JS function body: (ctx, width, height, frame, params) => void.
-         - Visualize the apparatus setup (e.g., pendulum, circuit, optical bench).
-         - Use 'params' object for interactivity.
-         - Keep it simple and visual. NO COMMENTS.
-         
-      2. **Controls**:
-         - Array of sliders to control variables (e.g., length, resistance, angle).
-      `,
+      JSON_EXAMPLES.simulation,
+      getSimulationInstructions(experimentCode),
       simSchema
   );
 

@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { storageService } from '../services/storageService';
+import { apiService, ApiProvider } from '../services/apiService';
 import { User, Theme, ManualPage } from '../types';
-import { Shield, RefreshCcw, Users, FileText, Trash2, Upload, AlertTriangle, Loader2, Search, Settings, Download } from 'lucide-react';
+import { Shield, RefreshCcw, Users, FileText, Trash2, Upload, AlertTriangle, Loader2, Search, Settings, Download, Network, CheckCircle2, XCircle } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import JSZip from 'jszip';
 
@@ -71,10 +72,22 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
   // New States
   const [defaultDailyLimit, setDefaultDailyLimit] = useState(3);
   const [downloadingZip, setDownloadingZip] = useState(false);
+  
+  // API Configuration States
+  const [apiProvider, setApiProvider] = useState<ApiProvider>('gemini');
+  const [customApiUrl, setCustomApiUrl] = useState('');
+  const [testingApi, setTestingApi] = useState(false);
+  const [apiTestResult, setApiTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const loadData = async () => {
     setUsers(storageService.getAllUsers());
     setDefaultDailyLimit(storageService.getDefaultLimit());
+    
+    // Load API settings
+    setApiProvider(apiService.getProvider());
+    const storedUrl = localStorage.getItem('custom_api_base_url') || process.env.CUSTOM_API_URL || '';
+    setCustomApiUrl(storedUrl);
+    
     try {
         setLoadingPages(true);
         const storedPages = await storageService.getManualPages();
@@ -295,6 +308,53 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
       loadData();
   };
 
+  // API Configuration Handlers
+  const handleProviderChange = (provider: ApiProvider) => {
+    apiService.setProvider(provider);
+    setApiProvider(provider);
+    setApiTestResult(null);
+  };
+
+  const handleCustomApiUrlChange = (url: string) => {
+    setCustomApiUrl(url);
+    localStorage.setItem('custom_api_base_url', url);
+    setApiTestResult(null);
+  };
+
+  const handleTestApi = async () => {
+    if (!customApiUrl) {
+      setApiTestResult({ success: false, message: 'Please enter a Custom API URL first' });
+      return;
+    }
+
+    setTestingApi(true);
+    setApiTestResult(null);
+
+    try {
+      // Test the API by checking if the base URL is reachable
+      const response = await fetch(`${customApiUrl}/api/auth/status`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok || response.status === 404) {
+        // 404 is okay - it means the endpoint exists but might not be implemented
+        setApiTestResult({ success: true, message: 'Custom API is reachable and responding' });
+      } else {
+        setApiTestResult({ success: false, message: `API returned status: ${response.status}` });
+      }
+    } catch (error: any) {
+      setApiTestResult({ 
+        success: false, 
+        message: `Connection failed: ${error.message || 'Unable to reach API'}` 
+      });
+    } finally {
+      setTestingApi(false);
+    }
+  };
+
   const filteredUsers = users.filter(user => 
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -372,6 +432,158 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
                     <button onClick={() => handleUpdateDefaultLimit(defaultDailyLimit + 1)} className="w-6 h-6 rounded bg-white/10 hover:bg-white/20 text-white">+</button>
                 </div>
             </div>
+        </div>
+      </div>
+
+      {/* API Configuration */}
+      <div className="glass-panel rounded-2xl p-6 border border-cyan-500/20">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+            <Network className="text-cyan-400" /> API Configuration
+          </h2>
+          <div className="flex items-center gap-2">
+            {apiService.isProviderConfigured(apiProvider) ? (
+              <div className="flex items-center gap-2 text-green-400 text-sm">
+                <CheckCircle2 size={16} />
+                <span>Configured</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-yellow-400 text-sm">
+                <AlertTriangle size={16} />
+                <span>Not Configured</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Provider Selection */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-3">
+              Select API Provider
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Gemini Option */}
+              <button
+                onClick={() => handleProviderChange('gemini')}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  apiProvider === 'gemini'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-white">Google Gemini</span>
+                  {apiProvider === 'gemini' && (
+                    <CheckCircle2 className="text-blue-400" size={20} />
+                  )}
+                </div>
+                <p className="text-xs text-slate-400 text-left">
+                  Uses Gemini SDK directly with API key
+                </p>
+                <div className="mt-2 text-xs">
+                  {apiService.isProviderConfigured('gemini') ? (
+                    <span className="text-green-400">✓ API Key configured</span>
+                  ) : (
+                    <span className="text-yellow-400">⚠ API Key missing</span>
+                  )}
+                </div>
+              </button>
+
+              {/* Custom API Option */}
+              <button
+                onClick={() => handleProviderChange('custom')}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  apiProvider === 'custom'
+                    ? 'border-cyan-500 bg-cyan-500/10'
+                    : 'border-white/10 bg-white/5 hover:border-white/20'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-white">Custom API</span>
+                  {apiProvider === 'custom' && (
+                    <CheckCircle2 className="text-cyan-400" size={20} />
+                  )}
+                </div>
+                <p className="text-xs text-slate-400 text-left">
+                  Uses your custom AI Gateway API
+                </p>
+                <div className="mt-2 text-xs">
+                  {apiService.isProviderConfigured('custom') ? (
+                    <span className="text-green-400">✓ URL configured</span>
+                  ) : (
+                    <span className="text-yellow-400">⚠ URL missing</span>
+                  )}
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Custom API URL Configuration */}
+          {apiProvider === 'custom' && (
+            <div className="space-y-3 p-4 bg-black/20 rounded-xl border border-cyan-500/20">
+              <label className="block text-sm font-medium text-slate-300">
+                Custom API Base URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customApiUrl}
+                  onChange={(e) => handleCustomApiUrlChange(e.target.value)}
+                  placeholder="http://localhost:5000"
+                  className="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyan-500 transition-colors font-mono text-sm"
+                />
+                <button
+                  onClick={handleTestApi}
+                  disabled={testingApi || !customApiUrl}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    testingApi || !customApiUrl
+                      ? 'bg-slate-700 opacity-50 cursor-not-allowed'
+                      : 'bg-cyan-600 hover:bg-cyan-500 text-white'
+                  }`}
+                >
+                  {testingApi ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    'Test Connection'
+                  )}
+                </button>
+              </div>
+              {apiTestResult && (
+                <div
+                  className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
+                    apiTestResult.success
+                      ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  }`}
+                >
+                  {apiTestResult.success ? (
+                    <CheckCircle2 size={16} />
+                  ) : (
+                    <XCircle size={16} />
+                  )}
+                  <span>{apiTestResult.message}</span>
+                </div>
+              )}
+              <p className="text-xs text-slate-500">
+                Enter the base URL of your AI Gateway API (e.g., http://localhost:5000)
+              </p>
+            </div>
+          )}
+
+          {/* Current Provider Info */}
+          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+            <p className="text-sm text-slate-400 mb-1">Current Active Provider:</p>
+            <p className="text-lg font-bold text-white capitalize">
+              {apiProvider === 'gemini' ? 'Google Gemini SDK' : 'Custom API Gateway'}
+            </p>
+            <p className="text-xs text-slate-500 mt-2">
+              All report generation will use this provider. Switch anytime from this panel.
+            </p>
+          </div>
         </div>
       </div>
 

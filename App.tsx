@@ -17,12 +17,18 @@ const App: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
+  console.log('[App] Render - loading:', loading, 'user:', user?.email || 'none');
+
   useEffect(() => {
+    console.log('[App] Component mounted, checking session...');
     // Check session
     const session = storageService.getSession();
     if (session) {
+      console.log('[App] Session found:', session.email);
       setUser(session);
       loadReports(session.email);
+    } else {
+      console.log('[App] No session found, user will need to login');
     }
   }, []);
 
@@ -49,8 +55,22 @@ const App: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    // Safety fallback: force complete splash after 5 seconds
+    if (loading) {
+      const fallbackTimer = setTimeout(() => {
+        console.warn('[App] Force completing splash screen after 5 second timeout');
+        setLoading(false);
+      }, 5000);
+      return () => clearTimeout(fallbackTimer);
+    }
+  }, [loading]);
+
   if (loading) {
-    return <SplashScreen onComplete={() => setLoading(false)} />;
+    return <SplashScreen onComplete={() => {
+      console.log('[App] SplashScreen completed, setting loading to false');
+      setLoading(false);
+    }} />;
   }
 
   return (
