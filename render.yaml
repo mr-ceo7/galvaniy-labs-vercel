@@ -1,0 +1,13 @@
+# Render Blueprint for Vite + React
+# Docs: https://render.com/docs/deploy-vite
+services:
+  - type: web
+    name: galvaniy-labs
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+    staticPublishPath: dist
