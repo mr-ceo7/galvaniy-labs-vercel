@@ -12,7 +12,7 @@ const getApiBaseUrl = (): string => {
 const uploadPDF = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('context_mode', 'true'); // Keep file for session
+  formData.append('context_mode', 'false'); // Keep file for session
 
   // Note: X-Session-ID header is optional and may cause CORS issues
   // If your API server doesn't allow custom headers, it will work without it
@@ -54,7 +54,7 @@ const generateSection = async (
   while (attempts < MAX_ATTEMPTS) {
     try {
       attempts++;
-      
+
       const response = await fetch(`${getApiBaseUrl()}/api/generate`, {
         method: 'POST',
         headers: {
@@ -83,10 +83,10 @@ const generateSection = async (
 
       // Clean JSON response
       text = text.replace(/```json/g, '').replace(/```/g, '');
-      
+
       const firstBrace = text.indexOf('{');
       const lastBrace = text.lastIndexOf('}');
-      
+
       if (firstBrace !== -1 && lastBrace !== -1) {
         text = text.substring(firstBrace, lastBrace + 1);
       }
@@ -128,7 +128,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   }
 
   console.log(`[Custom API] Uploading manual...`);
-  
+
   // 2. Upload PDF to custom API
   const uploadedFilename = await uploadPDF(fullManualFile);
   console.log(`[Custom API] Manual uploaded as: ${uploadedFilename}`);
@@ -166,7 +166,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
     const [textJson, dataJson, simJson] = await Promise.all([textTask, dataTask, simTask]);
 
     // --- Post-Processing: Convert String Arrays back to Script Strings ---
-    
+
     // Data Logic
     if (dataJson.calculationScriptLines && Array.isArray(dataJson.calculationScriptLines)) {
       dataJson.calculationScript = dataJson.calculationScriptLines.join('\n');

@@ -30,5 +30,33 @@ export const THEMES = [
     secondary: 'bg-blue-600',
     accent: 'text-cyan-400',
     gradient: 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900'
+  },
+  {
+    name: 'Crimson',
+    primary: 'from-red-500 to-rose-500',
+    secondary: 'bg-red-600',
+    accent: 'text-red-400',
+    gradient: 'bg-gradient-to-br from-slate-900 via-red-900 to-slate-900'
+  },
+  {
+    name: 'Royal',
+    primary: 'from-indigo-500 to-violet-500',
+    secondary: 'bg-indigo-600',
+    accent: 'text-indigo-400',
+    gradient: 'bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900'
+  },
+  {
+    name: 'Amber',
+    primary: 'from-amber-500 to-orange-500',
+    secondary: 'bg-amber-600',
+    accent: 'text-amber-400',
+    gradient: 'bg-gradient-to-br from-slate-900 via-amber-900 to-slate-900'
+  },
+  {
+    name: 'Graphite',
+    primary: 'from-slate-500 to-gray-500',
+    secondary: 'bg-slate-600',
+    accent: 'text-slate-400',
+    gradient: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'
   }
 ];

@@ -32,6 +32,7 @@ export const apiService = {
       } else {
         return await generateWithGemini(experimentCode);
       }
+      
     } catch (error: any) {
       // If one provider fails, log but don't auto-switch (let user decide)
       console.error(`[API Service] ${provider} provider failed:`, error);
