@@ -248,12 +248,423 @@ function generateInteractiveHTML(data: any, code: string) {
             color: #f8fafc; 
             overflow-x: hidden;
             transition: background 1s ease;
+            position: relative;
         }
+        
+        /* SCROLL PROGRESS BAR */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary-start), var(--primary-end));
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 10px var(--accent);
+        }
+        
         .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* ENHANCED GLASSMORPHISM */
+        .glass-enhanced {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            transition: all 0.3s ease;
+        }
+        
+        .glass-enhanced:hover {
+            background: rgba(30, 41, 59, 0.7);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 20px var(--accent);
+        }
+        
+        /* ANIMATED SECTION REVEALS */
+        .reveal-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .reveal-section.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* FLOATING PARTICLES BACKGROUND */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, var(--accent), transparent);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float linear infinite;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+        
+        /* IMPROVED TYPOGRAPHY */
+        h1 { 
+            font-weight: 800; 
+            letter-spacing: -0.02em; 
+            line-height: 1.1;
+        }
+        
+        h2 { 
+            font-weight: 700; 
+            letter-spacing: -0.01em; 
+            line-height: 1.2;
+        }
+        
+        h3 { 
+            font-weight: 600; 
+            letter-spacing: 0; 
+            line-height: 1.3;
+        }
+        
+        p { 
+            line-height: 1.7; 
+            letter-spacing: 0.01em; 
+        }
+        
+        /* MICRO-INTERACTIONS FOR BUTTONS */
+        button, .button-like {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        
+        button:hover, .button-like:hover {
+            transform: translateY(-1px);
+        }
+        
+        button:active, .button-like:active {
+            transform: scale(0.98);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        
+        /* QUICK STATS CARD */
+        .stats-card {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* MOBILE OPTIMIZATIONS */
+        @media (max-width: 768px) {
+            /* Reduce particles for performance */
+            .particle {
+                display: none;
+            }
+            
+            /* Reduce particles count - show only 10 on mobile */
+            .particle:nth-child(-n+10) {
+                display: block;
+            }
+            
+            /* Better mobile typography */
+            body {
+                font-size: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem !important;
+                line-height: 1.2;
+            }
+            
+            h2 {
+                font-size: 1.25rem !important;
+            }
+            
+            h3 {
+                font-size: 1.1rem;
+            }
+            
+            /* Larger tap targets for mobile (minimum 44px) */
+            button, input[type="range"], input[type="checkbox"] {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            /* Better spacing on mobile */
+            .max-w-5xl {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+            
+            .glass, .glass-enhanced {
+                padding: 16px !important;
+            }
+            
+            /* Horizontal scroll for tables on mobile */
+            .data-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin-left: -12px;
+                margin-right: -12px;
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+            
+            table {
+                min-width: 500px;
+            }
+            
+            /* Reduce animations on mobile for performance */
+            .reveal-section {
+                animation: none;
+                opacity: 1;
+                transform: none;
+            }
+            
+            /* Stack stats vertically on mobile */
+            .stats-card {
+                grid-template-columns: 1fr;
+            }
+            
+            /* Make simulation canvas smaller */
+            canvas {
+                max-height: 250px !important;
+            }
+            
+            /* Better touch scrolling for simulation controls */
+            .overflow-y-auto {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Reduce blur for better performance */
+            .glass, .glass-enhanced {
+                backdrop-filter: blur(8px);
+            }
+            
+            /* Make instruction popup full width on mobile */
+            .popup-card {
+                max-width: calc(100vw - 32px) !important;
+            }
+            
+            /* Hide scroll progress on very small screens - takes up space */
+            #scroll-progress {
+                height: 2px;
+            }
+            
+            /* Better mobile padding for sections */
+            section {
+                margin-bottom: 16px;
+            }
+            
+            /* Touch-friendly chart */
+            #dataChart {
+                touch-action: pan-y pinch-zoom;
+            }
+        }
+        
+        /* Extra small devices (phones in portrait) */
+        @media (max-width: 480px) {
+            /* Even smaller text for tiny screens */
+            body {
+                font-size: 14px;
+            }
+            
+            h1 {
+                font-size: 1.75rem !important;
+            }
+            
+            /* Single column for everything */
+            .grid,  [class*="grid-cols"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Reduce padding further */
+            .glass, .glass-enhanced {
+                padding: 12px !important;
+            }
+            
+            /* Smaller stats */
+            .stat-value {
+                font-size: 1.25rem;
+            }
+        }
+        
+        /* Tablet optimization */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            /* 2-column stats on tablets */
+            .stats-card {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            /* Slightly larger touch targets */
+            button {
+                min-height: 40px;
+            }
+        }
+        
+        /* PRINT OPTIMIZATIONS */
+        @media print {
+            /* Hide UI elements on print */
+            #scroll-progress,
+            #instruction-popup,
+            .particles,
+            canvas,
+            input[type="range"] {
+                display: none !important;
+            }
+            
+            /* Reset colors for print */
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .glass, .glass-enhanced {
+                background: white;
+                border: 1px solid #ccc;
+            }
+            
+            /* Page breaks */
+            section {
+                page-break-inside: avoid;
+            }
+            
+            /* Black text for print */
+            h1, h2, h3, p {
+                color: black !important;
+            }
+        }
+        
+        /* COLLAPSIBLE SECTIONS */
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .collapsible-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .collapsible-header.collapsed .collapsible-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .collapsible-content {
+            max-height: 5000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease;
+        }
+        
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        /* ENHANCED TABLE INTERACTIONS */
+        table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+        
+        table tbody tr:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        table th {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+        
+        /* COPY BUTTON STYLES */
+        .copy-button {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            color: #60a5fa;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .copy-button:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        .copy-button.copied {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #10b981;
         }
         
         /* STRICT TABLE STYLING */
@@ -565,9 +976,35 @@ function generateInteractiveHTML(data: any, code: string) {
         </div>
     </div>
 
+    <!-- SCROLL PROGRESS BAR -->
+    <div id="scroll-progress"></div>
+
+    <!-- FLOATING PARTICLES -->
+    <div class="particles" id="particles"></div>
+
     <!-- REPORT CONTENT -->
     <div class="report-content" id="report-content">
     <div class="max-w-5xl mx-auto space-y-8">
+        
+        <!-- QUICK STATS CARD -->
+        <div class="stats-card glass-enhanced reveal-section rounded-2xl p-6">
+            <div class="stat-item">
+                <div class="stat-label">Experiment</div>
+                <div class="stat-value">${code}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Data Tables</div>
+                <div class="stat-value">${data.tables.length}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Has Graph</div>
+                <div class="stat-value">${data.graphConfig ? 'Yes' : 'No'}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Simulation</div>
+                <div class="stat-value">${data.simulationScript ? 'Active' : 'N/A'}</div>
+            </div>
+        </div>
         <!-- (a) CODE & TITLE, (b) DATE, (c) PARTNERS -->
         <header class="glass rounded-2xl p-8 text-center relative overflow-hidden">
             <div class="absolute inset-0 opacity-10 blur-3xl" style="background: var(--accent);"></div>
@@ -588,7 +1025,7 @@ function generateInteractiveHTML(data: any, code: string) {
 
         <!-- Dynamic Diagram Section (if available from manual) -->
         ${data.diagram ? `
-        <section class="glass rounded-2xl p-6 border-l-4 border-emerald-500">
+        <section class="glass-enhanced reveal-section rounded-2xl p-6 border-l-4 border-emerald-500">
              <h2 class="text-xl font-semibold text-emerald-400 mb-4">Experiment Diagram</h2>
              <div class="w-full bg-white/5 rounded-xl overflow-hidden flex justify-center p-4">
                  <img src="${data.diagram}" alt="Experiment Diagram from Manual" class="max-h-[400px] object-contain rounded-lg border border-white/10" />
@@ -618,7 +1055,7 @@ function generateInteractiveHTML(data: any, code: string) {
         </div>
 
         <!-- (e) THEORY -->
-        <section class="glass rounded-2xl p-6">
+        <section class="glass-enhanced reveal-section rounded-2xl p-6">
             <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(e) Theory / Introduction</p>
             <h2 class="text-xl font-semibold text-blue-400 border-b border-white/10 pb-2 mb-4">Theory</h2>
             <p class="text-slate-300 text-sm leading-relaxed">${data.theory}</p>
@@ -634,7 +1071,7 @@ function generateInteractiveHTML(data: any, code: string) {
         </section>
 
         <!-- INTERACTIVE SIMULATION (Experimental Enhancement) -->
-        <section class="glass rounded-2xl p-6 overflow-hidden border-l-4 border-amber-500">
+        <section class="glass-enhanced reveal-section rounded-2xl p-6 overflow-hidden border-l-4 border-amber-500">
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-semibold text-emerald-400">Virtual Apparatus <span class="text-xs text-amber-400 font-bold uppercase tracking-wider">(Experimental)</span></h2>
@@ -669,7 +1106,7 @@ function generateInteractiveHTML(data: any, code: string) {
 
         <!-- (h) PRECAUTIONS -->
         ${(data.precautions && data.precautions.length > 0) ? `
-        <section class="glass rounded-2xl p-6">
+        <section class="glass-enhanced reveal-section rounded-2xl p-6">
             <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(h) Precautions</p>
             <h2 class="text-xl font-semibold text-yellow-400 border-b border-white/10 pb-2 mb-4">Precautions</h2>
             <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
@@ -695,7 +1132,7 @@ function generateInteractiveHTML(data: any, code: string) {
         </div>
 
         <!-- (j) DATA ANALYSIS -->
-        <section class="glass rounded-2xl p-6 border-l-4 border-cyan-500">
+        <section class="glass-enhanced reveal-section rounded-2xl p-6 border-l-4 border-cyan-500">
             <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(j) Data Analysis</p>
             <h2 class="text-xl font-semibold text-cyan-400 border-b border-white/10 pb-2 mb-4">Data Analysis</h2>
             <div id="analysisContent" class="prose prose-invert max-w-none text-slate-300 text-sm font-mono p-4 bg-black/20 rounded-xl">
@@ -789,6 +1226,37 @@ function generateInteractiveHTML(data: any, code: string) {
         
         // Initialize palette immediately
         initColorPalette();
+        
+        // Generate Floating Particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Random position
+                particle.style.left = Math.random() * 100 + '%';
+                
+                // Random animation duration (20-40s)
+                const duration = 20 + Math.random() * 20;
+                particle.style.animationDuration = duration + 's';
+                
+                // Random delay
+                particle.style.animationDelay = -Math.random() * duration + 's';
+                
+                // Random size variation
+                const size = 3 + Math.random() * 3;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Create particles after color palette is set
+        setTimeout(createParticles, 100);
         
         function init() {
             renderTables();
@@ -1036,6 +1504,64 @@ function generateInteractiveHTML(data: any, code: string) {
                     });
             }
         }
+        
+        // Scroll Progress Bar
+        function updateScrollProgress() {
+            const scrollProgress = document.getElementById('scroll-progress');
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollPercent = (scrollTop / scrollHeight) * 100;
+            scrollProgress.style.width = scrollPercent + '%';
+        }
+        
+        // Animated Section Reveals
+        function revealSections() {
+            const sections = document.querySelectorAll('.reveal-section');
+            const windowHeight = window.innerHeight;
+            
+            sections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top;
+                const revealPoint = 150;
+                
+                if (sectionTop < windowHeight - revealPoint) {
+                    section.classList.add('revealed');
+                }
+            });
+        }
+        
+        // Scroll to Top
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        
+        // Toggle Font Size
+        let currentFontSize = 1; // 0 = small, 1 = normal, 2 = large
+        function toggleFontSize() {
+            currentFontSize = (currentFontSize + 1) % 3;
+            const sizes = ['14px', '16px', '18px'];
+            document.body.style.fontSize = sizes[currentFontSize];
+            localStorage.setItem('reportFontSize', currentFontSize);
+        }
+        
+        // Load saved font size
+        const savedFontSize = localStorage.getItem('reportFontSize');
+        if (savedFontSize) {
+            currentFontSize = parseInt(savedFontSize);
+            const sizes = ['14px', '16px', '18px'];
+            document.body.style.fontSize = sizes[currentFontSize];
+        }
+        
+        // Attach scroll listeners
+        window.addEventListener('scroll', () => {
+            updateScrollProgress();
+            revealSections();
+        });
+        
+        // Initial reveal check
+        setTimeout(revealSections, 100);
         
         // Initialize instruction popup
         showInstructionPopup();
