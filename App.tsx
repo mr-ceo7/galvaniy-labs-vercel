@@ -6,6 +6,7 @@ import { Generator } from './components/Generator';
 import { History } from './components/History';
 import { Admin } from './components/Admin';
 import { ReportView } from './components/ReportView';
+import { InstallPrompt } from './components/InstallPrompt';
 import { User, Report } from './types';
 import { storageService } from './services/storageService';
 import { LogOut, User as UserIcon } from 'lucide-react';
@@ -146,6 +147,7 @@ const App: React.FC = () => {
           />
         </div>
       )}
+      <InstallPrompt />
     </Layout>
   );
 };
