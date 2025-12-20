@@ -667,6 +667,203 @@ function generateInteractiveHTML(data: any, code: string) {
             color: #10b981;
         }
         
+        /* FORMULA & TECHNICAL CONTENT STYLING */
+        /* Mathematical formulas */
+        .formula, [data-formula], code.formula {
+            font-family: 'Courier New', 'Menlo', monospace;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #c7d2fe;
+            display: inline-block;
+            margin: 4px 0;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        
+        /* Variables in formulas (e.g., x, y, V, I) */
+        .variable, var, i:not([class]) {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            color: #fbbf24;
+            font-weight: 500;
+        }
+        
+        /* Numbers in formulas */
+        .number, .numeric-value {
+            color: #34d399;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+        
+        /* Units (e.g., m, kg, N, J) */
+        .unit, [data-unit] {
+            color: #f472b6;
+            font-family: 'Courier New', monospace;
+            margin-left: 2px;
+            font-size: 0.9em;
+        }
+        
+        /* Operators (+, -, ×, ÷, =) */
+        .operator {
+            color: #60a5fa;
+            font-weight: bold;
+            margin: 0 4px;
+        }
+        
+        /* Greek letters (α, β, θ, etc.) */
+        .greek {
+            font-family: 'Times New Roman', serif;
+            color: #a78bfa;
+            font-style: normal;
+        }
+        
+        /* Code blocks */
+        pre code, .code-block {
+            display: block;
+            background: rgba(0, 0, 0, 0.4);
+            border-left: 3px solid var(--accent);
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Courier New', 'Menlo', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+        
+        /* Inline code */
+        code:not(pre code):not(.formula) {
+            background: rgba(59, 130, 246, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #93c5fd;
+        }
+        
+        /* Subscripts and superscripts */
+        sub, sup {
+            font-size: 0.75em;
+            line-height: 0;
+        }
+        
+        sub {
+            color: #fdba74;
+        }
+        
+        sup {
+            color: #86efac;
+        }
+        
+        /* Equations */
+        .equation {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            border-left: 4px solid var(--accent);
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .equation-label {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        
+        /* Highlighted text */
+        mark, .highlight {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        /* Important notes/warnings */
+        .note, .important {
+            background: rgba(34, 211, 238, 0.1);
+            border-left: 3px solid #22d3ee;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            color: #cffafe;
+        }
+        
+        .warning {
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 3px solid #fbbf24;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            color: #fef3c7;
+        }
+        
+        /* Scientific notation */
+        .sci-notation {
+            font-family: 'Courier New', monospace;
+            color: #34d399;
+        }
+        
+        /* Fractions */
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+        
+        .fraction-top {
+            border-bottom: 1px solid currentColor;
+            padding-bottom: 2px;
+        }
+        
+        .fraction-bottom {
+            padding-top: 2px;
+        }
+        
+        /* Better list styling for procedures/steps */
+        ol li, ul li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        
+        ol li::marker {
+            color: var(--accent);
+            font-weight: 700;
+        }
+        
+        ul li::marker {
+            color: var(--accent);
+        }
+        
+        /* Definition terms */
+        dt {
+            color: #60a5fa;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+        
+        dd {
+            margin-left: 20px;
+            color: #cbd5e1;
+        }
+        
+        /* Emphasis in technical context */
+        strong, b {
+            color: #fbbf24;
+            font-weight: 700;
+        }
+        
+        em {
+            color: #a78bfa;
+        }
+        
         /* STRICT TABLE STYLING */
         .data-table-container {
            border: 1px solid rgba(255,255,255,0.2);
