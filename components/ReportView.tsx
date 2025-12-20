@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Report, Theme } from '../types';
 import { Download, Share2, X, FileCode, ImageIcon } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+import toast, { Toaster } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 interface ReportViewProps {
@@ -46,98 +48,95 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
 
   if (!report) return null;
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!parsedReport) return;
-    const doc = new jsPDF();
-    let y = 10;
     
-    const addText = (text: string, size = 11, bold = false) => {
-      doc.setFontSize(size);
-      doc.setFont("helvetica", bold ? "bold" : "normal");
-      const splitText = doc.splitTextToSize(text, 180);
-      if (y + splitText.length * 5 > 280) {
-        doc.addPage();
-        y = 10;
-      }
-      doc.text(splitText, 10, y);
-      y += splitText.length * 5 + 2;
-    };
-
-    addText(`Lab Report: ${report.experimentCode}`, 18, true);
-    y += 5;
-    addText(parsedReport.title, 14, true);
-    y += 5;
-
-    // Check for diagram and add it to PDF
-    if (parsedReport.diagram) {
-        try {
-            doc.addImage(parsedReport.diagram, 'JPEG', 10, y, 100, 75); // Aspect ratio 4:3 roughly
-            y += 80;
-            addText("Figure 1: Experiment Diagram from Manual", 9);
-            y += 5;
-        } catch (e) {
-            console.error("Failed to add image to PDF", e);
-        }
-    }
-
-    addText("Objectives:", 12, true);
-    parsedReport.objectives.forEach((obj: string) => addText(`- ${obj}`));
-    y += 5;
-
-    addText("Apparatus:", 12, true);
-    parsedReport.apparatus.forEach((app: string) => addText(`- ${app}`));
-    y += 5;
-
-    addText("Theory:", 12, true);
-    addText(parsedReport.theory);
-    y += 5;
-
-    addText("Procedure:", 12, true);
-    parsedReport.procedure.forEach((step: string, i: number) => addText(`${i+1}. ${step}`));
-    y += 5;
-
-    // Handle Multiple Tables
-    parsedReport.tables.forEach((table: any, idx: number) => {
-        const title = table.title || `Table ${idx + 1}`;
-        addText(title, 12, true);
-        
-        const headers = table.headers.join(" | ");
-        addText(headers, 10, true);
-        
-        table.rows.forEach((row: any[]) => {
-            const rowText = row.map((cell: any) => (cell === null || cell === undefined) ? '' : cell).join(" | ");
-            addText(rowText);
-        });
-        y += 5;
+    // Show loading toast
+    const loadingToastId = toast.loading('Generating high-quality PDF...', {
+      duration: Infinity,
+      position: 'bottom-center'
     });
-
-    addText("Analysis:", 12, true);
-    if (parsedReport.analysisTemplate) {
-        // Strip placeholders for PDF
-        addText(parsedReport.analysisTemplate.replace(/\{\{.*?\}\}/g, '[calculated]'));
-    } else {
-        addText("No automated analysis provided.");
-    }
-    y += 5;
-
-    if (parsedReport.questions && parsedReport.questions.length > 0) {
-      addText("Questions & Answers:", 12, true);
-      parsedReport.questions.forEach((q: any, i: number) => {
-        addText(`Q${i+1}: ${q.question}`, 11, true);
-        addText(`A: ${q.answer}`);
-        y += 2;
+    
+    try {
+      // Get the iframe element
+      const iframe = document.querySelector('iframe') as HTMLIFrameElement;
+      if (!iframe || !iframe.contentDocument) {
+        throw new Error('Report preview not loaded. Please wait for the report to fully render.');
+      }
+      
+      const reportBody = iframe.contentDocument.body;
+      
+      // Ensure all images and resources are loaded
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Capture the entire report as high-resolution canvas
+      const canvas = await html2canvas(reportBody, {
+        scale: 2, // High resolution for quality
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#0f172a',
+        windowWidth: reportBody.scrollWidth,
+        windowHeight: reportBody.scrollHeight,
+        onclone: (clonedDoc) => {
+          // Ensure the cloned document is fully styled
+          const clonedBody = clonedDoc.body;
+          clonedBody.style.width = reportBody.scrollWidth + 'px';
+          clonedBody.style.height = reportBody.scrollHeight + 'px';
+        }
       });
-      y += 5;
+      
+      // Create PDF
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Calculate dimensions
+      const pdfWidth = doc.internal.pageSize.getWidth();
+      const pdfHeight = doc.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Handle multi-page PDFs
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      // Add first page
+      doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+      
+      // Add additional pages if content is longer than one page
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        doc.addPage();
+        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+      
+      // Download with descriptive filename
+      const filename = `${report.experimentCode}_Lab_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(filename);
+      
+      // Success feedback
+      toast.success('PDF downloaded successfully!', {
+        id: loadingToastId,
+        duration: 3000
+      });
+      
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to generate PDF. Please try again.',
+        {
+          id: loadingToastId,
+          duration: 5000
+        }
+      );
     }
 
-    addText("Discussion:", 12, true);
-    addText(parsedReport.discussion);
-    y += 5;
-
-    addText("Conclusion:", 12, true);
-    addText(parsedReport.conclusion);
-
-    doc.save(`${report.experimentCode}_Report.pdf`);
   };
 
   const handleDownloadHTML = () => {
@@ -201,6 +200,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
           )}
         </div>
       </motion.div>
+      <Toaster />
     </div>
   );
 };
