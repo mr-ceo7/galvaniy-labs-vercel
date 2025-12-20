@@ -86,17 +86,48 @@ Focus on DATA COLLECTION and ANALYSIS.
 export const getSimulationInstructions = (experimentCode: string): string => `
 Create a HTML5 Canvas Visualization for experiment "${experimentCode}".
 
-1. **Simulation Script**:
+CRITICAL: The simulation MUST visually represent THIS SPECIFIC experiment's apparatus and setup.
+DO NOT generate generic or unrelated physics simulations.
+
+1. **Understand the Experiment First**:
+   - Read the procedure and apparatus sections carefully
+   - Identify what is being measured and how
+   - Identify the physical setup (e.g., wire stretching, light rays, circuits, pendulum)
+
+2. **Simulation Script**:
    - **IMPORTANT**: Return this as "simulationScriptLines" (Array of Strings).
    - Each string is a line of code.
    - JS function body: (ctx, width, height, frame, params) => void.
-   - Visualize the apparatus setup (e.g., pendulum, circuit, optical bench).
-   - Use 'params' object for interactivity.
+   - Visualize the ACTUAL apparatus setup for THIS experiment
+   - Use 'params' object for interactive controls
    - Keep it simple and visual. NO COMMENTS.
    
-2. **Controls**:
-   - Array of sliders to control variables (e.g., length, resistance, angle).
+   Examples of experiment-specific visualizations:
+   - Wire/Spring experiments: Draw vertical wire, hanging mass, show extension
+   - Optics: Draw light rays, lenses, mirrors, focal points
+   - Electricity: Draw circuit components, current flow indicators
+   - Pendulum: Draw string, bob, show oscillation
+   - Magnetic field: Draw coils, compass, field lines
+
+3. **Controls**:
+   - Array of sliders to control THE ACTUAL EXPERIMENT VARIABLES
+   - Controls MUST match what is measured in this specific experiment
+   - BAD example for wire stretching: "Current (I)", "Voltage (V)"
+   - GOOD example for wire stretching: "Load (kg)", "Wire Length (m)", "Wire Diameter (mm)"
+   
+   Control requirements:
+   - id: descriptive parameter name (e.g., "load", "length", "angle")
+   - label: clear description matching experiment (e.g., "Applied Load")
+   - min/max/val: realistic ranges for this experiment
+   - unit: correct SI units matching the measurement
+
+VALIDATION CHECKLIST:
+✓ Does the visualization show the apparatus described in the procedure?
+✓ Do the controls match the variables measured in the experiment?
+✓ Are the physics equations specific to THIS experiment type?
+✓ Would a student recognize this as the correct experiment setup?
 `;
+
 
 // JSON Examples for each section
 export const JSON_EXAMPLES = {

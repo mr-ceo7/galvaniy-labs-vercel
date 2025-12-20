@@ -295,7 +295,7 @@ function generateInteractiveHTML(data: any, code: string) {
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]">
+<body class="min-h-screen p-4 md:p-8" style="background-color: #0f172a; background-image: radial-gradient(circle at 25px 25px, rgba(255,255,255,0.02) 2%, transparent 0%), radial-gradient(circle at 75px 75px, rgba(255,255,255,0.02) 2%, transparent 0%); background-size: 100px 100px;">
 
     <div class="max-w-5xl mx-auto space-y-8">
         <!-- (a) CODE & TITLE, (b) DATE, (c) PARTNERS -->
