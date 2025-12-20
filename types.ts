@@ -5,6 +5,10 @@ export interface User {
   isRevoked: boolean;
   reportsGenerated: number;
   customLimit?: number; // Added for admin overrides
+  uid?: string; // Firebase UID
+  displayName?: string; // User's display name
+  emailVerified?: boolean; // Email verification status
+  photoURL?: string; // Profile photo (from Google auth)
 }
 
 export interface Report {
