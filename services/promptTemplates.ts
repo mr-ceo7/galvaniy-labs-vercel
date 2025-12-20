@@ -2,7 +2,7 @@
 // Modify prompts here once, and both Gemini and Custom API will use them
 
 export interface PromptConfig {
-  systemRole: string;
+  systemRole: (experimentCode: string) => string;
   jsonFormatInstructions: string;
   textContentInstructions: (experimentCode: string) => string;
   dataLogicInstructions: (experimentCode: string) => string;
@@ -10,7 +10,7 @@ export interface PromptConfig {
 }
 
 // Main system role/persona
-export const SYSTEM_ROLE = `You are an expert Physics Laboratory Assistant.`;
+export const getSystemRole = (experimentCode: string) => `You are an expert Laboratory Assistant. Generate a comprehensive lab report describing a COMPLETED experiment for "${experimentCode}". Write in past tense as if the experiment has already been performed.`;
 
 // JSON format requirements (shared across all sections)
 export const JSON_FORMAT_INSTRUCTIONS = `
@@ -23,15 +23,38 @@ Do not include any text before or after the JSON object.
 // Text Content Section Instructions
 export const getTextContentInstructions = (experimentCode: string): string => `
 SEARCH the manual for experiment code "${experimentCode}".
-Extract the following text sections VERBATIM where possible:
-1. Title
-2. Objectives (array)
-3. Apparatus (array)
-4. Theory (comprehensive text)
-5. Procedure (array of steps, include references to Figures if seen in PDF)
-6. Questions (if present in manual, include answers. If not, generate 2 relevant questions)
-7. Discussion (Generate a generic discussion on sources of error relevant to this physics experiment)
-8. Conclusion (Summarize based on objectives)
+Generate a lab report for a COMPLETED experiment. Use PAST TENSE throughout.
+
+Generate the following sections in academic format:
+
+1. **Title**: Full experiment title
+2. **Date**: Use placeholder "[Date: DD/MM/YYYY]"
+3. **Partners**: Use placeholder "[Partners: Student names]"
+4. **Objectives**: Array of experiment aims (keep infinitive form: "To determine...", "To investigate...")
+5. **Theory**: Comprehensive background explaining the physics/science principles
+6. **Apparatus**: List of equipment used in the experiment
+7. **Procedure**: Steps describing what WAS DONE in past tense (passive voice preferred)
+   - Example: "The liquid was heated to 60°C" NOT "Heat the liquid to 60°C"
+   - Example: "The temperature was recorded every minute" NOT "Record the temperature"
+   - Example: "The apparatus was set up as shown in Figure X" NOT "Set up the apparatus"
+8. **Precautions**: Safety measures and experimental precautions that were taken
+   - Include relevant safety risks (burns, spillage, fragile equipment, electrical hazards, etc.)
+   - Example: "Care was taken to avoid contact with hot surfaces"
+9. **Discussion**: Interpretation of results, comparison with theoretical values, significance of findings
+10. **Sources of Error**: Numbered list of error sources (separate from discussion)
+    - Physical factors (draughts, air currents, evaporation, heat loss, friction, etc.)
+    - Measurement errors (instrument lag, parallax errors, timing errors, calibration issues, etc.)
+    - Human factors (reaction time, reading errors, etc.)
+11. **Conclusion**: Past-tense summary of what was achieved and verified
+    - Example: "The experiment successfully verified..." NOT "This experiment verifies..."
+12. **References**: Array of reference sources (always include the lab manual)
+13. **Questions**: If present in manual, include questions with answers
+
+CRITICAL REQUIREMENTS:
+- Write procedure in PAST TENSE as if experiment was already completed
+- Use passive voice where appropriate: "was measured", "were recorded", "was observed"
+- Conclusion should reflect on what WAS accomplished, not what WILL BE accomplished
+- Follow any specific formatting guidelines mentioned in the uploaded manual
 `;
 
 // Data & Logic Section Instructions
@@ -78,13 +101,18 @@ Create a HTML5 Canvas Visualization for experiment "${experimentCode}".
 // JSON Examples for each section
 export const JSON_EXAMPLES = {
   textContent: `{
-  "title": "Exp Title",
-  "objectives": ["Obj 1", "Obj 2"],
-  "apparatus": ["Item 1"],
-  "theory": "Detailed theory text...",
-  "procedure": ["Step 1", "Step 2"],
-  "discussion": "Sources of error...",
-  "conclusion": "Summary...",
+  "title": "Experiment Title",
+  "date": "[Date: DD/MM/YYYY]",
+  "partners": "[Partners: Student Names]",
+  "objectives": ["To investigate...", "To determine..."],
+  "apparatus": ["Item 1", "Item 2"],
+  "theory": "Theory text explaining the scientific principles...",
+  "procedure": ["The apparatus was set up as shown in Figure 1.", "The measurement was taken using...", "The data was recorded in Table 1."],
+  "precautions": ["Care was taken to avoid burns from hot surfaces", "The setup was ensured to be stable to prevent spillage"],
+  "discussion": "The results indicate that... The deviation from theoretical values can be attributed to...",
+  "sourcesOfError": ["Draughts and air currents affecting heat transfer", "Thermometer lag causing measurement delay", "Evaporation of the liquid"],
+  "conclusion": "The experiment successfully verified... The objective was achieved...",
+  "references": ["Lab Manual 2025 Edition", "University Physics by Young & Freedman"],
   "questions": [{"question": "Q1?", "answer": "A1"}]
 }`,
 
@@ -109,13 +137,14 @@ export const JSON_EXAMPLES = {
 
 // Helper function to build the full prompt for a section
 export const buildSectionPrompt = (
+  experimentCode: string,
   sectionName: string,
   instructions: string,
   jsonExample: string,
   contextType: 'PDF Manual' | 'uploaded manual' = 'PDF Manual'
 ): string => {
   return `
-${SYSTEM_ROLE}
+${getSystemRole(experimentCode)}
 Your task is to generate the "${sectionName}" section for the requested experiment using the attached ${contextType}.
 
 ${instructions}

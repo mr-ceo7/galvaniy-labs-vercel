@@ -41,6 +41,7 @@ const uploadPDF = async (file: File): Promise<string> => {
 // Helper to generate section using custom API
 const generateSection = async (
   uploadedFilename: string,
+  experimentCode: string,
   sectionName: string,
   jsonExample: string,
   instructions: string
@@ -49,7 +50,7 @@ const generateSection = async (
   const MAX_ATTEMPTS = 3;
 
   // Use shared prompt template
-  const prompt = buildSectionPrompt(sectionName, instructions, jsonExample, 'uploaded manual');
+  const prompt = buildSectionPrompt(experimentCode, sectionName, instructions, jsonExample, 'uploaded manual');
 
   while (attempts < MAX_ATTEMPTS) {
     try {
@@ -124,7 +125,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   // 1. Get Manual
   const fullManualFile = await storageService.getFullManualBlob();
   if (!fullManualFile) {
-    throw new Error("No Manual Found. Please contact Admin to upload the PDF manual.");
+    throw new Error("No Manual Found. Please contact Admin to upload the relevant manual.");
   }
 
   console.log(`[Custom API] Uploading manual...`);
@@ -140,6 +141,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   // --- Task A: Text Content ---
   const textTask = generateSection(
     uploadedFilename,
+    experimentCode,
     "Text Content",
     JSON_EXAMPLES.textContent,
     getTextContentInstructions(experimentCode)
@@ -148,6 +150,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   // --- Task B: Data & Logic ---
   const dataTask = generateSection(
     uploadedFilename,
+    experimentCode,
     "Data & Logic",
     JSON_EXAMPLES.dataLogic,
     getDataLogicInstructions(experimentCode)
@@ -156,6 +159,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   // --- Task C: Simulation ---
   const simTask = generateSection(
     uploadedFilename,
+    experimentCode,
     "Simulation",
     JSON_EXAMPLES.simulation,
     getSimulationInstructions(experimentCode)

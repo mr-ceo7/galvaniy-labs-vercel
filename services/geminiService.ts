@@ -30,6 +30,7 @@ const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: s
 const generateSection = async (
     ai: GoogleGenAI, 
     parts: any[], 
+    experimentCode: string,
     sectionName: string, 
     jsonExample: string,
     instructions: string,
@@ -39,7 +40,7 @@ const generateSection = async (
     const MAX_ATTEMPTS = 3;
 
     // Use shared prompt template
-    const finalPrompt = buildSectionPrompt(sectionName, instructions, jsonExample, 'PDF Manual');
+    const finalPrompt = buildSectionPrompt(experimentCode, sectionName, instructions, jsonExample, 'PDF Manual');
 
     // Add the specific prompt to the parts for this request
     const requestParts = [...parts, { text: finalPrompt }];
@@ -142,6 +143,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   const textTask = generateSection(
       ai, 
       commonParts, 
+      experimentCode,
       "Text Content",
       JSON_EXAMPLES.textContent,
       getTextContentInstructions(experimentCode),
@@ -189,6 +191,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   const dataTask = generateSection(
       ai, 
       commonParts, 
+      experimentCode,
       "Data & Logic",
       JSON_EXAMPLES.dataLogic,
       getDataLogicInstructions(experimentCode),
@@ -222,6 +225,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   const simTask = generateSection(
       ai, 
       commonParts, 
+      experimentCode,
       "Simulation",
       JSON_EXAMPLES.simulation,
       getSimulationInstructions(experimentCode),

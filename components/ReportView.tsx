@@ -298,14 +298,25 @@ function generateInteractiveHTML(data: any, code: string) {
 <body class="min-h-screen p-4 md:p-8 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]">
 
     <div class="max-w-5xl mx-auto space-y-8">
-        <!-- Header -->
+        <!-- (a) CODE & TITLE, (b) DATE, (c) PARTNERS -->
         <header class="glass rounded-2xl p-8 text-center relative overflow-hidden">
             <div class="absolute inset-0 bg-blue-500/10 blur-3xl"></div>
-            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 relative z-10">${data.title}</h1>
-            <p class="text-slate-400 mt-2 relative z-10">Experiment Code: <span class="text-white font-mono">${code}</span></p>
+            <p class="text-xs text-slate-500 uppercase tracking-wider relative z-10 mb-1">(a) CODE & TITLE</p>
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 relative z-10">${code}: ${data.title}</h1>
+            
+            <div class="mt-6 space-y-2 text-sm relative z-10">
+                <p class="text-slate-400">
+                    <span class="text-xs text-slate-500 uppercase tracking-wider">(b) Date: </span>
+                    <span class="text-white font-mono">${data.date || '[Date: DD/MM/YYYY]'}</span>
+                </p>
+                <p class="text-slate-400">
+                    <span class="text-xs text-slate-500 uppercase tracking-wider">(c) Partners: </span>
+                    <span class="text-white">${data.partners || '[Partners: Student Names]'}</span>
+                </p>
+            </div>
         </header>
 
-        <!-- Dynamic Diagram Section -->
+        <!-- Dynamic Diagram Section (if available from manual) -->
         ${data.diagram ? `
         <section class="glass rounded-2xl p-6 border-l-4 border-emerald-500">
              <h2 class="text-xl font-semibold text-emerald-400 mb-4">Experiment Diagram</h2>
@@ -317,36 +328,49 @@ function generateInteractiveHTML(data: any, code: string) {
         ` : ''}
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Objectives & Theory -->
-            <section class="glass rounded-2xl p-6 space-y-4">
-                <h2 class="text-xl font-semibold text-blue-400 border-b border-white/10 pb-2">Objectives</h2>
-                <ul class="list-disc list-inside text-slate-300 space-y-1">
+            <!-- (d) OBJECTIVES -->
+            <section class="glass rounded-2xl p-6">
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(d) Objectives</p>
+                <h2 class="text-xl font-semibold text-blue-400 border-b border-white/10 pb-2 mb-4">Objectives</h2>
+                <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
                     ${data.objectives.map((o: string) => `<li>${o}</li>`).join('')}
                 </ul>
-                
-                <h2 class="text-xl font-semibold text-blue-400 border-b border-white/10 pb-2 pt-4">Theory</h2>
-                <p class="text-slate-300 text-sm leading-relaxed">${data.theory}</p>
             </section>
 
-            <!-- Apparatus & Procedure -->
-            <section class="glass rounded-2xl p-6 space-y-4">
-                <h2 class="text-xl font-semibold text-purple-400 border-b border-white/10 pb-2">Apparatus</h2>
+            <!-- (f) APPARATUS -->
+            <section class="glass rounded-2xl p-6">
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(f) List of Apparatus</p>
+                <h2 class="text-xl font-semibold text-purple-400 border-b border-white/10 pb-2 mb-4">Apparatus</h2>
                 <div class="flex flex-wrap gap-2">
                     ${data.apparatus.map((a: string) => `<span class="bg-white/5 px-3 py-1 rounded-full text-xs text-slate-300">${a}</span>`).join('')}
                 </div>
-
-                <h2 class="text-xl font-semibold text-purple-400 border-b border-white/10 pb-2 pt-4">Procedure</h2>
-                <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
-                    ${data.procedure.map((p: string) => `<li>${p}</li>`).join('')}
-                </ol>
             </section>
         </div>
 
-        <!-- Interactive Simulation -->
-        <section class="glass rounded-2xl p-6 overflow-hidden">
+        <!-- (e) THEORY -->
+        <section class="glass rounded-2xl p-6">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(e) Theory / Introduction</p>
+            <h2 class="text-xl font-semibold text-blue-400 border-b border-white/10 pb-2 mb-4">Theory</h2>
+            <p class="text-slate-300 text-sm leading-relaxed">${data.theory}</p>
+        </section>
+
+        <!-- (g) METHOD / PROCEDURE -->
+        <section class="glass rounded-2xl p-6">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(g) Method / Procedure</p>
+            <h2 class="text-xl font-semibold text-purple-400 border-b border-white/10 pb-2 mb-4">Procedure</h2>
+            <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+                ${data.procedure.map((p: string) => `<li>${p}</li>`).join('')}
+            </ol>
+        </section>
+
+        <!-- INTERACTIVE SIMULATION (Experimental Enhancement) -->
+        <section class="glass rounded-2xl p-6 overflow-hidden border-l-4 border-amber-500">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold text-emerald-400">Virtual Apparatus</h2>
-                <button onclick="simulation.toggle()" id="simBtn" class="bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-lg text-sm font-bold border border-emerald-500/30">Start Simulation</button>
+                <div>
+                    <h2 class="text-xl font-semibold text-emerald-400">Virtual Apparatus <span class="text-xs text-amber-400 font-bold uppercase tracking-wider">(Experimental)</span></h2>
+                    <p class="text-xs text-slate-500 mt-1">Interactive simulation - an enhancement to visualize the experimental setup</p>
+                </div>
+                <button onclick="simulation.toggle()" id="simBtn" class="bg-emerald-500/20 text-emerald-300 px-4 py-2 rounded-lg text-sm font-bold border border-emerald-500/30 hover:bg-emerald-500/30 transition">Start Simulation</button>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 relative bg-black/40 rounded-xl overflow-hidden border border-white/5 h-[300px] flex items-center justify-center">
@@ -373,12 +397,21 @@ function generateInteractiveHTML(data: any, code: string) {
             </div>
         </section>
 
-        <!-- Dynamic Data Section (Supports Multiple Tables) -->
+        <!-- (h) PRECAUTIONS -->
+        ${(data.precautions && data.precautions.length > 0) ? `
+        <section class="glass rounded-2xl p-6">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(h) Precautions</p>
+            <h2 class="text-xl font-semibold text-yellow-400 border-b border-white/10 pb-2 mb-4">Precautions</h2>
+            <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+                ${data.precautions.map((p: string) => `<li>${p}</li>`).join('')}
+            </ul>
+        </section>` : ''}
+
+        <!-- (i) RESULTS -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <section class="glass rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-orange-400">Observation Data</h2>
-                </div>
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(i) Results</p>
+                <h2 class="text-xl font-semibold text-orange-400 border-b border-white/10 pb-2 mb-4">Results</h2>
                 <div id="tablesContainer" class="space-y-8">
                     <!-- Tables will be rendered here via JS -->
                 </div>
@@ -391,12 +424,30 @@ function generateInteractiveHTML(data: any, code: string) {
             </section>` : ''}
         </div>
 
+        <!-- (j) DATA ANALYSIS -->
         <section class="glass rounded-2xl p-6 border-l-4 border-cyan-500">
-            <h2 class="text-xl font-semibold text-cyan-400 mb-4">Data Analysis</h2>
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(j) Data Analysis</p>
+            <h2 class="text-xl font-semibold text-cyan-400 border-b border-white/10 pb-2 mb-4">Data Analysis</h2>
             <div id="analysisContent" class="prose prose-invert max-w-none text-slate-300 text-sm font-mono p-4 bg-black/20 rounded-xl">
                 ${data.analysisTemplate ? 'Loading analysis...' : 'No automated analysis available.'}
             </div>
         </section>
+
+        <!-- (k) DISCUSSION -->
+        ${data.discussion ? `
+        <section class="glass rounded-2xl p-6">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(k) Discussion</p>
+            <h2 class="text-xl font-semibold text-indigo-400 border-b border-white/10 pb-2 mb-4">Discussion</h2>
+            <p class="text-slate-300 text-sm leading-relaxed mb-6">${data.discussion}</p>
+            
+            ${(data.sourcesOfError && data.sourcesOfError.length > 0) ? `
+            <div class="mt-6 pt-6 border-t border-white/10">
+                <h3 class="text-lg font-semibold text-red-300 mb-3">Sources of Error</h3>
+                <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+                    ${data.sourcesOfError.map((err: string) => `<li>${err}</li>`).join('')}
+                </ol>
+            </div>` : ''}
+        </section>` : ''}
 
         ${data.questions && data.questions.length > 0 ? `
         <section class="glass rounded-2xl p-6 border-l-4 border-yellow-500">
@@ -411,10 +462,22 @@ function generateInteractiveHTML(data: any, code: string) {
             </div>
         </section>` : ''}
 
+        <!-- (l) CONCLUSION -->
         <section class="glass rounded-2xl p-6">
-            <h2 class="text-xl font-semibold text-slate-200 mb-2">Conclusion</h2>
-            <p class="text-slate-400">${data.conclusion}</p>
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(l) Conclusion</p>
+            <h2 class="text-xl font-semibold text-slate-200 border-b border-white/10 pb-2 mb-4">Conclusion</h2>
+            <p class="text-slate-400 text-sm leading-relaxed">${data.conclusion}</p>
         </section>
+
+        <!-- (m) REFERENCES -->
+        ${(data.references && data.references.length > 0) ? `
+        <section class="glass rounded-2xl p-6">
+            <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(m) References</p>
+            <h2 class="text-xl font-semibold text-slate-400 border-b border-white/10 pb-2 mb-4">References</h2>
+            <ol class="list-decimal list-inside text-slate-300 space-y-1 text-sm">
+                ${data.references.map((ref: string) => `<li>${ref}</li>`).join('')}
+            </ol>
+        </section>` : ''}
     </div>
 
     <script>
