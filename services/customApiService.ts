@@ -3,10 +3,33 @@ import { firestoreService } from "./firestoreService";
 import { validateReport } from "./reportValidator";
 import { buildSectionPrompt, getTextContentInstructions, getDataLogicInstructions, getSimulationInstructions, JSON_EXAMPLES } from "./promptTemplates";
 
-// API Configuration
-const getApiBaseUrl = (): string => {
+// Cache for API URL (updated from Firestore)
+let cachedApiUrl: string | null = null;
+
+// API Configuration - fetch from Firestore with localStorage cache
+const getApiBaseUrl = async (): Promise<string> => {
+  // Return cached value if available
+  if (cachedApiUrl) {
+    return cachedApiUrl;
+  }
+
+  try {
+    // Fetch from Firestore
+    const settings = await firestoreService.getSettings();
+    if (settings?.customApiUrl) {
+      cachedApiUrl = settings.customApiUrl;
+      // Update localStorage cache
+      localStorage.setItem('custom_api_base_url', settings.customApiUrl);
+      return settings.customApiUrl;
+    }
+  } catch (error) {
+    console.warn('[Custom API] Failed to fetch URL from Firestore, using localStorage:', error);
+  }
+
+  // Fallback to localStorage or env variable
   const stored = localStorage.getItem('custom_api_base_url');
-  return stored || process.env.CUSTOM_API_URL || 'http://localhost:5000';
+  cachedApiUrl = stored || process.env.CUSTOM_API_URL || 'http://localhost:5000';
+  return cachedApiUrl;
 };
 
 // Helper to upload PDF to custom API
@@ -23,7 +46,8 @@ const uploadPDF = async (file: File): Promise<string> => {
 
   // Don't send custom headers to avoid CORS issues
   // The API should work without X-Session-ID header (it's optional per README)
-  const response = await fetch(`${getApiBaseUrl()}/api/upload`, {
+  const apiUrl = await getApiBaseUrl();
+  const response = await fetch(`${apiUrl}/api/upload`, {
     method: 'POST',
     // Omit custom headers to avoid CORS preflight issues
     body: formData,
@@ -57,7 +81,8 @@ const generateSection = async (
     try {
       attempts++;
 
-      const response = await fetch(`${getApiBaseUrl()}/api/generate`, {
+      const apiUrl = await getApiBaseUrl();
+      const response = await fetch(`${apiUrl}/api/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +143,7 @@ const generateSection = async (
 
 // Main generation function for custom API
 export const generateLabReport = async (experimentCode: string): Promise<string> => {
-  const apiUrl = getApiBaseUrl();
+  const apiUrl = await getApiBaseUrl();
   if (!apiUrl) {
     throw new Error("Custom API URL is not configured. Please set it in Admin settings.");
   }

@@ -19,6 +19,7 @@
     "jszip": "^3.10.1",
     "lucide-react": "^0.556.0",
     "marked": "15.0.6",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "4.10.38",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
