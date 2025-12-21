@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Settings - admin can write, all authenticated users can read
+    match /settings/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Manual - admin can write, all authenticated users can read
+    match /manual/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // User profiles
+    match /users/{userId} {
+      // Users can read their own profile, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Allow users to create their own profile on first login
+      allow create: if isOwner(userId);
+      
+      // Only admins can update other users
+      allow update: if isAdmin();
+      
+      // Users can update their own lastLogin
+      allow update: if isOwner(userId) && 
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastLogin', 'reportsGenerated']);
+      
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+  }
+}

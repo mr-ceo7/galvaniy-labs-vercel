@@ -17,6 +17,7 @@ import {
 } from 'firebase/auth';
 import { firebaseConfig } from '../config/firebaseConfig';
 import { ADMIN_CONFIG } from '../config/adminConfig';
+import { firestoreService } from './firestoreService';
 import { User } from '../types';
 
 // Initialize Firebase
@@ -41,8 +42,7 @@ export const authService = {
         await sendEmailVerification(firebaseUser);
       }
 
-      // Convert Firebase user to app User
-      return {
+      const user: User = {
         email: firebaseUser.email || email,
         role: ADMIN_CONFIG.isAdmin(firebaseUser.email || email) ? 'admin' : 'student',
         registeredAt: new Date().toISOString(),
@@ -53,6 +53,15 @@ export const authService = {
         displayName: firebaseUser.displayName || undefined,
         emailVerified: firebaseUser.emailVerified
       };
+
+      // Create user profile in Firestore
+      await firestoreService.createUserProfile({
+        ...user,
+        createdAt: new Date(),
+        lastLogin: new Date()
+      });
+
+      return user;
     } catch (error: any) {
       throw new Error(authService.getErrorMessage(error.code));
     }
@@ -67,7 +76,7 @@ export const authService = {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = userCredential.user;
 
-      return {
+      const user: User = {
         email: firebaseUser.email || email,
         role: ADMIN_CONFIG.isAdmin(firebaseUser.email || email) ? 'admin' : 'student',
         registeredAt: new Date().toISOString(),
@@ -78,6 +87,11 @@ export const authService = {
         displayName: firebaseUser.displayName || undefined,
         emailVerified: firebaseUser.emailVerified
       };
+
+      // Update last login in Firestore
+      await firestoreService.updateLastLogin(firebaseUser.uid);
+
+      return user;
     } catch (error: any) {
       throw new Error(authService.getErrorMessage(error.code));
     }
@@ -89,17 +103,48 @@ export const authService = {
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
 
+      // Check if user profile exists in Firestore
+      let profile = await firestoreService.getUserProfile(firebaseUser.uid);
+
+      if (!profile) {
+        // Create new profile
+        const newProfile = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          role: ADMIN_CONFIG.isAdmin(firebaseUser.email || '') ? 'admin' : 'student',
+          displayName: firebaseUser.displayName || undefined,
+          photoURL: firebaseUser.photoURL || undefined,
+          customLimit: undefined,
+          isRevoked: false,
+          reportsGenerated: 0,
+          createdAt: new Date(),
+          lastLogin: new Date()
+        };
+
+        await firestoreService.createUserProfile(newProfile);
+        profile = newProfile;
+      } else {
+        // Update last login
+        await firestoreService.updateLastLogin(firebaseUser.uid);
+      }
+
+      // Check if user is revoked
+      if (profile.isRevoked) {
+        await signOut(auth);
+        throw new Error('Your account has been revoked. Please contact admin.');
+      }
+
       return {
-        email: firebaseUser.email || '',
-        role: ADMIN_CONFIG.isAdmin(firebaseUser.email || '') ? 'admin' : 'student',
-        registeredAt: new Date().toISOString(),
-        isRevoked: false,
-        reportsGenerated: 0,
-        customLimit: 3,
-        uid: firebaseUser.uid,
-        displayName: firebaseUser.displayName || undefined,
+        email: profile.email,
+        role: profile.role,
+        registeredAt: profile.createdAt.toISOString(),
+        isRevoked: profile.isRevoked,
+        reportsGenerated: profile.reportsGenerated,
+        customLimit: profile.customLimit,
+        uid: profile.uid,
+        displayName: profile.displayName,
         emailVerified: firebaseUser.emailVerified,
-        photoURL: firebaseUser.photoURL || undefined
+        photoURL: profile.photoURL
       };
     } catch (error: any) {
       throw new Error(authService.getErrorMessage(error.code));

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { storageService } from '../services/storageService';
+import { firestoreService } from '../services/firestoreService';
 import { apiService, ApiProvider } from '../services/apiService';
 import { User, Theme, ManualPage } from '../types';
 import { Shield, RefreshCcw, Users, FileText, Trash2, Upload, AlertTriangle, Loader2, Search, Settings, Download, Network, CheckCircle2, XCircle } from 'lucide-react';
@@ -80,8 +81,13 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
   const [apiTestResult, setApiTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const loadData = async () => {
-    setUsers(storageService.getAllUsers());
-    setDefaultDailyLimit(storageService.getDefaultLimit());
+    // Load users from Firestore
+    const firestoreUsers = await firestoreService.getAllUsers();
+    setUsers(firestoreUsers);
+    
+    // Load settings from Firestore
+    const settings = await firestoreService.getSettings();
+    setDefaultDailyLimit(settings?.defaultDailyLimit || 3);
     
     // Load API settings
     setApiProvider(apiService.getProvider());
@@ -90,11 +96,11 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     
     try {
         setLoadingPages(true);
-        const storedPages = await storageService.getManualPages();
-        // Sort by page number
-        setPages(storedPages.sort((a,b) => a.pageNumber - b.pageNumber));
+        // Load manual pages from Firestore
+        const firestorePages = await firestoreService.getManualPages();
+        setPages(firestorePages.sort((a,b) => a.pageNumber - b.pageNumber));
     } catch (err) {
-        console.error("Failed to load pages from DB", err);
+        console.error("Failed to load pages", err);
     } finally {
         setLoadingPages(false);
     }
@@ -102,27 +108,53 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
 
   useEffect(() => {
     loadData();
+    
+    // Subscribe to real-time user updates
+    const unsubscribeUsers = firestoreService.subscribeToAllUsers((updatedUsers) => {
+      setUsers(updatedUsers);
+    });
+    
+    // Subscribe to manual updates
+    const unsubscribeManual = firestoreService.subscribeToManual(async (metadata) => {
+      if (metadata) {
+        const pages = await firestoreService.getManualPages();
+        setPages(pages.sort((a,b) => a.pageNumber - b.pageNumber));
+      }
+    });
+    
+    return () => {
+      unsubscribeUsers();
+      unsubscribeManual();
+    };
   }, []);
 
-  const toggleRevoke = (email: string) => {
-    storageService.revokeUser(email);
-    // Refresh user list only
-    setUsers(storageService.getAllUsers());
+  const toggleRevoke = async (email: string) => {
+    const user = users.find(u => u.email === email);
+    if (!user || !user.uid) return;
+    
+    await firestoreService.toggleUserRevoke(user.uid, !user.isRevoked);
+    // Real-time listener will update UI automatically
   };
 
-  const handleUpdateLimit = (email: string, delta: number) => {
+  const handleUpdateLimit = async (email: string, delta: number) => {
     const user = users.find(u => u.email === email);
-    if (!user) return;
+    if (!user || !user.uid) return;
     const currentLimit = user.customLimit !== undefined ? user.customLimit : defaultDailyLimit;
     const newLimit = Math.max(0, currentLimit + delta);
-    storageService.updateUserLimit(email, newLimit);
-    setUsers(storageService.getAllUsers());
+    
+    await firestoreService.updateUserProfile(user.uid, { customLimit: newLimit });
+    // Real-time listener will update UI automatically
   };
   
-  const handleUpdateDefaultLimit = (newLimit: number) => {
+  const handleUpdateDefaultLimit = async (newLimit: number) => {
       const val = Math.max(0, newLimit);
       setDefaultDailyLimit(val);
-      storageService.setDefaultLimit(val);
+      
+      // Update in Firestore
+      const user = users.find(u => u.role === 'admin');
+      if (user) {
+        await firestoreService.updateSettings({ defaultDailyLimit: val }, user.email);
+      }
   };
 
   const confirmClearManual = async () => {
@@ -177,19 +209,14 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
 
   const processPDF = async (file: File) => {
     setUploading(true);
-    setUploadStatus('Saving Raw Manual...');
+    setUploadStatus('Processing PDF...');
     setUploadProgress(5);
 
     try {
-        // 1. Save the raw file for the AI to use directly
-        await storageService.saveFullManualBlob(file);
-
-        setUploadStatus('Initializing Page Preview...');
+        setUploadStatus('Extracting pages...');
         setUploadProgress(10);
         
-        // 2. Process pages for the Admin UI preview (keeps visual feedback)
         const arrayBuffer = await file.arrayBuffer();
-        
         const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
         
         loadingTask.onPassword = (callback, reason) => {
@@ -202,25 +229,21 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
         if (numPages === 0) {
             throw new Error("EMPTY_PDF");
         }
-
-        await storageService.clearPages();
         
+        const allPages: ManualPage[] = [];
         const batchSize = 5;
-        let processedCount = 0;
 
         for (let i = 1; i <= numPages; i += batchSize) {
             const batch: ManualPage[] = [];
             const end = Math.min(i + batchSize - 1, numPages);
 
             for (let j = i; j <= end; j++) {
-                // Update progress roughly based on page processing
-                const percent = 10 + Math.floor((j / numPages) * 85);
+                const percent = 10 + Math.floor((j / numPages) * 80);
                 setUploadProgress(percent);
                 setUploadStatus(`Processing Page ${j} of ${numPages}...`);
                 
                 try {
                     const page = await pdf.getPage(j);
-                    
                     const textContent = await page.getTextContent();
                     const text = textContent.items.map((item: any) => item.str).join(' ');
 
@@ -250,16 +273,21 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
                 }
             }
             
-            await storageService.addManualPages(batch);
-            processedCount += batch.length;
+            allPages.push(...batch);
         }
         
+        setUploadProgress(90);
+        setUploadStatus('Uploading to Firestore...');
+        
+        // Upload to Firestore
+        const adminUser = users.find(u => u.role === 'admin');
+        await firestoreService.uploadManual(allPages, file.name, adminUser?.email || 'admin');
+        
         setUploadProgress(100);
-        setUploadStatus('Finalizing...');
-        loadData();
+        setUploadStatus('Complete!');
         
         setTimeout(() => {
-            alert(`Successfully uploaded manual. Saved raw file and processed ${processedCount} pages for preview.`);
+            alert(`Successfully uploaded ${allPages.length} pages to cloud! All students will see the update.`);
             setUploading(false);
             setUploadStatus('');
             setUploadProgress(0);

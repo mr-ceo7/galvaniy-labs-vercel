@@ -9,6 +9,7 @@ import { ReportView } from './components/ReportView';
 import { InstallPrompt } from './components/InstallPrompt';
 import { User, Report } from './types';
 import { storageService } from './services/storageService';
+import { authService } from './services/authService';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -21,16 +22,25 @@ const App: React.FC = () => {
   console.log('[App] Render - loading:', loading, 'user:', user?.email || 'none');
 
   useEffect(() => {
-    console.log('[App] Component mounted, checking session...');
-    // Check session
-    const session = storageService.getSession();
-    if (session) {
-      console.log('[App] Session found:', session.email);
-      setUser(session);
-      loadReports(session.email);
-    } else {
-      console.log('[App] No session found, user will need to login');
-    }
+    console.log('[App] Component mounted, setting up auth listener...');
+    
+    // Listen to Firebase Auth state changes (handles page reload persistence)
+    const unsubscribe = authService.onAuthStateChange((user) => {
+      if (user) {
+        console.log('[App] Auth state: User signed in:', user.email);
+        setUser(user);
+        loadReports(user.email);
+        storageService.setSession(user); // Sync to localStorage
+      } else {
+        console.log('[App] Auth state: No user');
+        setUser(null);
+        setReports([]);
+      }
+      setLoading(false);
+    });
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
   }, []);
 
   const loadReports = (email: string) => {
@@ -40,10 +50,12 @@ const App: React.FC = () => {
 
   const handleLogin = (u: User) => {
     setUser(u);
+    storageService.setSession(u);
     loadReports(u.email);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authService.logout();
     storageService.clearSession();
     setUser(null);
     setReports([]);

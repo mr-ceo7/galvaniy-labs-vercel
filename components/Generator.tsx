@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
 import { storageService } from '../services/storageService';
+import { firestoreService } from '../services/firestoreService';
 import { User, Report, Theme } from '../types';
 import { Zap, Loader2, AlertCircle, Network } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -21,32 +22,41 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
   useEffect(() => {
     setCurrentProvider(apiService.getProvider());
 
-    // Fetch manual name
+    // Fetch manual name from Firestore
     const loadManualName = async () => {
       try {
-        const manual = await storageService.getFullManualBlob();
-        if (manual) {
-          setManualName(manual.name);
+        const metadata = await firestoreService.getManualMetadata();
+        if (metadata) {
+          setManualName(metadata.name);
         }
       } catch (err) {
-        console.error('Failed to load manual name:', err);
+        console.error('Failed to load manual metadata:', err);
       }
     };
     loadManualName();
 
+    // Subscribe to manual updates
+    const unsubscribe = firestoreService.subscribeToManual((metadata) => {
+      if (metadata) {
+        setManualName(metadata.name);
+      }
+    });
+
     // Listen for storage changes (when admin switches API)
     const handleStorageChange = () => {
       setCurrentProvider(apiService.getProvider());
-      loadManualName(); // Reload manual name when storage changes
     };
     window.addEventListener('storage', handleStorageChange);
+    
     // Also check periodically in case of same-tab changes
     const interval = setInterval(() => {
       setCurrentProvider(apiService.getProvider());
     }, 1000);
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
+      unsubscribe();
     };
   }, []);
 
@@ -88,6 +98,12 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
 
       storageService.saveReport(user.email, newReport);
       storageService.incrementDailyLimit(user.email);
+      
+      // Increment report count in Firestore
+      if (user.uid) {
+        await firestoreService.incrementReportCount(user.uid);
+      }
+      
       onReportGenerated(newReport);
       setCode('');
     } catch (err: any) {
