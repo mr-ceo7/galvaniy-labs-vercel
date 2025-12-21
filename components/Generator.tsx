@@ -51,7 +51,7 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
     // Also check periodically in case of same-tab changes
     const interval = setInterval(() => {
       setCurrentProvider(apiService.getProvider());
-    }, 1000);
+    }, 3000); // Check every 3 seconds instead of 1
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -61,7 +61,9 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
   }, []);
 
   const dailyCount = storageService.getDailyCount(user.email);
-  const remaining = 3 - dailyCount;
+  const defaultLimit = 3;
+  const userLimit = user.customLimit !== undefined ? user.customLimit : defaultLimit;
+  const remaining = userLimit - dailyCount;
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();

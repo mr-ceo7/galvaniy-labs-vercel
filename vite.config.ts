@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
           includeAssets: ['favicon.svg'],
           manifest: {
             name: 'Galvaniy Labs',
-            short_name: 'Galvaniy',
+            short_name: 'Galvaniy Labs',
             description: 'AI-powered lab report generation and management',
             theme_color: '#3b82f6',
             background_color: '#0f172a',
@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => {
             ]
           },
           workbox: {
+            maximumFileSizeToCacheInBytes: 4000000, // Increased limit to 4MB
             globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
             runtimeCaching: [
               {

@@ -186,21 +186,42 @@ export const authService = {
 
   // Auth state listener
   onAuthStateChange: (callback: (user: User | null) => void) => {
-    return onAuthStateChanged(auth, (firebaseUser) => {
+    return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const user: User = {
-          email: firebaseUser.email || '',
-          role: ADMIN_CONFIG.isAdmin(firebaseUser.email || '') ? 'admin' : 'student',
-          registeredAt: new Date().toISOString(),
-          isRevoked: false,
-          reportsGenerated: 0,
-          customLimit: 3,
-          uid: firebaseUser.uid,
-          displayName: firebaseUser.displayName || undefined,
-          emailVerified: firebaseUser.emailVerified,
-          photoURL: firebaseUser.photoURL || undefined
-        };
-        callback(user);
+        // Fetch user profile from Firestore to get latest customLimit, reportsGenerated, etc.
+        const profile = await firestoreService.getUserProfile(firebaseUser.uid);
+        
+        if (profile) {
+          // Use Firestore profile data
+          const user: User = {
+            email: profile.email,
+            role: profile.role,
+            registeredAt: profile.createdAt.toISOString(),
+            isRevoked: profile.isRevoked,
+            reportsGenerated: profile.reportsGenerated,
+            customLimit: profile.customLimit,
+            uid: profile.uid,
+            displayName: profile.displayName,
+            emailVerified: firebaseUser.emailVerified,
+            photoURL: profile.photoURL
+          };
+          callback(user);
+        } else {
+          // Fallback if profile doesn't exist (shouldn't happen normally)
+          const user: User = {
+            email: firebaseUser.email || '',
+            role: ADMIN_CONFIG.isAdmin(firebaseUser.email || '') ? 'admin' : 'student',
+            registeredAt: new Date().toISOString(),
+            isRevoked: false,
+            reportsGenerated: 0,
+            customLimit: undefined,
+            uid: firebaseUser.uid,
+            displayName: firebaseUser.displayName || undefined,
+            emailVerified: firebaseUser.emailVerified,
+            photoURL: firebaseUser.photoURL || undefined
+          };
+          callback(user);
+        }
       } else {
         callback(null);
       }
