@@ -16,6 +16,7 @@ import {
   browserSessionPersistence
 } from 'firebase/auth';
 import { firebaseConfig } from '../config/firebaseConfig';
+import { ADMIN_CONFIG } from '../config/adminConfig';
 import { User } from '../types';
 
 // Initialize Firebase
@@ -43,7 +44,7 @@ export const authService = {
       // Convert Firebase user to app User
       return {
         email: firebaseUser.email || email,
-        role: email.includes('admin') ? 'admin' : 'student',
+        role: ADMIN_CONFIG.isAdmin(firebaseUser.email || email) ? 'admin' : 'student',
         registeredAt: new Date().toISOString(),
         isRevoked: false,
         reportsGenerated: 0,
@@ -68,7 +69,7 @@ export const authService = {
 
       return {
         email: firebaseUser.email || email,
-        role: email.includes('admin') ? 'admin' : 'student',
+        role: ADMIN_CONFIG.isAdmin(firebaseUser.email || email) ? 'admin' : 'student',
         registeredAt: new Date().toISOString(),
         isRevoked: false,
         reportsGenerated: 0,
@@ -90,7 +91,7 @@ export const authService = {
 
       return {
         email: firebaseUser.email || '',
-        role: firebaseUser.email?.includes('admin') ? 'admin' : 'student',
+        role: ADMIN_CONFIG.isAdmin(firebaseUser.email || '') ? 'admin' : 'student',
         registeredAt: new Date().toISOString(),
         isRevoked: false,
         reportsGenerated: 0,
@@ -144,7 +145,7 @@ export const authService = {
       if (firebaseUser) {
         const user: User = {
           email: firebaseUser.email || '',
-          role: firebaseUser.email?.includes('admin') ? 'admin' : 'student',
+          role: ADMIN_CONFIG.isAdmin(firebaseUser.email || '') ? 'admin' : 'student',
           registeredAt: new Date().toISOString(),
           isRevoked: false,
           reportsGenerated: 0,

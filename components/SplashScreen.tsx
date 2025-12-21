@@ -52,7 +52,7 @@ export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete 
           transition={{ delay: 0.5 }}
           className="text-4xl font-bold text-white mt-6 tracking-tight"
         >
-          Galvaniy <span className="text-blue-400">Technologies</span>
+          Galvaniy <span className="text-blue-400">Labs</span>
         </motion.h1>
         
         <motion.p
@@ -61,7 +61,7 @@ export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete 
           transition={{ delay: 1 }}
           className="text-slate-400 mt-2 text-sm uppercase tracking-widest"
         >
-          Physics Labs
+          Physics Labs Companion
         </motion.p>
       </motion.div>
     </div>
