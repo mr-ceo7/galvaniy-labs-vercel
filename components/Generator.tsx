@@ -20,7 +20,15 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
   const [manualName, setManualName] = useState<string | null>(null);
 
   useEffect(() => {
-    setCurrentProvider(apiService.getProvider());
+    // Load settings once on mount (updates on page refresh)
+    const loadSettings = async () => {
+      const settings = await firestoreService.getSettings();
+      if (settings) {
+        setCurrentProvider(settings.apiProvider);
+        apiService.setProvider(settings.apiProvider);
+      }
+    };
+    loadSettings();
 
     // Fetch manual name from Firestore
     const loadManualName = async () => {
@@ -36,27 +44,14 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
     loadManualName();
 
     // Subscribe to manual updates
-    const unsubscribe = firestoreService.subscribeToManual((metadata) => {
+    const unsubscribeManual = firestoreService.subscribeToManual((metadata) => {
       if (metadata) {
         setManualName(metadata.name);
       }
     });
-
-    // Listen for storage changes (when admin switches API)
-    const handleStorageChange = () => {
-      setCurrentProvider(apiService.getProvider());
-    };
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also check periodically in case of same-tab changes
-    const interval = setInterval(() => {
-      setCurrentProvider(apiService.getProvider());
-    }, 3000); // Check every 3 seconds instead of 1
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-      unsubscribe();
+      unsubscribeManual();
     };
   }, []);
 

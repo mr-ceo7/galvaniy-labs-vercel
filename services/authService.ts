@@ -3,17 +3,19 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
   sendEmailVerification,
   updateProfile,
-  User as FirebaseUser,
   onAuthStateChanged,
   setPersistence,
   browserLocalPersistence,
-  browserSessionPersistence
+  browserSessionPersistence,
+  GoogleAuthProvider,
+  signInWithRedirect, // Changed from signInWithPopup
+  getRedirectResult, // Added for redirect flow
+  UserCredential, // Added for redirect flow
+  User as FirebaseUser
 } from 'firebase/auth';
 import { firebaseConfig } from '../config/firebaseConfig';
 import { ADMIN_CONFIG } from '../config/adminConfig';
@@ -97,10 +99,25 @@ export const authService = {
     }
   },
 
-  // Sign in with Google
-  signInWithGoogle: async (): Promise<User> => {
+  // Sign in with Google (using redirect to avoid popup blockers)
+  signInWithGoogle: async (): Promise<void> => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      await signInWithRedirect(auth, googleProvider);
+      // User will be redirected to Google and back
+      // The result is handled by handleRedirectResult
+    } catch (error: any) {
+      throw new Error(authService.getErrorMessage(error.code));
+    }
+  },
+
+  // Handle redirect result after Google Sign-In
+  handleRedirectResult: async (): Promise<User | null> => {
+    try {
+      const result = await getRedirectResult(auth);
+      if (!result) {
+        return null; // No redirect result
+      }
+
       const firebaseUser = result.user;
 
       // Check if user profile exists in Firestore
@@ -130,8 +147,8 @@ export const authService = {
 
       // Check if user is revoked
       if (profile.isRevoked) {
-        await signOut(auth);
-        throw new Error('Your account has been revoked. Please contact admin.');
+        await authService.logout();
+        throw new Error('Your account has been revoked. Please contact an administrator.');
       }
 
       return {

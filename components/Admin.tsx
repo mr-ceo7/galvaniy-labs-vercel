@@ -89,10 +89,14 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     const settings = await firestoreService.getSettings();
     setDefaultDailyLimit(settings?.defaultDailyLimit || 3);
     
-    // Load API settings
-    setApiProvider(apiService.getProvider());
-    const storedUrl = localStorage.getItem('custom_api_base_url') || process.env.CUSTOM_API_URL || '';
-    setCustomApiUrl(storedUrl);
+    // Load API settings from Firestore
+    if (settings?.apiProvider) {
+      setApiProvider(settings.apiProvider);  
+      apiService.setProvider(settings.apiProvider);
+    }
+    if (settings?.customApiUrl) {
+      setCustomApiUrl(settings.customApiUrl);
+    }
     
     try {
         setLoadingPages(true);
@@ -158,9 +162,18 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
   };
 
   const confirmClearManual = async () => {
-    await storageService.clearManual();
-    loadData();
-    setShowClearConfirm(false);
+    try {
+      // Clear from Firestore
+      await firestoreService.clearManual();
+      // Clear from localStorage (for legacy data)
+      await storageService.clearManual();
+      // Reload to update UI
+      loadData();
+      setShowClearConfirm(false);
+    } catch (error) {
+      console.error('Error clearing manual:', error);
+      alert('Failed to clear manual. Please try again.');
+    }
   };
 
   // ZIP Download Handler
@@ -337,16 +350,27 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
   };
 
   // API Configuration Handlers
-  const handleProviderChange = (provider: ApiProvider) => {
+  const handleProviderChange = async (provider: ApiProvider) => {
     apiService.setProvider(provider);
     setApiProvider(provider);
     setApiTestResult(null);
+    
+    // Save to Firestore
+    const adminUser = users.find(u => u.role === 'admin');
+    if (adminUser) {
+      await firestoreService.updateSettings({ apiProvider: provider }, adminUser.email);
+    }
   };
 
-  const handleCustomApiUrlChange = (url: string) => {
+  const handleCustomApiUrlChange = async (url: string) => {
     setCustomApiUrl(url);
-    localStorage.setItem('custom_api_base_url', url);
     setApiTestResult(null);
+    
+    // Save to Firestore
+    const adminUser = users.find(u => u.role === 'admin');
+    if (adminUser) {
+      await firestoreService.updateSettings({ customApiUrl: url }, adminUser.email);
+    }
   };
 
   const handleTestApi = async () => {

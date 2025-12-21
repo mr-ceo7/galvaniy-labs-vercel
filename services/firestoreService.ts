@@ -35,6 +35,8 @@ enableIndexedDbPersistence(db).catch((err) => {
 export interface GlobalSettings {
   defaultDailyLimit: number;
   customInstructions: string;
+  apiProvider: 'gemini' | 'custom';
+  customApiUrl: string;
   lastUpdated: Date;
   updatedBy: string;
 }
@@ -76,6 +78,8 @@ export const firestoreService = {
         return {
           defaultDailyLimit: data.defaultDailyLimit,
           customInstructions: data.customInstructions || '',
+          apiProvider: data.apiProvider || 'gemini',
+          customApiUrl: data.customApiUrl || '',
           lastUpdated: data.lastUpdated?.toDate() || new Date(),
           updatedBy: data.updatedBy || ''
         };
@@ -85,6 +89,8 @@ export const firestoreService = {
       return {
         defaultDailyLimit: 3,
         customInstructions: '',
+        apiProvider: 'gemini',
+        customApiUrl: '',
         lastUpdated: new Date(),
         updatedBy: ''
       };
@@ -123,6 +129,8 @@ export const firestoreService = {
         callback({
           defaultDailyLimit: data.defaultDailyLimit,
           customInstructions: data.customInstructions || '',
+          apiProvider: data.apiProvider || 'gemini',
+          customApiUrl: data.customApiUrl || '',
           lastUpdated: data.lastUpdated?.toDate() || new Date(),
           updatedBy: data.updatedBy || ''
         });
@@ -130,6 +138,8 @@ export const firestoreService = {
         callback({
           defaultDailyLimit: 3,
           customInstructions: '',
+          apiProvider: 'gemini',
+          customApiUrl: '',
           lastUpdated: new Date(),
           updatedBy: ''
         });
@@ -248,6 +258,39 @@ export const firestoreService = {
     }, (error) => {
       console.error('Error in manual subscription:', error);
     });
+  },
+
+  /**
+   * Clear manual (delete metadata and all pages)
+   */
+  clearManual: async (): Promise<void> => {
+    try {
+      // Delete metadata
+      const metaRef = doc(db, 'manual', 'metadata');
+      await deleteDoc(metaRef);
+      
+      // Delete all pages from subcollection
+      const pagesRef = collection(db, 'manual', 'metadata', 'pages');
+      const snapshot = await getDocs(pagesRef);
+      
+      // Delete in batches
+      const batchSize = 500;
+      for (let i = 0; i < snapshot.docs.length; i += batchSize) {
+        const batch = writeBatch(db);
+        const batchDocs = snapshot.docs.slice(i, i + batchSize);
+        
+        for (const pageDoc of batchDocs) {
+          batch.delete(pageDoc.ref);
+        }
+        
+        await batch.commit();
+      }
+      
+      console.log('[Firestore] Manual cleared successfully');
+    } catch (error) {
+      console.error('Error clearing manual:', error);
+      throw error;
+    }
   },
 
   // ==================== USER PROFILES ====================
