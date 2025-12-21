@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { storageService } from "./storageService";
+import { firestoreService } from "./firestoreService";
 import { validateReport } from "./reportValidator";
 import { buildSectionPrompt, getTextContentInstructions, getDataLogicInstructions, getSimulationInstructions, JSON_EXAMPLES } from "./promptTemplates";
 
@@ -100,18 +101,23 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
-  // 1. Get Manual
-  const fullManualFile = await storageService.getFullManualBlob();
-  if (!fullManualFile) {
+  // 1. Get Manual from Firestore
+  console.log('[Gemini] Fetching manual from Firestore...');
+  const pages = await firestoreService.getManualPages();
+  
+  if (!pages || pages.length === 0) {
       throw new Error("No Manual Found. Please contact Admin to upload the PDF manual.");
   }
 
-  // 2. Prepare Base Context (PDF)
-  // We reuse this part for all parallel calls to save bandwidth/processing on client side preparation
-  const pdfPart = await fileToGenerativePart(fullManualFile);
-  const commonParts = [pdfPart]; // Common context
+  // Combine all page text into one string
+  const manualText = pages.map(p => p.text).join('\n\n');
+  console.log(`[Gemini] Manual loaded: ${pages.length} pages, ${manualText.length} characters`);
 
-  console.log(`[AI] Starting Parallel Generation for ${experimentCode}...`);
+  // 2. Prepare Base Context (text)
+  // Send manual text as part of the prompt instead of as a file
+  const manualContext = `Lab Manual Content:\n\n${manualText}\n\n---\n\n`;
+
+  console.log(`[Gemini] Starting Parallel Generation for ${experimentCode}...`);
 
   // 3. Define Parallel Tasks
 

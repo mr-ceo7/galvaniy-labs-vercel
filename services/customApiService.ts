@@ -1,4 +1,5 @@
 import { storageService } from "./storageService";
+import { firestoreService } from "./firestoreService";
 import { validateReport } from "./reportValidator";
 import { buildSectionPrompt, getTextContentInstructions, getDataLogicInstructions, getSimulationInstructions, JSON_EXAMPLES } from "./promptTemplates";
 
@@ -122,16 +123,26 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
     throw new Error("Custom API URL is not configured. Please set it in Admin settings.");
   }
 
-  // 1. Get Manual
-  const fullManualFile = await storageService.getFullManualBlob();
-  if (!fullManualFile) {
+  // 1. Get Manual from Firestore
+  console.log('[Custom API] Fetching manual from Firestore...');
+  const pages = await firestoreService.getManualPages();
+  
+  if (!pages || pages.length === 0) {
     throw new Error("No Manual Found. Please contact Admin to upload the relevant manual.");
   }
 
+  // Combine all page text
+  const manualText = pages.map(p => p.text).join('\n\n');
+  
+  // Create a text file blob for upload
+  const textBlob = new Blob([manualText], { type: 'text/plain' });
+  const textFile = new File([textBlob], 'manual.txt', { type: 'text/plain' });
+
+  console.log(`[Custom API] Manual loaded: ${pages.length} pages`);
   console.log(`[Custom API] Uploading manual...`);
 
-  // 2. Upload PDF to custom API
-  const uploadedFilename = await uploadPDF(fullManualFile);
+  // 2. Upload text to custom API
+  const uploadedFilename = await uploadPDF(textFile);
   console.log(`[Custom API] Manual uploaded as: ${uploadedFilename}`);
 
   console.log(`[Custom API] Starting Parallel Generation for ${experimentCode}...`);

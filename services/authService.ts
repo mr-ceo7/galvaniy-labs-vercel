@@ -98,12 +98,18 @@ export const authService = {
     }
   },
 
-  // Sign in with Google (popup method)
+  // Sign in with Google (popup method with robust error handling)
   signInWithGoogle: async (): Promise<User> => {
     try {
       console.log('[Auth Service] Starting Google Sign-In with popup...');
       const result = await signInWithPopup(auth, googleProvider);
+      
+      if (!result || !result.user) {
+        throw new Error('No user returned from Google Sign-In');
+      }
+      
       const firebaseUser = result.user;
+      console.log('[Auth Service] Google auth successful for:', firebaseUser.email);
 
       // Check if user profile exists in Firestore
       console.log('[Auth Service] Checking Firestore profile for:', firebaseUser.uid);
@@ -127,6 +133,7 @@ export const authService = {
 
         await firestoreService.createUserProfile(newProfile);
         profile = newProfile;
+        console.log('[Auth Service] New profile created successfully');
       } else {
         console.log('[Auth Service] Profile exists, updating last login');
         // Update last login
@@ -140,7 +147,7 @@ export const authService = {
         throw new Error('Your account has been revoked. Please contact an administrator.');
       }
 
-      console.log('[Auth Service] Login successful');
+      console.log('[Auth Service] Login successful, returning user object');
       return {
         email: profile.email,
         role: profile.role,
@@ -158,12 +165,18 @@ export const authService = {
       
       // Provide helpful error messages
       if (error.code === 'auth/popup-blocked') {
-        throw new Error('Popup was blocked by your browser. Please allow popups for this site and try again.');
+        throw new Error('Popup was blocked by your browser.');
       } else if (error.code === 'auth/popup-closed-by-user') {
-        throw new Error('Sign-in cancelled. Please try again.');
+        throw new Error('Sign-in was cancelled.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your connection and try again.');
+      } else if (error.code === 'auth/too-many-requests') {
+        throw new Error('Too many failed attempts. Please wait a moment and try again.');
+      } else if (error.message) {
+        throw error; // Re-throw with original message
       }
       
-      throw new Error(authService.getErrorMessage(error.code));
+      throw new Error('An unexpected error occurred. Please try again.');
     }
   },
 

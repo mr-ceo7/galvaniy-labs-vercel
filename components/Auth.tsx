@@ -11,18 +11,52 @@ interface AuthProps {
 export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (isRetry = false) => {
+    if (!isRetry) {
+      setRetryCount(0);
+    }
+    
     setError('');
     setLoading(true);
 
     try {
+      console.log('[Auth] Attempting Google Sign-In...');
       const user = await authService.signInWithGoogle();
+      console.log('[Auth] Sign-in successful, logging in user');
+      
+      // Keep loading state while calling onLogin to ensure smooth transition
       onLogin(user);
+      
+      // Don't set loading to false here - let App.tsx handle it
     } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.error('[Auth] Sign-in error:', err);
+      
+      // Handle popup blocker specifically
+      if (err.message.includes('popup') || err.message.includes('Popup')) {
+        setError(err.message + ' Please allow popups and click the button again.');
+        setLoading(false);
+      } 
+      // Handle user cancellation
+      else if (err.message.includes('cancelled') || err.message.includes('closed')) {
+        setError('Sign-in was cancelled. Please try again.');
+        setLoading(false);
+      }
+      // Retry for other errors
+      else if (retryCount < maxRetries) {
+        console.log(`[Auth] Retrying... (${retryCount + 1}/${maxRetries})`);
+        setRetryCount(retryCount + 1);
+        // Wait before retry with exponential backoff
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+        return handleGoogleSignIn(true);
+      } 
+      // Max retries reached
+      else {
+        setError(err.message || 'Sign-in failed after multiple attempts. Please refresh and try again.');
+        setLoading(false);
+      }
     }
   };
 
