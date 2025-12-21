@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { authService } from '../services/authService';
 import { User } from '../types';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -12,34 +12,16 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Check for redirect result on mount
-  useEffect(() => {
-    const checkRedirectResult = async () => {
-      setLoading(true);
-      try {
-        const user = await authService.handleRedirectResult();
-        if (user) {
-          onLogin(user);
-        }
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkRedirectResult();
-  }, [onLogin]);
-
   const handleGoogleSignIn = async () => {
     setError('');
     setLoading(true);
 
     try {
-      // This will redirect to Google (no return value)
-      await authService.signInWithGoogle();
-      // User will be redirected, so this code won't execute
+      const user = await authService.signInWithGoogle();
+      onLogin(user);
     } catch (err: any) {
       setError(err.message);
+    } finally {
       setLoading(false);
     }
   };

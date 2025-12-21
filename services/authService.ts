@@ -12,9 +12,8 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   GoogleAuthProvider,
-  signInWithRedirect, // Changed from signInWithPopup
-  getRedirectResult, // Added for redirect flow
-  UserCredential, // Added for redirect flow
+  signInWithPopup,
+  UserCredential,
   User as FirebaseUser
 } from 'firebase/auth';
 import { firebaseConfig } from '../config/firebaseConfig';
@@ -99,31 +98,19 @@ export const authService = {
     }
   },
 
-  // Sign in with Google (using redirect to avoid popup blockers)
-  signInWithGoogle: async (): Promise<void> => {
+  // Sign in with Google (popup method)
+  signInWithGoogle: async (): Promise<User> => {
     try {
-      await signInWithRedirect(auth, googleProvider);
-      // User will be redirected to Google and back
-      // The result is handled by handleRedirectResult
-    } catch (error: any) {
-      throw new Error(authService.getErrorMessage(error.code));
-    }
-  },
-
-  // Handle redirect result after Google Sign-In
-  handleRedirectResult: async (): Promise<User | null> => {
-    try {
-      const result = await getRedirectResult(auth);
-      if (!result) {
-        return null; // No redirect result
-      }
-
+      console.log('[Auth Service] Starting Google Sign-In with popup...');
+      const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
 
       // Check if user profile exists in Firestore
+      console.log('[Auth Service] Checking Firestore profile for:', firebaseUser.uid);
       let profile = await firestoreService.getUserProfile(firebaseUser.uid);
 
       if (!profile) {
+        console.log('[Auth Service] Creating new profile');
         // Create new profile
         const newProfile = {
           uid: firebaseUser.uid,
@@ -141,16 +128,19 @@ export const authService = {
         await firestoreService.createUserProfile(newProfile);
         profile = newProfile;
       } else {
+        console.log('[Auth Service] Profile exists, updating last login');
         // Update last login
         await firestoreService.updateLastLogin(firebaseUser.uid);
       }
 
       // Check if user is revoked
       if (profile.isRevoked) {
+        console.log('[Auth Service] User is revoked');
         await authService.logout();
         throw new Error('Your account has been revoked. Please contact an administrator.');
       }
 
+      console.log('[Auth Service] Login successful');
       return {
         email: profile.email,
         role: profile.role,
@@ -164,6 +154,15 @@ export const authService = {
         photoURL: profile.photoURL
       };
     } catch (error: any) {
+      console.error('[Auth Service] Sign-in error:', error);
+      
+      // Provide helpful error messages
+      if (error.code === 'auth/popup-blocked') {
+        throw new Error('Popup was blocked by your browser. Please allow popups for this site and try again.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in cancelled. Please try again.');
+      }
+      
       throw new Error(authService.getErrorMessage(error.code));
     }
   },
