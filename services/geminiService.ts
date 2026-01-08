@@ -116,6 +116,9 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   // 2. Prepare Base Context (text)
   // Send manual text as part of the prompt instead of as a file
   const manualContext = `Lab Manual Content:\n\n${manualText}\n\n---\n\n`;
+  
+  // Create commonParts array with manual context
+  const commonParts = [{ text: manualContext }];
 
   console.log(`[Gemini] Starting Parallel Generation for ${experimentCode}...`);
 
