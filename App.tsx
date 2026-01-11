@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Layout } from './components/Layout';
 import { SplashScreen } from './components/SplashScreen';
 import { Auth } from './components/Auth';
@@ -160,6 +161,7 @@ const App: React.FC = () => {
         </div>
       )}
       <InstallPrompt />
+      <Analytics />
     </Layout>
   );
 };
