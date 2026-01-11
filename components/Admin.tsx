@@ -77,6 +77,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
   // API Configuration States
   const [apiProvider, setApiProvider] = useState<ApiProvider>('gemini');
   const [customApiUrl, setCustomApiUrl] = useState('');
+  const [parallelGeneration, setParallelGeneration] = useState(true);
   const [testingApi, setTestingApi] = useState(false);
   const [apiTestResult, setApiTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
@@ -96,6 +97,9 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     }
     if (settings?.customApiUrl) {
       setCustomApiUrl(settings.customApiUrl);
+    }
+    if (typeof settings?.enableParallelGeneration !== 'undefined') {
+      setParallelGeneration(!!settings.enableParallelGeneration);
     }
     
     try {
@@ -373,6 +377,17 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     }
   };
 
+  const handleParallelGenerationToggle = async (val: boolean) => {
+    setParallelGeneration(val);
+    const adminUser = users.find(u => u.role === 'admin');
+    if (adminUser) {
+      await firestoreService.updateSettings({ enableParallelGeneration: val }, adminUser.email);
+    }
+    try {
+      localStorage.setItem('enable_parallel_generation', val ? 'true' : 'false');
+    } catch {}
+  };
+
   const handleTestApi = async () => {
     if (!customApiUrl) {
       setApiTestResult({ success: false, message: 'Please enter a Custom API URL first' });
@@ -633,6 +648,20 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
               <p className="text-xs text-slate-500">
                 Enter the base URL of your AI Gateway API (e.g., http://localhost:5000)
               </p>
+              <div className="mt-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-300">Parallel Generation</p>
+                  <p className="text-xs text-slate-500">Run report sections in parallel (faster) or queued (safer).</p>
+                </div>
+                <div>
+                  <button
+                    onClick={() => handleParallelGenerationToggle(!parallelGeneration)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${parallelGeneration ? 'bg-green-600 text-white' : 'bg-slate-700 text-white'}`}
+                  >
+                    {parallelGeneration ? 'Parallel' : 'Queued'}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

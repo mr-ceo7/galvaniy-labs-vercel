@@ -184,13 +184,27 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   // 2. Upload text to custom API
   const uploadedFilename = await uploadPDF(textFile);
   console.log(`[Custom API] Manual uploaded as: ${uploadedFilename}`);
+  console.log(`[Custom API] Checking generation mode for ${experimentCode}...`);
 
-  console.log(`[Custom API] Starting Parallel Generation for ${experimentCode}...`);
+  // Read generation mode from Firestore or localStorage (default: parallel)
+  let parallelGeneration = true;
+  try {
+    const settings = await firestoreService.getSettings();
+    if (typeof settings?.enableParallelGeneration !== 'undefined') {
+      parallelGeneration = !!settings.enableParallelGeneration;
+    } else {
+      const stored = localStorage.getItem('enable_parallel_generation');
+      if (stored === 'false') parallelGeneration = false;
+    }
+  } catch (e) {
+    const stored = localStorage.getItem('enable_parallel_generation');
+    if (stored === 'false') parallelGeneration = false;
+  }
 
-  // 3. Define Parallel Tasks (same structure as Gemini service)
+  console.log(`[Custom API] Starting ${parallelGeneration ? 'Parallel' : 'Queued'} Generation for ${experimentCode}...`);
 
-  // --- Task A: Text Content ---
-  const textTask = generateSection(
+  // 3. Define Tasks
+  const textTaskFn = () => generateSection(
     uploadedFilename,
     experimentCode,
     "Text Content",
@@ -198,8 +212,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
     getTextContentInstructions(experimentCode)
   );
 
-  // --- Task B: Data & Logic ---
-  const dataTask = generateSection(
+  const dataTaskFn = () => generateSection(
     uploadedFilename,
     experimentCode,
     "Data & Logic",
@@ -207,8 +220,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
     getDataLogicInstructions(experimentCode)
   );
 
-  // --- Task C: Simulation ---
-  const simTask = generateSection(
+  const simTaskFn = () => generateSection(
     uploadedFilename,
     experimentCode,
     "Simulation",
@@ -217,8 +229,17 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   );
 
   try {
-    // Execute all sections in parallel
-    const [textJson, dataJson, simJson] = await Promise.all([textTask, dataTask, simTask]);
+    let textJson: any, dataJson: any, simJson: any;
+
+    if (parallelGeneration) {
+      const [t, d, s] = await Promise.all([textTaskFn(), dataTaskFn(), simTaskFn()]);
+      textJson = t; dataJson = d; simJson = s;
+    } else {
+      // Queued/Sequential execution
+      textJson = await textTaskFn();
+      dataJson = await dataTaskFn();
+      simJson = await simTaskFn();
+    }
 
     // --- Post-Processing: Convert String Arrays back to Script Strings ---
 
