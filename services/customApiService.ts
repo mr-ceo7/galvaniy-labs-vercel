@@ -153,7 +153,9 @@ const generateSection = async (
 // Main generation function for custom API
 export const generateLabReport = async (experimentCode: string): Promise<string> => {
   const apiUrl = await getApiBaseUrl();
-  if (!apiUrl) {
+  // Allow empty string base (""), which indicates use of relative `/api` path
+  // (e.g., when the frontend is HTTPS but the configured API is HTTP — use Vercel proxy).
+  if (apiUrl === null || apiUrl === undefined) {
     throw new Error("Custom API URL is not configured. Please set it in Admin settings.");
   }
 
