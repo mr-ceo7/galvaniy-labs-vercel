@@ -383,8 +383,18 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     setApiTestResult(null);
 
     try {
+      // If running on HTTPS and the configured customApiUrl is insecure (http),
+      // use a relative path so Vercel's proxy (vercel.json) will handle the request.
+      let testBase = customApiUrl;
+      if (typeof window !== 'undefined' && window.location.protocol === 'https:' && testBase && testBase.startsWith('http:')) {
+        console.warn('[Admin] Insecure custom API detected on HTTPS page - using relative /api path to route through proxy.');
+        testBase = '';
+      }
+      // Normalize trailing slash to avoid double-slashes
+      if (testBase && testBase.endsWith('/')) testBase = testBase.replace(/\/$/, '');
+
       // Test the API by checking if the base URL is reachable
-      const response = await fetch(`${customApiUrl}/api/auth/status`, {
+      const response = await fetch(`${testBase}/api/auth/status`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
