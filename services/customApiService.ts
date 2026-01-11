@@ -29,6 +29,15 @@ const getApiBaseUrl = async (): Promise<string> => {
   // Fallback to localStorage or env variable
   const stored = localStorage.getItem('custom_api_base_url');
   cachedApiUrl = stored || process.env.CUSTOM_API_URL || 'http://localhost:5000';
+
+  // Safety: if frontend is served over HTTPS but the configured API is HTTP,
+  // return an empty string so the frontend uses the relative `/api` path
+  // (Vercel proxy) rather than attempting an insecure direct request.
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && cachedApiUrl && cachedApiUrl.startsWith('http:')) {
+    console.warn('[Custom API] Insecure HTTP API detected while on HTTPS; using Vercel proxy (relative /api path).');
+    return '';
+  }
+
   return cachedApiUrl;
 };
 
