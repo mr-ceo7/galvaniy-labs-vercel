@@ -8,8 +8,12 @@ let cachedApiUrl: string | null = null;
 
 // API Configuration - fetch from Firestore with localStorage cache
 const getApiBaseUrl = async (): Promise<string> => {
-  // Return cached value if available
+  // Return cached value if available, but still apply the mixed-content safety check
   if (cachedApiUrl) {
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:' && cachedApiUrl.startsWith('http:')) {
+      console.warn('[Custom API] Insecure HTTP API detected while on HTTPS; using Vercel proxy (relative /api path).');
+      return '';
+    }
     return cachedApiUrl;
   }
 
