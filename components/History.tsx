@@ -2,6 +2,7 @@ import React from 'react';
 import { Report, Theme } from '../types';
 import { Clock, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { logService } from '../services/logService';
 
 interface HistoryProps {
   reports: Report[];

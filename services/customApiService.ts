@@ -1,6 +1,8 @@
 import { storageService } from "./storageService";
 import { firestoreService } from "./firestoreService";
 import { validateReport } from "./reportValidator";
+import { errorService } from "./errorService";
+import { logService } from "./logService";
 import { buildSectionPrompt, getTextContentInstructions, getDataLogicInstructions, getSimulationInstructions, JSON_EXAMPLES } from "./promptTemplates";
 
 // Cache for API URL (updated from Firestore)
@@ -11,7 +13,7 @@ const getApiBaseUrl = async (): Promise<string> => {
   // Return cached value if available, but still apply the mixed-content safety check
   if (cachedApiUrl) {
     if (typeof window !== 'undefined' && window.location.protocol === 'https:' && cachedApiUrl.startsWith('http:')) {
-      console.warn('[Custom API] Insecure HTTP API detected while on HTTPS; using Vercel proxy (relative /api path).');
+      logService.warn('[Custom API] Insecure HTTP API detected while on HTTPS; using Vercel proxy (relative /api path).');
       return '';
     }
     return cachedApiUrl;
@@ -27,7 +29,7 @@ const getApiBaseUrl = async (): Promise<string> => {
       return settings.customApiUrl;
     }
   } catch (error) {
-    console.warn('[Custom API] Failed to fetch URL from Firestore, using localStorage:', error);
+    logService.warn('[Custom API] Failed to fetch URL from Firestore, using localStorage:', error);
   }
 
   // Fallback to localStorage or env variable
@@ -38,7 +40,7 @@ const getApiBaseUrl = async (): Promise<string> => {
   // return an empty string so the frontend uses the relative `/api` path
   // (Vercel proxy) rather than attempting an insecure direct request.
   if (typeof window !== 'undefined' && window.location.protocol === 'https:' && cachedApiUrl && cachedApiUrl.startsWith('http:')) {
-    console.warn('[Custom API] Insecure HTTP API detected while on HTTPS; using Vercel proxy (relative /api path).');
+    logService.warn('[Custom API] Insecure HTTP API detected while on HTTPS; using Vercel proxy (relative /api path).');
     return '';
   }
 
@@ -139,14 +141,14 @@ const generateSection = async (
         if (json.error) throw new Error(json.error);
         return json;
       } catch (parseError) {
-        console.warn(`[${sectionName}] JSON Parse Error (Attempt ${attempts}):`, text.slice(0, 100) + "..." + text.slice(-100));
+        logService.warn(`[${sectionName}] JSON Parse Error (Attempt ${attempts}):`, text.slice(0, 100) + "..." + text.slice(-100));
         if (attempts === MAX_ATTEMPTS) {
           throw new Error(`Failed to parse ${sectionName} JSON. The API generated invalid format.`);
         }
       }
 
     } catch (error: any) {
-      console.error(`[${sectionName}] Generation Failed (Attempt ${attempts}):`, error);
+      logService.error(`[${sectionName}] Generation Failed (Attempt ${attempts}):`, error);
       if (attempts === MAX_ATTEMPTS) throw error;
       // Wait before retry
       await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
@@ -156,19 +158,32 @@ const generateSection = async (
 
 // Main generation function for custom API
 export const generateLabReport = async (experimentCode: string): Promise<string> => {
-  const apiUrl = await getApiBaseUrl();
+  let apiUrl: string;
+  try {
+    apiUrl = await getApiBaseUrl();
+  } catch (error) {
+    throw errorService.wrapError('Custom API: Configuration', error);
+  }
+
   // Allow empty string base (""), which indicates use of relative `/api` path
   // (e.g., when the frontend is HTTPS but the configured API is HTTP — use Vercel proxy).
   if (apiUrl === null || apiUrl === undefined) {
-    throw new Error("Custom API URL is not configured. Please set it in Admin settings.");
+    const error = new Error("Custom API URL is not configured. Please contact Admin to set it in Admin settings.");
+    throw errorService.wrapError('Custom API: Configuration', error);
   }
 
   // 1. Get Manual from Firestore
-  console.log('[Custom API] Fetching manual from Firestore...');
-  const pages = await firestoreService.getManualPages();
+  logService.log('[Custom API] Fetching manual from Firestore...');
+  let pages;
+  try {
+    pages = await firestoreService.getManualPages();
+  } catch (error) {
+    throw errorService.wrapError('Custom API: Firestore Fetch', error);
+  }
   
   if (!pages || pages.length === 0) {
-    throw new Error("No Manual Found. Please contact Admin to upload the relevant manual.");
+    const error = new Error("No Manual Found. Please contact Admin to upload the relevant manual.");
+    throw errorService.wrapError('Custom API: Manual Missing', error);
   }
 
   // Combine all page text
@@ -178,13 +193,13 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   const textBlob = new Blob([manualText], { type: 'text/plain' });
   const textFile = new File([textBlob], 'manual.txt', { type: 'text/plain' });
 
-  console.log(`[Custom API] Manual loaded: ${pages.length} pages`);
-  console.log(`[Custom API] Uploading manual...`);
+  logService.log(`[Custom API] Manual loaded: ${pages.length} pages`);
+  logService.log(`[Custom API] Uploading manual...`);
 
   // 2. Upload text to custom API
   const uploadedFilename = await uploadPDF(textFile);
-  console.log(`[Custom API] Manual uploaded as: ${uploadedFilename}`);
-  console.log(`[Custom API] Checking generation mode for ${experimentCode}...`);
+  logService.log(`[Custom API] Manual uploaded as: ${uploadedFilename}`);
+  logService.log(`[Custom API] Checking generation mode for ${experimentCode}...`);
 
   // Read generation mode from Firestore or localStorage (default: parallel)
   let parallelGeneration = true;
@@ -201,7 +216,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
     if (stored === 'false') parallelGeneration = false;
   }
 
-  console.log(`[Custom API] Starting ${parallelGeneration ? 'Parallel' : 'Queued'} Generation for ${experimentCode}...`);
+  logService.log(`[Custom API] Starting ${parallelGeneration ? 'Parallel' : 'Queued'} Generation for ${experimentCode}...`);
 
   // 3. Define Tasks
   const textTaskFn = () => generateSection(
@@ -265,7 +280,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
     // Final Validation
     const validation = validateReport(fullReport, experimentCode);
     if (!validation.valid) {
-      console.warn("Report Validation Warnings:", validation.warnings);
+      logService.warn("Report Validation Warnings:", validation.warnings);
       if (validation.errors.length > 0) {
         throw new Error(`Generated report invalid: ${validation.errors.join(', ')}`);
       }
@@ -274,7 +289,11 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
     return JSON.stringify(fullReport);
 
   } catch (error: any) {
-    console.error("[Custom API] Report Generation Failed:", error);
+    logService.error("[Custom API] Report Generation Failed:", error);
+    // Wrap with user-friendly error if not already wrapped
+    if (!error.__context) {
+      throw errorService.wrapError('Custom API: Report Generation', error, { experimentCode });
+    }
     throw error;
   }
 };

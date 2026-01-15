@@ -18,6 +18,7 @@ import {
 } from 'firebase/auth';
 import { firebaseConfig } from '../config/firebaseConfig';
 import { ADMIN_CONFIG } from '../config/adminConfig';
+import { logService } from './logService';
 import { firestoreService } from './firestoreService';
 import { User } from '../types';
 
@@ -101,7 +102,7 @@ export const authService = {
   // Sign in with Google (popup method with robust error handling)
   signInWithGoogle: async (): Promise<User> => {
     try {
-      console.log('[Auth Service] Starting Google Sign-In with popup...');
+      logService.log('[Auth Service] Starting Google Sign-In with popup...');
       const result = await signInWithPopup(auth, googleProvider);
       
       if (!result || !result.user) {
@@ -109,14 +110,14 @@ export const authService = {
       }
       
       const firebaseUser = result.user;
-      console.log('[Auth Service] Google auth successful for:', firebaseUser.email);
+      logService.log('[Auth Service] Google auth successful for:', firebaseUser.email);
 
       // Check if user profile exists in Firestore
-      console.log('[Auth Service] Checking Firestore profile for:', firebaseUser.uid);
+      logService.log('[Auth Service] Checking Firestore profile for:', firebaseUser.uid);
       let profile = await firestoreService.getUserProfile(firebaseUser.uid);
 
       if (!profile) {
-        console.log('[Auth Service] Creating new profile');
+        logService.log('[Auth Service] Creating new profile');
         // Create new profile
         const newProfile = {
           uid: firebaseUser.uid,
@@ -133,21 +134,21 @@ export const authService = {
 
         await firestoreService.createUserProfile(newProfile);
         profile = newProfile;
-        console.log('[Auth Service] New profile created successfully');
+        logService.log('[Auth Service] New profile created successfully');
       } else {
-        console.log('[Auth Service] Profile exists, updating last login');
+        logService.log('[Auth Service] Profile exists, updating last login');
         // Update last login
         await firestoreService.updateLastLogin(firebaseUser.uid);
       }
 
       // Check if user is revoked
       if (profile.isRevoked) {
-        console.log('[Auth Service] User is revoked');
+        logService.log('[Auth Service] User is revoked');
         await authService.logout();
         throw new Error('Your account has been revoked. Please contact an administrator.');
       }
 
-      console.log('[Auth Service] Login successful, returning user object');
+      logService.log('[Auth Service] Login successful, returning user object');
       return {
         email: profile.email,
         role: profile.role,
@@ -161,7 +162,7 @@ export const authService = {
         photoURL: profile.photoURL
       };
     } catch (error: any) {
-      console.error('[Auth Service] Sign-in error:', error);
+      logService.error('[Auth Service] Sign-in error:', error);
       
       // Provide helpful error messages
       if (error.code === 'auth/popup-blocked') {

@@ -2,6 +2,8 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { storageService } from "./storageService";
 import { firestoreService } from "./firestoreService";
 import { validateReport } from "./reportValidator";
+import { errorService } from "./errorService";
+import { logService } from "./logService";
 import { buildSectionPrompt, getTextContentInstructions, getDataLogicInstructions, getSimulationInstructions, JSON_EXAMPLES } from "./promptTemplates";
 
 // --- Helper: File to Base64 ---
@@ -82,12 +84,12 @@ const generateSection = async (
                 if (json.error) throw new Error(json.error);
                 return json;
             } catch (parseError) {
-                console.warn(`[${sectionName}] JSON Parse Error (Attempt ${attempts}):`, text.slice(0, 100) + "..." + text.slice(-100));
+                logService.warn(`[${sectionName}] JSON Parse Error (Attempt ${attempts}):`, text.slice(0, 100) + "..." + text.slice(-100));
                 if (attempts === MAX_ATTEMPTS) throw new Error(`Failed to parse ${sectionName} JSON. The AI generated invalid format.`);
             }
 
         } catch (error: any) {
-            console.error(`[${sectionName}] Generation Failed (Attempt ${attempts}):`, error);
+            logService.error(`[${sectionName}] Generation Failed (Attempt ${attempts}):`, error);
             if (attempts === MAX_ATTEMPTS) throw error;
         }
     }
@@ -96,22 +98,30 @@ const generateSection = async (
 // --- Main Generation Function ---
 export const generateLabReport = async (experimentCode: string): Promise<string> => {
   if (!process.env.API_KEY) {
-    throw new Error("API Key is missing. Please set process.env.API_KEY");
+    const error = new Error("API Key is missing. Please contact Admin to check API configuration.");
+    throw errorService.wrapError('Gemini: API Key', error);
   }
 
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   // 1. Get Manual from Firestore
-  console.log('[Gemini] Fetching manual from Firestore...');
-  const pages = await firestoreService.getManualPages();
+  logService.log('[Gemini] Fetching manual from Firestore...');
+  
+  let pages;
+  try {
+    pages = await firestoreService.getManualPages();
+  } catch (error) {
+    throw errorService.wrapError('Gemini: Firestore Fetch', error);
+  }
   
   if (!pages || pages.length === 0) {
-      throw new Error("No Manual Found. Please contact Admin to upload the PDF manual.");
+    const error = new Error("No Manual Found. Please contact Admin to upload the PDF manual.");
+    throw errorService.wrapError('Gemini: Manual Missing', error);
   }
 
   // Combine all page text into one string
   const manualText = pages.map(p => p.text).join('\n\n');
-  console.log(`[Gemini] Manual loaded: ${pages.length} pages, ${manualText.length} characters`);
+  logService.log(`[Gemini] Manual loaded: ${pages.length} pages, ${manualText.length} characters`);
 
   // 2. Prepare Base Context (text)
   // Send manual text as part of the prompt instead of as a file
@@ -120,7 +130,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   // Create commonParts array with manual context
   const commonParts = [{ text: manualContext }];
 
-  console.log(`[Gemini] Starting Parallel Generation for ${experimentCode}...`);
+  logService.log(`[Gemini] Starting Parallel Generation for ${experimentCode}...`);
 
   // 3. Define Parallel Tasks
 
@@ -269,7 +279,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
       // Final Validation
       const validation = validateReport(fullReport, experimentCode);
       if (!validation.valid) {
-          console.warn("Report Validation Warnings:", validation.warnings);
+          logService.warn("Report Validation Warnings:", validation.warnings);
           if (validation.errors.length > 0) {
                throw new Error(`Generated report invalid: ${validation.errors.join(', ')}`);
           }
@@ -278,7 +288,11 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
       return JSON.stringify(fullReport);
 
   } catch (error: any) {
-      console.error("[AI] Report Generation Failed:", error);
+      logService.error("[AI] Report Generation Failed:", error);
+      // Wrap with user-friendly error if not already wrapped
+      if (!error.__context) {
+        throw errorService.wrapError('Gemini: Report Generation', error, { experimentCode });
+      }
       throw error; // Re-throw for UI handling
   }
 };

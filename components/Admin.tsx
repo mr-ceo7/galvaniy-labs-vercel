@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { storageService } from '../services/storageService';
+import { logService } from '../services/logService';
 import { firestoreService } from '../services/firestoreService';
 import { apiService, ApiProvider } from '../services/apiService';
 import { User, Theme, ManualPage } from '../types';
@@ -108,7 +109,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
         const firestorePages = await firestoreService.getManualPages();
         setPages(firestorePages.sort((a,b) => a.pageNumber - b.pageNumber));
     } catch (err) {
-        console.error("Failed to load pages", err);
+        logService.error("Failed to load pages", err);
     } finally {
         setLoadingPages(false);
     }
@@ -175,7 +176,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
       loadData();
       setShowClearConfirm(false);
     } catch (error) {
-      console.error('Error clearing manual:', error);
+      logService.error('Error clearing manual:', error);
       alert('Failed to clear manual. Please try again.');
     }
   };
@@ -217,7 +218,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
       } catch (e) {
-          console.error("Zip Error", e);
+          logService.error("Zip Error", e);
           alert("Failed to create zip file.");
       } finally {
           setDownloadingZip(false);
@@ -286,7 +287,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
                         });
                     }
                 } catch (pageError) {
-                    console.warn(`Failed to process page ${j}`, pageError);
+                    logService.warn(`Failed to process page ${j}`, pageError);
                 }
             }
             
@@ -311,7 +312,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
         }, 500);
 
     } catch (error: any) {
-        console.error("PDF Processing Error", error);
+        logService.error("PDF Processing Error", error);
         setUploading(false);
         setUploadStatus('');
         setUploadProgress(0);
@@ -402,7 +403,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
       // use a relative path so Vercel's proxy (vercel.json) will handle the request.
       let testBase = customApiUrl;
       if (typeof window !== 'undefined' && window.location.protocol === 'https:' && testBase && testBase.startsWith('http:')) {
-        console.warn('[Admin] Insecure custom API detected on HTTPS page - using relative /api path to route through proxy.');
+        logService.warn('[Admin] Insecure custom API detected on HTTPS page - using relative /api path to route through proxy.');
         testBase = '';
       }
       // Normalize trailing slash to avoid double-slashes

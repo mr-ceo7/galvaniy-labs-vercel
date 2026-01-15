@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { authService } from '../services/authService';
+import { logService } from '../services/logService';
 import { User } from '../types';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,16 +24,16 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      console.log('[Auth] Attempting Google Sign-In...');
+      logService.log('[Auth] Attempting Google Sign-In...');
       const user = await authService.signInWithGoogle();
-      console.log('[Auth] Sign-in successful, logging in user');
+      logService.log('[Auth] Sign-in successful, logging in user');
       
       // Keep loading state while calling onLogin to ensure smooth transition
       onLogin(user);
       
       // Don't set loading to false here - let App.tsx handle it
     } catch (err: any) {
-      console.error('[Auth] Sign-in error:', err);
+      logService.error('[Auth] Sign-in error:', err);
       
       // Handle popup blocker specifically
       if (err.message.includes('popup') || err.message.includes('Popup')) {
@@ -46,7 +47,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       }
       // Retry for other errors
       else if (retryCount < maxRetries) {
-        console.log(`[Auth] Retrying... (${retryCount + 1}/${maxRetries})`);
+        logService.log(`[Auth] Retrying... (${retryCount + 1}/${maxRetries})`);
         setRetryCount(retryCount + 1);
         // Wait before retry with exponential backoff
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));

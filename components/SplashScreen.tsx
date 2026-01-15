@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Atom } from 'lucide-react';
+import { logService } from '../services/logService';
 
 export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
   const onCompleteRef = useRef(onComplete);
@@ -11,19 +12,19 @@ export const SplashScreen: React.FC<{ onComplete: () => void }> = ({ onComplete 
   }, [onComplete]);
 
   useEffect(() => {
-    console.log('[SplashScreen] Component mounted, starting timer...');
+    logService.log('[SplashScreen] Component mounted, starting timer...');
     // Timer to complete splash screen
     const timer = setTimeout(() => {
-      console.log('[SplashScreen] Timer completed, calling onComplete');
+      logService.log('[SplashScreen] Timer completed, calling onComplete');
       try {
         onCompleteRef.current();
       } catch (error) {
-        console.error('[SplashScreen] Error calling onComplete:', error);
+        logService.error('[SplashScreen] Error calling onComplete:', error);
       }
     }, 2000); // 2 seconds
     
     return () => {
-      console.log('[SplashScreen] Cleaning up timer');
+      logService.log('[SplashScreen] Cleaning up timer');
       clearTimeout(timer);
     };
   }, []); // Only run once on mount

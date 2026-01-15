@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
+import { logService } from '../services/logService';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -40,7 +41,7 @@ export const InstallPrompt: React.FC = () => {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     
-    console.log(`Install prompt outcome: ${outcome}`);
+    logService.log(`Install prompt outcome: ${outcome}`);
     setDeferredPrompt(null);
     setShowPrompt(false);
     

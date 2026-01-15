@@ -3,6 +3,7 @@ import { Report, Theme } from '../types';
 import { Download, Share2, X, FileCode, ImageIcon } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { logService } from '../services/logService';
 import toast, { Toaster } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
@@ -41,7 +42,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
         setIframeSrc(url);
         return () => URL.revokeObjectURL(url);
       } catch (e) {
-        console.error("Failed to parse report JSON", e);
+        logService.error("Failed to parse report JSON", e);
       }
     }
   }, [report]);
@@ -127,7 +128,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme }
       });
       
     } catch (error) {
-      console.error('PDF generation failed:', error);
+      logService.error('PDF generation failed:', error);
       toast.error(
         error instanceof Error ? error.message : 'Failed to generate PDF. Please try again.',
         {
@@ -1418,7 +1419,7 @@ function generateInteractiveHTML(data: any, code: string) {
             document.documentElement.style.setProperty('--accent', palette.accent);
             document.documentElement.style.setProperty('--bg-gradient-via', palette.via);
             
-            console.log('Applied color palette:', palette.name);
+            logService.log('Applied color palette:', palette.name);
         }
         
         // Initialize palette immediately
@@ -1575,7 +1576,7 @@ function generateInteractiveHTML(data: any, code: string) {
                 }
                 analysisDiv.innerHTML = template.replace(/\\n/g, '<br>');
             } catch (e) { 
-                console.error("Analysis Error", e);
+                logService.error("Analysis Error", e);
                 analysisDiv.innerHTML = \`<span class="text-red-400">Analysis Error: \${e.message}</span><br><span class="text-xs text-slate-500">Check console for details or edit data.</span>\`; 
             }
         }
@@ -1591,7 +1592,7 @@ function generateInteractiveHTML(data: any, code: string) {
             if (reportData.simulationScript) {
                 drawFunc = new Function('ctx', 'width', 'height', 'frame', 'params', reportData.simulationScript);
             }
-        } catch (e) { console.error("Invalid Simulation Script", e); }
+        } catch (e) { logService.error("Invalid Simulation Script", e); }
 
         const simulation = {
             active: false, frame: 0, params: initialParams,
@@ -1680,8 +1681,8 @@ function generateInteractiveHTML(data: any, code: string) {
                     text: reportText,
                     url: window.location.href
                 })
-                .then(() => console.log('Shared successfully'))
-                .catch((error) => console.log('Error sharing:', error));
+                .then(() => logService.log('Shared successfully'))
+                .catch((error) => logService.log('Error sharing:', error));
             } else {
                 // Fallback: Copy link to clipboard
                 const url = window.location.href;

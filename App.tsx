@@ -11,6 +11,7 @@ import { InstallPrompt } from './components/InstallPrompt';
 import { User, Report } from './types';
 import { storageService } from './services/storageService';
 import { authService } from './services/authService';
+import { logService } from './services/logService';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -20,20 +21,20 @@ const App: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
-  console.log('[App] Render - loading:', loading, 'user:', user?.email || 'none');
+  logService.log('[App] Render - loading:', loading, 'user:', user?.email || 'none');
 
   useEffect(() => {
-    console.log('[App] Component mounted, setting up auth listener...');
+    logService.log('[App] Component mounted, setting up auth listener...');
     
     // Listen to Firebase Auth state changes (handles page reload persistence)
     const unsubscribe = authService.onAuthStateChange((user) => {
       if (user) {
-        console.log('[App] Auth state: User signed in:', user.email);
+        logService.log('[App] Auth state: User signed in:', user.email);
         setUser(user);
         loadReports(user.email);
         storageService.setSession(user); // Sync to localStorage
       } else {
-        console.log('[App] Auth state: No user');
+        logService.log('[App] Auth state: No user');
         setUser(null);
         setReports([]);
       }
@@ -73,7 +74,7 @@ const App: React.FC = () => {
     // Safety fallback: force complete splash after 5 seconds
     if (loading) {
       const fallbackTimer = setTimeout(() => {
-        console.warn('[App] Force completing splash screen after 5 second timeout');
+        logService.warn('[App] Force completing splash screen after 5 second timeout');
         setLoading(false);
       }, 5000);
       return () => clearTimeout(fallbackTimer);
@@ -82,7 +83,7 @@ const App: React.FC = () => {
 
   if (loading) {
     return <SplashScreen onComplete={() => {
-      console.log('[App] SplashScreen completed, setting loading to false');
+      logService.log('[App] SplashScreen completed, setting loading to false');
       setLoading(false);
     }} />;
   }

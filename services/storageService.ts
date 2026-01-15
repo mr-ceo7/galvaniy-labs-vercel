@@ -1,4 +1,5 @@
 import { User, Report, DbSchema, ManualPage } from '../types';
+import { logService } from './logService';
 
 const DB_KEY = 'physics_labs_db';
 const SESSION_KEY = 'physics_labs_session';
@@ -26,17 +27,25 @@ const openIDB = (): Promise<IDBDatabase> => {
       }
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onerror = () => {
+      logService.error('IndexedDB Error:', request.error);
+      reject(request.error);
+    };
   });
 };
 
 // --- LocalStorage Helpers (Users/Reports) ---
 const getDb = (): DbSchema => {
-  const data = localStorage.getItem(DB_KEY);
-  if (!data) {
+  try {
+    const data = localStorage.getItem(DB_KEY);
+    if (!data) {
+      return { users: [], reports: {}, manualPages: [] };
+    }
+    return JSON.parse(data);
+  } catch (error) {
+    logService.error('Error reading local database:', error);
     return { users: [], reports: {}, manualPages: [] };
   }
-  return JSON.parse(data);
 };
 
 const saveDb = (data: DbSchema) => {
@@ -45,8 +54,9 @@ const saveDb = (data: DbSchema) => {
     const payload = { ...data, manualPages: [] }; 
     localStorage.setItem(DB_KEY, JSON.stringify(payload));
   } catch (e) {
-    console.error("Storage Quota Exceeded", e);
-    alert("Storage limit reached. Please clear some reports.");
+    logService.error("Storage Quota Exceeded", e);
+    // Show user-friendly error message instead of exposing technical details
+    throw new Error("Unable to save data. Your browser storage is full. Please clear some reports.");
   }
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
 import { storageService } from '../services/storageService';
 import { firestoreService } from '../services/firestoreService';
+import { logService } from '../services/logService';
 import { User, Report, Theme } from '../types';
 import { Zap, Loader2, AlertCircle, Network } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -38,7 +39,7 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
           setManualName(metadata.name);
         }
       } catch (err) {
-        console.error('Failed to load manual metadata:', err);
+        logService.error('Failed to load manual metadata:', err);
       }
     };
     loadManualName();

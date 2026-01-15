@@ -3,6 +3,8 @@
 
 import { generateLabReport as generateWithGemini } from './geminiService';
 import { generateLabReport as generateWithCustomApi } from './customApiService';
+import { errorService } from './errorService';
+import { logService } from './logService';
 
 export type ApiProvider = 'gemini' | 'custom';
 
@@ -24,7 +26,7 @@ export const apiService = {
   generateLabReport: async (experimentCode: string): Promise<string> => {
     const provider = apiService.getProvider();
     
-    console.log(`[API Service] Using provider: ${provider}`);
+    logService.log(`[API Service] Using provider: ${provider}`);
     
     try {
       if (provider === 'custom') {
@@ -34,9 +36,13 @@ export const apiService = {
       }
       
     } catch (error: any) {
-      // If one provider fails, log but don't auto-switch (let user decide)
-      console.error(`[API Service] ${provider} provider failed:`, error);
-      throw error;
+      // Wrap technical errors with user-friendly messages
+      const wrappedError = errorService.wrapError(
+        `[API Service] ${provider} provider`,
+        error,
+        { provider, experimentCode }
+      );
+      throw wrappedError;
     }
   },
 

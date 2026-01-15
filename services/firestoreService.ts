@@ -16,6 +16,7 @@ import {
   writeBatch
 } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebaseConfig';
+import { errorService } from './errorService';
 import { ManualPage } from '../types';
 
 // Initialize Firestore
@@ -25,9 +26,9 @@ const db = getFirestore(app);
 // Enable offline persistence
 enableIndexedDbPersistence(db).catch((err) => {
   if (err.code === 'failed-precondition') {
-    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+    logService.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
   } else if (err.code === 'unimplemented') {
-    console.warn('Browser does not support offline persistence.');
+    logService.warn('Browser does not support offline persistence.');
   }
 });
 
@@ -95,8 +96,16 @@ export const firestoreService = {
         updatedBy: ''
       };
     } catch (error) {
-      console.error('Error getting settings:', error);
-      throw error;
+      logService.error('Error getting settings:', error);
+      // For settings retrieval, use defaults gracefully rather than throwing
+      return {
+        defaultDailyLimit: 3,
+        customInstructions: '',
+        apiProvider: 'gemini',
+        customApiUrl: '',
+        lastUpdated: new Date(),
+        updatedBy: ''
+      };
     }
   },
 
@@ -112,8 +121,8 @@ export const firestoreService = {
         updatedBy: adminEmail
       }, { merge: true });
     } catch (error) {
-      console.error('Error updating settings:', error);
-      throw error;
+      logService.error('Error updating settings:', error);
+      throw errorService.wrapError('Firestore: Update Settings', error);
     }
   },
 
@@ -145,7 +154,7 @@ export const firestoreService = {
         });
       }
     }, (error) => {
-      console.error('Error in settings subscription:', error);
+      logService.error('Error in settings subscription:', error);
     });
   },
 
@@ -171,7 +180,7 @@ export const firestoreService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting manual metadata:', error);
+      logService.error('Error getting manual metadata:', error);
       return null;
     }
   },
@@ -187,7 +196,7 @@ export const firestoreService = {
       return snapshot.docs.map(doc => doc.data() as ManualPage)
         .sort((a, b) => a.pageNumber - b.pageNumber);
     } catch (error) {
-      console.error('Error getting manual pages:', error);
+      logService.error('Error getting manual pages:', error);
       return [];
     }
   },
@@ -231,7 +240,7 @@ export const firestoreService = {
         await batch.commit();
       }
     } catch (error) {
-      console.error('Error uploading manual:', error);
+      logService.error('Error uploading manual:', error);
       throw error;
     }
   },
@@ -256,7 +265,7 @@ export const firestoreService = {
         callback(null);
       }
     }, (error) => {
-      console.error('Error in manual subscription:', error);
+      logService.error('Error in manual subscription:', error);
     });
   },
 
@@ -286,9 +295,9 @@ export const firestoreService = {
         await batch.commit();
       }
       
-      console.log('[Firestore] Manual cleared successfully');
+      logService.log('[Firestore] Manual cleared successfully');
     } catch (error) {
-      console.error('Error clearing manual:', error);
+      logService.error('Error clearing manual:', error);
       throw error;
     }
   },
@@ -320,7 +329,7 @@ export const firestoreService = {
       
       await setDoc(docRef, cleanProfile);
     } catch (error) {
-      console.error('Error creating user profile:', error);
+      logService.error('Error creating user profile:', error);
       throw error;
     }
   },
@@ -350,7 +359,7 @@ export const firestoreService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting user profile:', error);
+      logService.error('Error getting user profile:', error);
       return null;
     }
   },
@@ -370,7 +379,7 @@ export const firestoreService = {
       
       await updateDoc(docRef, updateData);
     } catch (error) {
-      console.error('Error updating user profile:', error);
+      logService.error('Error updating user profile:', error);
       throw error;
     }
   },
@@ -399,7 +408,7 @@ export const firestoreService = {
         };
       });
     } catch (error) {
-      console.error('Error getting all users:', error);
+      logService.error('Error getting all users:', error);
       return [];
     }
   },
@@ -428,7 +437,7 @@ export const firestoreService = {
       });
       callback(users);
     }, (error) => {
-      console.error('Error in users subscription:', error);
+      logService.error('Error in users subscription:', error);
     });
   },
 
@@ -439,7 +448,7 @@ export const firestoreService = {
     try {
       await firestoreService.updateUserProfile(uid, { isRevoked });
     } catch (error) {
-      console.error('Error toggling user revoke:', error);
+      logService.error('Error toggling user revoke:', error);
       throw error;
     }
   },
@@ -456,7 +465,7 @@ export const firestoreService = {
         });
       }
     } catch (error) {
-      console.error('Error incrementing report count:', error);
+      logService.error('Error incrementing report count:', error);
       throw error;
     }
   },
@@ -471,7 +480,7 @@ export const firestoreService = {
         lastLogin: Timestamp.now()
       });
     } catch (error) {
-      console.error('Error updating last login:', error);
+      logService.error('Error updating last login:', error);
     }
   },
 
@@ -497,7 +506,7 @@ export const firestoreService = {
         revokedStudents: students.filter(u => u.isRevoked).length
       };
     } catch (error) {
-      console.error('Error getting admin stats:', error);
+      logService.error('Error getting admin stats:', error);
       return {
         totalStudents: 0,
         totalReports: 0,
