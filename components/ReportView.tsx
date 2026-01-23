@@ -1419,7 +1419,7 @@ function generateInteractiveHTML(data: any, code: string) {
             document.documentElement.style.setProperty('--accent', palette.accent);
             document.documentElement.style.setProperty('--bg-gradient-via', palette.via);
             
-            logService.log('Applied color palette:', palette.name);
+            console.log('Applied color palette:', palette.name);
         }
         
         // Initialize palette immediately
@@ -1576,7 +1576,7 @@ function generateInteractiveHTML(data: any, code: string) {
                 }
                 analysisDiv.innerHTML = template.replace(/\\n/g, '<br>');
             } catch (e) { 
-                logService.error("Analysis Error", e);
+                console.error("Analysis Error", e);
                 analysisDiv.innerHTML = \`<span class="text-red-400">Analysis Error: \${e.message}</span><br><span class="text-xs text-slate-500">Check console for details or edit data.</span>\`; 
             }
         }
@@ -1592,7 +1592,7 @@ function generateInteractiveHTML(data: any, code: string) {
             if (reportData.simulationScript) {
                 drawFunc = new Function('ctx', 'width', 'height', 'frame', 'params', reportData.simulationScript);
             }
-        } catch (e) { logService.error("Invalid Simulation Script", e); }
+        } catch (e) { console.error("Invalid Simulation Script", e); }
 
         const simulation = {
             active: false, frame: 0, params: initialParams,

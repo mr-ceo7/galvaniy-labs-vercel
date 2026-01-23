@@ -38,6 +38,7 @@ export interface GlobalSettings {
   customInstructions: string;
   apiProvider: 'gemini' | 'custom';
   customApiUrl: string;
+  enableParallelGeneration?: boolean;
   lastUpdated: Date;
   updatedBy: string;
 }
@@ -81,6 +82,7 @@ export const firestoreService = {
           customInstructions: data.customInstructions || '',
           apiProvider: data.apiProvider || 'gemini',
           customApiUrl: data.customApiUrl || '',
+          enableParallelGeneration: data.enableParallelGeneration,
           lastUpdated: data.lastUpdated?.toDate() || new Date(),
           updatedBy: data.updatedBy || ''
         };
@@ -140,6 +142,7 @@ export const firestoreService = {
           customInstructions: data.customInstructions || '',
           apiProvider: data.apiProvider || 'gemini',
           customApiUrl: data.customApiUrl || '',
+          enableParallelGeneration: data.enableParallelGeneration,
           lastUpdated: data.lastUpdated?.toDate() || new Date(),
           updatedBy: data.updatedBy || ''
         });
