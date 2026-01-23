@@ -36,6 +36,11 @@ const getApiBaseUrl = async (): Promise<string> => {
   const stored = localStorage.getItem('custom_api_base_url');
   cachedApiUrl = stored || process.env.CUSTOM_API_URL || 'http://localhost:5000';
 
+  // Cleanup: Remove any accidental whitespace (fixes issues like "...ngrok.dev %20/api")
+  if (cachedApiUrl) {
+    cachedApiUrl = cachedApiUrl.trim();
+  }
+
   // Safety: if frontend is served over HTTPS but the configured API is HTTP,
   // return an empty string so the frontend uses the relative `/api` path
   // (Vercel proxy) rather than attempting an insecure direct request.
