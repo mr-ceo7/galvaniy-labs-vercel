@@ -82,6 +82,11 @@ async def generate_report(
     except Exception as e:
         logger.error(f"[Reports] Generation failed: {e}")
         error_msg = str(e)
+        
+        # DEBUG: Write exact error to file so Antigravity can read it
+        with open("last_error.txt", "w") as f:
+            f.write(error_msg)
+            
         if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
