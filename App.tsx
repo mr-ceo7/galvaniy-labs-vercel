@@ -11,6 +11,7 @@ import { InstallPrompt } from './components/InstallPrompt';
 import { User, Report } from './types';
 import { storageService } from './services/storageService';
 import { authService } from './services/authService';
+import { backendService } from './services/backendService';
 import { logService } from './services/logService';
 import { LogOut, User as UserIcon } from 'lucide-react';
 
@@ -45,7 +46,22 @@ const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const loadReports = (email: string) => {
+  const loadReports = async (email: string) => {
+    // Try loading from backend first, fall back to localStorage
+    try {
+      const backendReports = await backendService.listReports();
+      if (backendReports.length > 0) {
+        setReports(backendReports);
+        // Cache in localStorage for offline access
+        backendReports.forEach(r => {
+          storageService.saveReport(email, r);
+        });
+        return;
+      }
+    } catch (err) {
+      logService.warn('[App] Failed to load reports from backend, using localStorage:', err);
+    }
+    // Fallback to localStorage
     const userReports = storageService.getReports(email);
     setReports(userReports);
   };
@@ -65,7 +81,8 @@ const App: React.FC = () => {
 
   const handleReportGenerated = (report: Report) => {
     if (user) {
-      loadReports(user.email);
+      // Add to local state immediately for instant UI update
+      setReports(prev => [report, ...prev]);
       setSelectedReport(report);
     }
   };

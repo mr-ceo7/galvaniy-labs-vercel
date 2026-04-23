@@ -1,0 +1,77 @@
+{
+  "title": "EXPERIMENT A-3: SIMPLE PENDULUM",
+  "date": "[Date: DD/MM/YYYY]",
+  "partners": "[Partners: Student Names]",
+  "objectives": [
+    "To measure the period of a simple pendulum."
+  ],
+  "theory": "A simple pendulum consists of a point mass suspended by a weightless, inextensible string. The period of a simple pendulum is the time it takes for one complete oscillation. For small angles of swing, the period T is given by the formula T = 2π√(L/g), where L is the length of the pendulum and g is the acceleration due to gravity.",
+  "apparatus": [
+    "Pendulum bob",
+    "String",
+    "Stopwatch",
+    "Meter rule"
+  ],
+  "procedure": [
+    "The pendulum was hung with a measured length of 1 meter using the string and meter rule.",
+    "The pendulum bob was displaced by a small angle and released.",
+    "The time taken for 10 complete oscillations was measured using a stopwatch.",
+    "The procedure was repeated three times to ensure accuracy.",
+    "The average time for 10 oscillations was calculated, and the period T for one oscillation was determined."
+  ],
+  "precautions": [
+    "The angle of swing was kept small (less than 10 degrees) to ensure simple harmonic motion.",
+    "Parallax error was avoided by reading the meter rule at eye level.",
+    "The stopwatch was started and stopped accurately to minimize human reaction time errors."
+  ],
+  "discussion": "The experimental period of the simple pendulum was calculated from the measured time. The results were consistent across multiple trials, indicating a high level of precision. The calculated period can be used to determine the acceleration due to gravity, g. Any slight deviations from expected values are likely due to air resistance and minor timing inaccuracies.",
+  "sourcesOfError": [
+    "Human reaction time in starting and stopping the stopwatch.",
+    "Air resistance affecting the swing of the pendulum.",
+    "Slight inaccuracies in measuring the exact length of the string to the center of mass of the bob."
+  ],
+  "conclusion": "The experiment successfully measured the period of a simple pendulum with a length of 1 meter. The objective was achieved, demonstrating the principles of simple harmonic motion.",
+  "references": [
+    "Lab Manual 2025 Edition",
+    "University Physics by Young & Freedman"
+  ],
+  "questions": [],
+  "tables": [
+    {
+      "title": "Data for Pendulum Period",
+      "headers": [
+        "Length (L)",
+        "Time for 10 osc (t)",
+        "Period (T)",
+        "T^2"
+      ],
+      "rows": [
+        [
+          "1.00",
+          "20.10",
+          "2.01",
+          "4.04"
+        ]
+      ]
+    }
+  ],
+  "calculationScript": "const r = tables[0].rows[0];\nconst t = parseFloat(r[1]);\nconst period = t / 10;\nreturn { period: period.toFixed(2) };",
+  "analysisTemplate": "The calculated period of the pendulum is {{period}} seconds.",
+  "graphConfig": {
+    "tableIndex": 0,
+    "xColumnIndex": 0,
+    "yColumnIndex": 3,
+    "title": "T^2 vs L"
+  },
+  "simulationScript": "ctx.clearRect(0, 0, width, height);\nctx.beginPath();\nctx.moveTo(width / 2, 0);\nconst angle = Math.sin(frame * 0.05) * 0.2;\nconst length = params.length * 100;\nconst bobX = width / 2 + length * Math.sin(angle);\nconst bobY = length * Math.cos(angle);\nctx.lineTo(bobX, bobY);\nctx.stroke();\nctx.beginPath();\nctx.arc(bobX, bobY, 15, 0, 2 * Math.PI);\nctx.fillStyle = 'red';\nctx.fill();",
+  "controls": [
+    {
+      "id": "length",
+      "label": "Pendulum Length",
+      "min": 0.5,
+      "max": 2.0,
+      "val": 1.0,
+      "unit": "m"
+    }
+  ]
+}

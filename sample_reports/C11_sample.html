@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>C-11 Sample Interactive Report</title>
+  <style>
+    body{font-family:Inter,Arial;background:#0f172a;color:#e6eef8;padding:20px}
+    .card{background:rgba(255,255,255,0.03);padding:18px;border-radius:10px;margin-bottom:16px}
+    .controls{display:flex;gap:12px;flex-wrap:wrap}
+    label{font-size:13px;color:#cbd5e1}
+    input[type=range]{width:180px}
+    canvas{background:#071026;border-radius:8px;display:block}
+    button{background:#06b6d4;border:none;padding:8px 12px;border-radius:8px;color:#022;cursor:pointer}
+  </style>
+</head>
+<body>
+  <h1>C-11 — Newton's Law of Cooling (Sample)</h1>
+
+  <div class="card">
+    <h3>Abstract</h3>
+    <p id="abstract"></p>
+  </div>
+
+  <div class="card">
+    <h3>Objectives</h3>
+    <ul id="objectives"></ul>
+  </div>
+
+  <div class="card">
+    <h3>Simulation</h3>
+    <canvas id="simCanvas" width="800" height="300"></canvas>
+    <div style="margin-top:12px" class="controls" id="controls"></div>
+    <div style="margin-top:12px"><button id="toggleBtn">Start Simulation</button></div>
+  </div>
+
+  <script>
+    // Embedded sample report object (matches fallback C-11)
+    const reportData = {
+      title: "Newton's Law of Cooling — Investigation of Cooling Constant",
+      abstract: "This experiment investigates Newton's Law of Cooling by measuring the temperature of a heated liquid as it cools to ambient temperature. The cooling constant k is determined from a linear fit to the natural logarithm of the temperature excess.",
+      objectives: [
+        'Measure temperature decay of a heated sample.',
+        'Determine the cooling constant k using linear fitting.',
+        'Estimate uncertainty and discuss sources of error.'
+      ],
+      controls: [
+        { id: 'initialTemp', label: 'Initial Temp', min: 30, max: 100, val: 85, unit: '°C' },
+        { id: 'ambientTemp', label: 'Ambient Temp', min: 0, max: 40, val: 20, unit: '°C' },
+        { id: 'coolingConstant', label: 'Cooling Rate (k)', min: 0.005, max: 0.1, val: 0.023, unit: 's^-1' }
+      ],
+      simulationScript: `const { initialTemp, ambientTemp, coolingConstant } = params || { initialTemp:85, ambientTemp:20, coolingConstant:0.023 };
+const time = frame / 20;
+const T = ambientTemp + (initialTemp - ambientTemp) * Math.exp(-coolingConstant * time);
+ctx.clearRect(0,0,width,height);
+ctx.fillStyle='#0b1220'; ctx.fillRect(0,0,width,height);
+// Beaker
+const bw=150, bh=200, bx=(width-bw)/2, by=height-bh-20;
+ctx.fillStyle='#ffffff'; ctx.globalAlpha=0.08; ctx.fillRect(bx,by,bw,bh); ctx.globalAlpha=1; ctx.strokeStyle='#94a3b8'; ctx.lineWidth=3; ctx.strokeRect(bx,by,bw,bh);
+// Temperature text
+ctx.fillStyle='#fff'; ctx.font='18px Inter'; ctx.fillText('Temp: ' + T.toFixed(1) + ' °C', bx+10, by+30);
+// Liquid level
+const level = by + bh - ((T - ambientTemp) / (initialTemp - ambientTemp)) * bh;
+ctx.fillStyle='#f97316'; ctx.fillRect(bx+5, level, bw-10, by+bh-level-5);`,
+    };
+
+    // Render abstract/objectives
+    document.getElementById('abstract').innerText = reportData.abstract;
+    const objUl = document.getElementById('objectives');
+    reportData.objectives.forEach(o => { const li = document.createElement('li'); li.innerText = o; objUl.appendChild(li); });
+
+    // Create controls
+    const controlsDiv = document.getElementById('controls');
+    const params = {};
+    reportData.controls.forEach(c => {
+      params[c.id] = c.val;
+      const wrapper = document.createElement('div');
+      wrapper.style.display = 'flex'; wrapper.style.flexDirection = 'column'; wrapper.style.alignItems = 'flex-start';
+      const label = document.createElement('label'); label.innerText = `${c.label}: ` + c.val + ' ' + (c.unit||''); label.id = 'lbl-'+c.id;
+      const input = document.createElement('input'); input.type = 'range'; input.min = c.min; input.max = c.max; input.value = c.val; input.step = (c.max - c.min)/100;
+      input.oninput = (e) => { params[c.id] = parseFloat(e.target.value); document.getElementById('lbl-'+c.id).innerText = `${c.label}: ${e.target.value} ${c.unit||''}`; };
+      wrapper.appendChild(label); wrapper.appendChild(input); controlsDiv.appendChild(wrapper);
+    });
+
+    // Setup canvas and simulation
+    const canvas = document.getElementById('simCanvas'); const ctx = canvas.getContext('2d');
+    let frame = 0; let active = false; let drawFunc = null;
+    try {
+      drawFunc = new Function('ctx','width','height','frame','params', reportData.simulationScript);
+    } catch (e) { console.error('Invalid simulation script', e); }
+
+    function draw() {
+      const w = canvas.width, h = canvas.height;
+      if (drawFunc) {
+        try { drawFunc(ctx, w, h, frame, params); } catch (e) { ctx.fillStyle='red'; ctx.fillText('Sim Error: '+e.message,10,20); }
+      } else {
+        ctx.fillStyle='#222'; ctx.fillRect(0,0,w,h); ctx.fillStyle='#ddd'; ctx.fillText('No simulation provided.', 20, 40);
+      }
+    }
+
+    function loop() { if(!active) return; frame++; draw(); requestAnimationFrame(loop); }
+    document.getElementById('toggleBtn').onclick = function(){ active = !active; this.innerText = active? 'Stop Simulation':'Start Simulation'; if(active){ loop(); } };
+    // Initial draw
+    draw();
+
+  </script>
+</body>
+</html>

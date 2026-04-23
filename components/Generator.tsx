@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/apiService';
 import { storageService } from '../services/storageService';
-import { firestoreService } from '../services/firestoreService';
+import { backendService } from '../services/backendService';
 import { logService } from '../services/logService';
 import { User, Report, Theme } from '../types';
-import { Zap, Loader2, AlertCircle, Network } from 'lucide-react';
+import { Zap, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface GeneratorProps {
@@ -17,24 +17,14 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [currentProvider, setCurrentProvider] = useState<'gemini' | 'custom'>('gemini');
   const [manualName, setManualName] = useState<string | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
-    // Load settings once on mount (updates on page refresh)
-    const loadSettings = async () => {
-      const settings = await firestoreService.getSettings();
-      if (settings) {
-        setCurrentProvider(settings.apiProvider);
-        apiService.setProvider(settings.apiProvider);
-      }
-    };
-    loadSettings();
-
-    // Fetch manual name from Firestore
+    // Fetch manual metadata from backend
     const loadManualName = async () => {
       try {
-        const metadata = await firestoreService.getManualMetadata();
+        const metadata = await backendService.getManualMetadata();
         if (metadata) {
           setManualName(metadata.name);
         }
@@ -44,22 +34,12 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
     };
     loadManualName();
 
-    // Subscribe to manual updates
-    const unsubscribeManual = firestoreService.subscribeToManual((metadata) => {
-      if (metadata) {
-        setManualName(metadata.name);
-      }
-    });
-    
-    return () => {
-      unsubscribeManual();
-    };
-  }, []);
-
-  const dailyCount = storageService.getDailyCount(user.email);
-  const defaultLimit = 3;
-  const userLimit = user.customLimit !== undefined ? user.customLimit : defaultLimit;
-  const remaining = userLimit - dailyCount;
+    // Calculate remaining credits from user profile
+    const dailyCount = storageService.getDailyCount(user.email);
+    const defaultLimit = 3;
+    const userLimit = user.customLimit !== undefined ? user.customLimit : defaultLimit;
+    setRemaining(userLimit - dailyCount);
+  }, [user]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,37 +52,21 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
       return;
     }
 
-    if (!storageService.checkDailyLimit(user.email)) {
-      setError('You have reached your daily limit please try again later.');
-      return;
-    }
-
     setLoading(true);
     try {
-      const content = await apiService.generateLabReport(trimmedCode);
+      // Backend handles: rate limiting, manual fetching, AI generation, Firestore storage
+      const report = await apiService.generateLabReport(trimmedCode);
 
-      try {
-        JSON.parse(content);
-      } catch (jsonErr) {
-        throw new Error("AI generated invalid data structure. Please try again.");
-      }
-
-      const newReport: Report = {
-        id: Date.now().toString(),
-        experimentCode: trimmedCode.toUpperCase(),
-        date: new Date().toISOString(),
-        content
-      };
-
-      storageService.saveReport(user.email, newReport);
+      // Cache report locally for History sidebar
+      storageService.saveReport(user.email, report);
       storageService.incrementDailyLimit(user.email);
-      
-      // Increment report count in Firestore
-      if (user.uid) {
-        await firestoreService.incrementReportCount(user.uid);
-      }
-      
-      onReportGenerated(newReport);
+
+      // Update remaining credits
+      const dailyCount = storageService.getDailyCount(user.email);
+      const userLimit = user.customLimit !== undefined ? user.customLimit : 3;
+      setRemaining(userLimit - dailyCount);
+
+      onReportGenerated(report);
       setCode('');
     } catch (err: any) {
       setError(err.message || 'Generation failed.');
@@ -110,6 +74,8 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
       setLoading(false);
     }
   };
+
+  const creditsRemaining = remaining ?? 0;
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-4 md:mt-8 px-3 md:px-0">
@@ -123,15 +89,8 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
             <Zap className={theme?.accent} size={20} /> Generate Report
           </h2>
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${currentProvider === 'gemini'
-              ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-              : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-              }`}>
-              <Network size={12} />
-              {currentProvider === 'gemini' ? 'Gemini' : 'Custom API'}
-            </span>
-            <span className={`text-xs px-2 md:px-3 py-1 rounded-full ${remaining > 0 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
-              {user.role === 'admin' ? 'Unlimited Access' : `${remaining} credits left today`}
+            <span className={`text-xs px-2 md:px-3 py-1 rounded-full ${creditsRemaining > 0 ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+              {user.role === 'admin' ? 'Unlimited Access' : `${creditsRemaining} credits left today`}
             </span>
           </div>
         </div>
@@ -155,8 +114,8 @@ export const Generator: React.FC<GeneratorProps> = ({ user, onReportGenerated, t
 
           <button
             type="submit"
-            disabled={loading || (remaining <= 0 && user.role !== 'admin')}
-            className={`w-full py-3 md:py-4 min-h-[48px] md:min-h-[56px] rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] ${loading || (remaining <= 0 && user.role !== 'admin') ? 'bg-slate-700 opacity-50 cursor-not-allowed' : `bg-gradient-to-r ${theme?.primary} shadow-${theme?.accent.split('-')[1]}-500/30`}`}
+            disabled={loading || (creditsRemaining <= 0 && user.role !== 'admin')}
+            className={`w-full py-3 md:py-4 min-h-[48px] md:min-h-[56px] rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] ${loading || (creditsRemaining <= 0 && user.role !== 'admin') ? 'bg-slate-700 opacity-50 cursor-not-allowed' : `bg-gradient-to-r ${theme?.primary} shadow-${theme?.accent.split('-')[1]}-500/30`}`}
           >
             {loading ? (
               <>

@@ -23,3 +23,17 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Python Backend
+backend/venv/
+backend/.env
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.pytest_cache/
+backend/**/*.pyc
+*.pyc
+__pycache__/
+
+# Firebase service account key (NEVER commit)
+**/serviceAccountKey*.json
+**/firebase-adminsdk*.json

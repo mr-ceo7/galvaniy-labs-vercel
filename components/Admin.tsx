@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { storageService } from '../services/storageService';
 import { logService } from '../services/logService';
-import { firestoreService } from '../services/firestoreService';
-import { apiService, ApiProvider } from '../services/apiService';
+import { backendService, BackendStats, BackendSettings } from '../services/backendService';
 import { User, Theme, ManualPage } from '../types';
-import { Shield, RefreshCcw, Users, FileText, Trash2, Upload, AlertTriangle, Loader2, Search, Settings, Download, Network, CheckCircle2, XCircle } from 'lucide-react';
+import { Shield, RefreshCcw, Users, FileText, Trash2, Upload, AlertTriangle, Loader2, Search, Settings, Download, CheckCircle2 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import JSZip from 'jszip';
 
@@ -75,41 +74,57 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
   const [defaultDailyLimit, setDefaultDailyLimit] = useState(3);
   const [downloadingZip, setDownloadingZip] = useState(false);
   
-  // API Configuration States
-  const [apiProvider, setApiProvider] = useState<ApiProvider>('gemini');
-  const [customApiUrl, setCustomApiUrl] = useState('');
+  // Settings States
   const [parallelGeneration, setParallelGeneration] = useState(true);
-  const [testingApi, setTestingApi] = useState(false);
-  const [apiTestResult, setApiTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [apiProvider, setApiProvider] = useState<string>('gemini');
+  const [customApiUrl, setCustomApiUrl] = useState<string>('');
+
+  // Stats
+  const [stats, setStats] = useState<BackendStats>({ total_students: 0, total_reports: 0, active_students: 0, revoked_students: 0 });
 
   const loadData = async () => {
-    // Load users from Firestore
-    const firestoreUsers = await firestoreService.getAllUsers();
-    setUsers(firestoreUsers);
-    
-    // Load settings from Firestore
-    const settings = await firestoreService.getSettings();
-    setDefaultDailyLimit(settings?.defaultDailyLimit || 3);
-    
-    // Load API settings from Firestore
-    if (settings?.apiProvider) {
-      setApiProvider(settings.apiProvider);  
-      apiService.setProvider(settings.apiProvider);
-    }
-    if (settings?.customApiUrl) {
-      setCustomApiUrl(settings.customApiUrl);
-    }
-    if (typeof settings?.enableParallelGeneration !== 'undefined') {
-      setParallelGeneration(!!settings.enableParallelGeneration);
+    try {
+      // Load users from backend
+      const backendUsers = await backendService.getUsers();
+      setUsers(backendUsers);
+      
+      // Load settings from backend
+      const settings = await backendService.getSettings();
+      setDefaultDailyLimit(settings?.default_daily_limit || 3);
+      if (typeof settings?.enable_parallel_generation !== 'undefined') {
+        setParallelGeneration(!!settings.enable_parallel_generation);
+      }
+      setApiProvider(settings?.api_provider || 'gemini');
+      setCustomApiUrl(settings?.custom_api_url || '');
+
+      // Load stats
+      const backendStats = await backendService.getStats();
+      setStats(backendStats);
+    } catch (err) {
+      logService.error('Failed to load admin data:', err);
     }
     
     try {
-        setLoadingPages(true);
-        // Load manual pages from Firestore
-        const firestorePages = await firestoreService.getManualPages();
-        setPages(firestorePages.sort((a,b) => a.pageNumber - b.pageNumber));
+      setLoadingPages(true);
+      // Check manual metadata via backend
+      const metadata = await backendService.getManualMetadata();
+      if (metadata && metadata.page_count && metadata.page_count > 0) {
+        // We don't have page images from backend — show placeholder info
+        const placeholderPages: ManualPage[] = [];
+        for (let i = 1; i <= metadata.page_count; i++) {
+          placeholderPages.push({
+            id: `page_${i}`,
+            pageNumber: i,
+            text: `Page ${i} (stored on server)`,
+          });
+        }
+        setPages(placeholderPages);
+      } else {
+        setPages([]);
+      }
     } catch (err) {
         logService.error("Failed to load pages", err);
+        setPages([]);
     } finally {
         setLoadingPages(false);
     }
@@ -117,32 +132,15 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
 
   useEffect(() => {
     loadData();
-    
-    // Subscribe to real-time user updates
-    const unsubscribeUsers = firestoreService.subscribeToAllUsers((updatedUsers) => {
-      setUsers(updatedUsers);
-    });
-    
-    // Subscribe to manual updates
-    const unsubscribeManual = firestoreService.subscribeToManual(async (metadata) => {
-      if (metadata) {
-        const pages = await firestoreService.getManualPages();
-        setPages(pages.sort((a,b) => a.pageNumber - b.pageNumber));
-      }
-    });
-    
-    return () => {
-      unsubscribeUsers();
-      unsubscribeManual();
-    };
   }, []);
 
   const toggleRevoke = async (email: string) => {
     const user = users.find(u => u.email === email);
     if (!user || !user.uid) return;
     
-    await firestoreService.toggleUserRevoke(user.uid, !user.isRevoked);
-    // Real-time listener will update UI automatically
+    await backendService.updateUser(user.uid, { is_revoked: !user.isRevoked });
+    // Refresh data
+    await loadData();
   };
 
   const handleUpdateLimit = async (email: string, delta: number) => {
@@ -151,25 +149,20 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     const currentLimit = user.customLimit !== undefined ? user.customLimit : defaultDailyLimit;
     const newLimit = Math.max(0, currentLimit + delta);
     
-    await firestoreService.updateUserProfile(user.uid, { customLimit: newLimit });
-    // Real-time listener will update UI automatically
+    await backendService.updateUser(user.uid, { custom_limit: newLimit });
+    // Refresh data
+    await loadData();
   };
   
   const handleUpdateDefaultLimit = async (newLimit: number) => {
       const val = Math.max(0, newLimit);
       setDefaultDailyLimit(val);
-      
-      // Update in Firestore
-      const user = users.find(u => u.role === 'admin');
-      if (user) {
-        await firestoreService.updateSettings({ defaultDailyLimit: val }, user.email);
-      }
+      await backendService.updateSettings({ default_daily_limit: val });
   };
 
   const confirmClearManual = async () => {
     try {
-      // Clear from Firestore
-      await firestoreService.clearManual();
+      await backendService.clearManual();
       // Clear from localStorage (for legacy data)
       await storageService.clearManual();
       // Reload to update UI
@@ -225,127 +218,42 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
       }
   };
 
-  const processPDF = async (file: File) => {
-    setUploading(true);
-    setUploadStatus('Processing PDF...');
-    setUploadProgress(5);
-
-    try {
-        setUploadStatus('Extracting pages...');
-        setUploadProgress(10);
-        
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-        
-        loadingTask.onPassword = (callback, reason) => {
-            throw new Error("PASSWORD_PROTECTED");
-        };
-
-        const pdf = await loadingTask.promise;
-        const numPages = pdf.numPages; 
-        
-        if (numPages === 0) {
-            throw new Error("EMPTY_PDF");
-        }
-        
-        const allPages: ManualPage[] = [];
-        const batchSize = 5;
-
-        for (let i = 1; i <= numPages; i += batchSize) {
-            const batch: ManualPage[] = [];
-            const end = Math.min(i + batchSize - 1, numPages);
-
-            for (let j = i; j <= end; j++) {
-                const percent = 10 + Math.floor((j / numPages) * 80);
-                setUploadProgress(percent);
-                setUploadStatus(`Processing Page ${j} of ${numPages}...`);
-                
-                try {
-                    const page = await pdf.getPage(j);
-                    const textContent = await page.getTextContent();
-                    const text = textContent.items.map((item: any) => item.str).join(' ');
-
-                    const viewport = page.getViewport({ scale: 1.0 });
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    
-                    const scale = Math.min(1, 800 / viewport.width);
-                    const scaledViewport = page.getViewport({ scale });
-                    
-                    canvas.height = scaledViewport.height;
-                    canvas.width = scaledViewport.width;
-
-                    if (context) {
-                        await page.render({ canvasContext: context, viewport: scaledViewport } as any).promise;
-                        const imageBase64 = canvas.toDataURL('image/jpeg', 0.5);
-                        
-                        batch.push({
-                            id: `${Date.now()}-${j}`,
-                            pageNumber: j,
-                            text: text,
-                            image: imageBase64
-                        });
-                    }
-                } catch (pageError) {
-                    logService.warn(`Failed to process page ${j}`, pageError);
-                }
-            }
-            
-            allPages.push(...batch);
-        }
-        
-        setUploadProgress(90);
-        setUploadStatus('Uploading to Firestore...');
-        
-        // Upload to Firestore
-        const adminUser = users.find(u => u.role === 'admin');
-        await firestoreService.uploadManual(allPages, file.name, adminUser?.email || 'admin');
-        
-        setUploadProgress(100);
-        setUploadStatus('Complete!');
-        
-        setTimeout(() => {
-            alert(`Successfully uploaded ${allPages.length} pages to cloud! All students will see the update.`);
-            setUploading(false);
-            setUploadStatus('');
-            setUploadProgress(0);
-        }, 500);
-
-    } catch (error: any) {
-        logService.error("PDF Processing Error", error);
-        setUploading(false);
-        setUploadStatus('');
-        setUploadProgress(0);
-        
-        let errorMessage = "Failed to process PDF. An unexpected error occurred.";
-        
-        if (error.message === 'PASSWORD_PROTECTED' || error.name === 'PasswordException') {
-            errorMessage = "This PDF is password protected. Please unlock it before uploading.";
-        } else if (error.name === 'InvalidPDFException') {
-            errorMessage = "The file is corrupted or not a valid PDF document.";
-        } else if (error.message === 'EMPTY_PDF') {
-            errorMessage = "The uploaded PDF appears to be empty.";
-        } else if (error instanceof Error) {
-            if (error.message.toLowerCase().includes("password")) {
-                errorMessage = "This PDF is password protected. Please unlock it before uploading.";
-            } else {
-                errorMessage = `Error: ${error.message}`;
-            }
-        }
-
-        alert(errorMessage);
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    if (file.type === 'application/pdf') {
-        processPDF(file);
-    } else {
+    if (file.type !== 'application/pdf') {
         alert("Please upload a PDF file.");
+        e.target.value = '';
+        return;
     }
+
+    setUploading(true);
+    setUploadStatus('Uploading PDF to server...');
+    setUploadProgress(30);
+
+    try {
+      // Upload raw PDF to the backend — backend handles text extraction
+      const result = await backendService.uploadManual(file);
+      
+      setUploadProgress(100);
+      setUploadStatus('Complete!');
+
+      setTimeout(() => {
+        alert(`Successfully uploaded ${result.page_count} pages! All students will see the update.`);
+        setUploading(false);
+        setUploadStatus('');
+        setUploadProgress(0);
+        loadData();
+      }, 500);
+    } catch (error: any) {
+      logService.error("Upload Error", error);
+      setUploading(false);
+      setUploadStatus('');
+      setUploadProgress(0);
+      alert(error.message || "Failed to upload manual.");
+    }
+
     e.target.value = ''; // Reset input
   };
 
@@ -354,91 +262,24 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
       loadData();
   };
 
-  // API Configuration Handlers
-  const handleProviderChange = async (provider: ApiProvider) => {
-    apiService.setProvider(provider);
+  const handleParallelGenerationToggle = async (val: boolean) => {
+    setParallelGeneration(val);
+    await backendService.updateSettings({ enable_parallel_generation: val });
+  };
+
+  const handleApiProviderToggle = async (provider: string) => {
     setApiProvider(provider);
-    setApiTestResult(null);
-    
-    // Save to Firestore
-    const adminUser = users.find(u => u.role === 'admin');
-    if (adminUser) {
-      await firestoreService.updateSettings({ apiProvider: provider }, adminUser.email);
-    }
+    await backendService.updateSettings({ api_provider: provider });
   };
 
   const handleCustomApiUrlChange = async (url: string) => {
     setCustomApiUrl(url);
-    setApiTestResult(null);
-    
-    // Save to Firestore
-    const adminUser = users.find(u => u.role === 'admin');
-    if (adminUser) {
-      await firestoreService.updateSettings({ customApiUrl: url }, adminUser.email);
-    }
-  };
-
-  const handleParallelGenerationToggle = async (val: boolean) => {
-    setParallelGeneration(val);
-    const adminUser = users.find(u => u.role === 'admin');
-    if (adminUser) {
-      await firestoreService.updateSettings({ enableParallelGeneration: val }, adminUser.email);
-    }
-    try {
-      localStorage.setItem('enable_parallel_generation', val ? 'true' : 'false');
-    } catch {}
-  };
-
-  const handleTestApi = async () => {
-    if (!customApiUrl) {
-      setApiTestResult({ success: false, message: 'Please enter a Custom API URL first' });
-      return;
-    }
-
-    setTestingApi(true);
-    setApiTestResult(null);
-
-    try {
-      // If running on HTTPS and the configured customApiUrl is insecure (http),
-      // use a relative path so Vercel's proxy (vercel.json) will handle the request.
-      let testBase = customApiUrl;
-      if (typeof window !== 'undefined' && window.location.protocol === 'https:' && testBase && testBase.startsWith('http:')) {
-        logService.warn('[Admin] Insecure custom API detected on HTTPS page - using relative /api path to route through proxy.');
-        testBase = '';
-      }
-      // Normalize trailing slash to avoid double-slashes
-      if (testBase && testBase.endsWith('/')) testBase = testBase.replace(/\/$/, '');
-
-      // Test the API by checking if the base URL is reachable
-      const response = await fetch(`${testBase}/api/auth/status`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok || response.status === 404) {
-        // 404 is okay - it means the endpoint exists but might not be implemented
-        setApiTestResult({ success: true, message: 'Custom API is reachable and responding' });
-      } else {
-        setApiTestResult({ success: false, message: `API returned status: ${response.status}` });
-      }
-    } catch (error: any) {
-      setApiTestResult({ 
-        success: false, 
-        message: `Connection failed: ${error.message || 'Unable to reach API'}` 
-      });
-    } finally {
-      setTestingApi(false);
-    }
+    await backendService.updateSettings({ custom_api_url: url });
   };
 
   const filteredUsers = users.filter(user => 
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const totalStudents = users.filter(u => u.role === 'student').length;
-  const totalReports = users.reduce((acc, curr) => acc + curr.reportsGenerated, 0);
 
   return (
     <div className="mt-8 space-y-8 relative">
@@ -477,7 +318,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
         </div>
       )}
 
-      {/* Stats Row - Updated to include Default Limit */}
+      {/* Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="glass-panel p-6 rounded-xl flex items-center gap-4 border border-blue-500/20">
           <div className="p-4 bg-blue-500/20 rounded-full text-blue-400">
@@ -485,7 +326,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
           </div>
           <div>
             <p className="text-slate-400 text-sm uppercase tracking-wide">Total Students</p>
-            <p className="text-3xl font-bold text-white">{totalStudents}</p>
+            <p className="text-3xl font-bold text-white">{stats.total_students}</p>
           </div>
         </div>
         <div className="glass-panel p-6 rounded-xl flex items-center gap-4 border border-purple-500/20">
@@ -494,10 +335,10 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
           </div>
           <div>
             <p className="text-slate-400 text-sm uppercase tracking-wide">Total Reports</p>
-            <p className="text-3xl font-bold text-white">{totalReports}</p>
+            <p className="text-3xl font-bold text-white">{stats.total_reports}</p>
           </div>
         </div>
-        {/* New Default Limit Control */}
+        {/* Default Limit Control */}
         <div className="glass-panel p-6 rounded-xl flex items-center gap-4 border border-green-500/20">
             <div className="p-4 bg-green-500/20 rounded-full text-green-400">
                 <Settings size={28} />
@@ -513,169 +354,72 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
         </div>
       </div>
 
-      {/* API Configuration */}
+      {/* Generation Settings */}
       <div className="glass-panel rounded-2xl p-6 border border-cyan-500/20">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-white">
-            <Network className="text-cyan-400" /> API Configuration
-          </h2>
-          <div className="flex items-center gap-2">
-            {apiService.isProviderConfigured(apiProvider) ? (
-              <div className="flex items-center gap-2 text-green-400 text-sm">
-                <CheckCircle2 size={16} />
-                <span>Configured</span>
+        <h2 className="text-xl font-bold flex items-center gap-2 text-white mb-4">
+          <Settings className="text-cyan-400" /> Generation Settings
+        </h2>
+        <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+              <div>
+                <p className="text-sm font-medium text-slate-300">Parallel Generation</p>
+                <p className="text-xs text-slate-500">Run report sections in parallel (faster) or queued (safer).</p>
               </div>
-            ) : (
-              <div className="flex items-center gap-2 text-yellow-400 text-sm">
-                <AlertTriangle size={16} />
-                <span>Not Configured</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          {/* Provider Selection */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-3">
-              Select API Provider
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              {/* Gemini Option */}
               <button
-                onClick={() => handleProviderChange('gemini')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  apiProvider === 'gemini'
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-white/10 bg-white/5 hover:border-white/20'
-                }`}
+                onClick={() => handleParallelGenerationToggle(!parallelGeneration)}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${parallelGeneration ? 'bg-green-600 text-white' : 'bg-slate-700 text-white'}`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-white">Google Gemini</span>
-                  {apiProvider === 'gemini' && (
-                    <CheckCircle2 className="text-blue-400" size={20} />
-                  )}
-                </div>
-                <p className="text-xs text-slate-400 text-left">
-                  Uses Gemini SDK directly with API key
-                </p>
-                <div className="mt-2 text-xs">
-                  {apiService.isProviderConfigured('gemini') ? (
-                    <span className="text-green-400">✓ API Key configured</span>
-                  ) : (
-                    <span className="text-yellow-400">⚠ API Key missing</span>
-                  )}
-                </div>
-              </button>
-
-              {/* Custom API Option */}
-              <button
-                onClick={() => handleProviderChange('custom')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  apiProvider === 'custom'
-                    ? 'border-cyan-500 bg-cyan-500/10'
-                    : 'border-white/10 bg-white/5 hover:border-white/20'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-white">Custom API</span>
-                  {apiProvider === 'custom' && (
-                    <CheckCircle2 className="text-cyan-400" size={20} />
-                  )}
-                </div>
-                <p className="text-xs text-slate-400 text-left">
-                  Uses your custom AI Gateway API
-                </p>
-                <div className="mt-2 text-xs">
-                  {apiService.isProviderConfigured('custom') ? (
-                    <span className="text-green-400">✓ URL configured</span>
-                  ) : (
-                    <span className="text-yellow-400">⚠ URL missing</span>
-                  )}
-                </div>
+                {parallelGeneration ? 'Parallel' : 'Queued'}
               </button>
             </div>
-          </div>
-
-          {/* Custom API URL Configuration */}
-          {apiProvider === 'custom' && (
-            <div className="space-y-3 p-4 bg-black/20 rounded-xl border border-cyan-500/20">
-              <label className="block text-sm font-medium text-slate-300">
-                Custom API Base URL
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={customApiUrl}
-                  onChange={(e) => handleCustomApiUrlChange(e.target.value)}
-                  placeholder="http://localhost:5000"
-                  className="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyan-500 transition-colors font-mono text-sm"
-                />
+            
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+              <div>
+                <p className="text-sm font-medium text-slate-300">API Provider</p>
+                <p className="text-xs text-slate-500">Choose between Google Gemini or a Custom API.</p>
+              </div>
+              <div className="flex bg-black/40 rounded-full p-1 border border-white/10">
                 <button
-                  onClick={handleTestApi}
-                  disabled={testingApi || !customApiUrl}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                    testingApi || !customApiUrl
-                      ? 'bg-slate-700 opacity-50 cursor-not-allowed'
-                      : 'bg-cyan-600 hover:bg-cyan-500 text-white'
-                  }`}
+                  onClick={() => handleApiProviderToggle('gemini')}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${apiProvider === 'gemini' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                 >
-                  {testingApi ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Testing...
-                    </>
-                  ) : (
-                    'Test Connection'
-                  )}
+                  Gemini
+                </button>
+                <button
+                  onClick={() => handleApiProviderToggle('custom')}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${apiProvider === 'custom' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Custom API
                 </button>
               </div>
-              {apiTestResult && (
-                <div
-                  className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-                    apiTestResult.success
-                      ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                  }`}
-                >
-                  {apiTestResult.success ? (
-                    <CheckCircle2 size={16} />
-                  ) : (
-                    <XCircle size={16} />
-                  )}
-                  <span>{apiTestResult.message}</span>
-                </div>
-              )}
-              <p className="text-xs text-slate-500">
-                Enter the base URL of your AI Gateway API (e.g., http://localhost:5000)
-              </p>
-              <div className="mt-4 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-300">Parallel Generation</p>
-                  <p className="text-xs text-slate-500">Run report sections in parallel (faster) or queued (safer).</p>
-                </div>
-                <div>
-                  <button
-                    onClick={() => handleParallelGenerationToggle(!parallelGeneration)}
-                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${parallelGeneration ? 'bg-green-600 text-white' : 'bg-slate-700 text-white'}`}
-                  >
-                    {parallelGeneration ? 'Parallel' : 'Queued'}
-                  </button>
-                </div>
-              </div>
             </div>
-          )}
 
-          {/* Current Provider Info */}
-          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-            <p className="text-sm text-slate-400 mb-1">Current Active Provider:</p>
-            <p className="text-lg font-bold text-white capitalize">
-              {apiProvider === 'gemini' ? 'Google Gemini SDK' : 'Custom API Gateway'}
-            </p>
-            <p className="text-xs text-slate-500 mt-2">
-              All report generation will use this provider. Switch anytime from this panel.
-            </p>
-          </div>
+            {apiProvider === 'custom' && (
+              <div className="p-4 bg-purple-500/10 rounded-xl border border-purple-500/30 flex flex-col gap-2">
+                <p className="text-sm font-medium text-purple-200">Custom API URL</p>
+                <input
+                    type="text"
+                    value={customApiUrl}
+                    onChange={(e) => setCustomApiUrl(e.target.value)}
+                    onBlur={(e) => handleCustomApiUrlChange(e.target.value)}
+                    placeholder="http://localhost:5000"
+                    className="w-full bg-black/40 border border-purple-500/30 rounded-lg p-2 text-white focus:outline-none focus:border-purple-500"
+                />
+                <p className="text-xs text-purple-300/70">The backend will upload the manual and send prompts to this server.</p>
+              </div>
+            )}
+        </div>
+        <div className="mt-4 p-4 bg-white/5 rounded-xl border border-white/10">
+          <p className="text-sm text-slate-400 mb-1">Backend Status:</p>
+          <p className="text-lg font-bold text-white">
+            <span className="inline-flex items-center gap-2">
+              <CheckCircle2 size={18} className="text-green-400" />
+              Server-Side Generation (Python Backend)
+            </span>
+          </p>
+          <p className="text-xs text-slate-500 mt-2">
+            All report generation is handled server-side. API keys and prompts are secured on the backend.
+          </p>
         </div>
       </div>
 
@@ -685,7 +429,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
           <h2 className="text-xl font-bold flex items-center gap-2 text-white">
             <Shield className="text-red-400" /> User Management
           </h2>
-          <button onClick={() => setUsers(storageService.getAllUsers())} className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"><RefreshCcw size={18} className="text-slate-400" /></button>
+          <button onClick={() => loadData()} className="p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"><RefreshCcw size={18} className="text-slate-400" /></button>
         </div>
 
         {/* Search Bar */}

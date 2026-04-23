@@ -19,7 +19,7 @@ import {
 import { firebaseConfig } from '../config/firebaseConfig';
 import { ADMIN_CONFIG } from '../config/adminConfig';
 import { logService } from './logService';
-import { firestoreService } from './firestoreService';
+import { backendService } from './backendService';
 import { User } from '../types';
 
 // Initialize Firebase
@@ -56,12 +56,12 @@ export const authService = {
         emailVerified: firebaseUser.emailVerified
       };
 
-      // Create user profile in Firestore
-      await firestoreService.createUserProfile({
-        ...user,
-        createdAt: new Date(),
-        lastLogin: new Date()
-      });
+      // Sync user profile with backend
+      try {
+        await backendService.syncProfile();
+      } catch (err) {
+        logService.warn('[Auth Service] Profile sync failed (non-blocking):', err);
+      }
 
       return user;
     } catch (error: any) {
@@ -90,8 +90,12 @@ export const authService = {
         emailVerified: firebaseUser.emailVerified
       };
 
-      // Update last login in Firestore
-      await firestoreService.updateLastLogin(firebaseUser.uid);
+      // Sync profile with backend (updates last login)
+      try {
+        await backendService.syncProfile();
+      } catch (err) {
+        logService.warn('[Auth Service] Profile sync failed (non-blocking):', err);
+      }
 
       return user;
     } catch (error: any) {
@@ -112,14 +116,27 @@ export const authService = {
       const firebaseUser = result.user;
       logService.log('[Auth Service] Google auth successful for:', firebaseUser.email);
 
-      // Check if user profile exists in Firestore
-      logService.log('[Auth Service] Checking Firestore profile for:', firebaseUser.uid);
-      let profile = await firestoreService.getUserProfile(firebaseUser.uid);
-
-      if (!profile) {
-        logService.log('[Auth Service] Creating new profile');
-        // Create new profile
-        const newProfile = {
+      // Sync profile with backend (creates on first login, updates last_login)
+      logService.log('[Auth Service] Syncing profile with backend for:', firebaseUser.uid);
+      let profile: any;
+      try {
+        const backendProfile = await backendService.syncProfile();
+        profile = {
+          uid: backendProfile.uid,
+          email: backendProfile.email,
+          role: backendProfile.role,
+          displayName: backendProfile.display_name,
+          photoURL: backendProfile.photo_url,
+          customLimit: backendProfile.custom_limit,
+          isRevoked: backendProfile.is_revoked || false,
+          reportsGenerated: backendProfile.reports_generated || 0,
+          createdAt: new Date(backendProfile.created_at || Date.now()),
+          lastLogin: new Date(backendProfile.last_login || Date.now()),
+        };
+        logService.log('[Auth Service] Backend profile synced successfully');
+      } catch (err) {
+        logService.warn('[Auth Service] Backend sync failed, using local fallback:', err);
+        profile = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || '',
           role: ADMIN_CONFIG.isAdmin(firebaseUser.email || '') ? 'admin' : 'student',
@@ -129,16 +146,8 @@ export const authService = {
           isRevoked: false,
           reportsGenerated: 0,
           createdAt: new Date(),
-          lastLogin: new Date()
+          lastLogin: new Date(),
         };
-
-        await firestoreService.createUserProfile(newProfile);
-        profile = newProfile;
-        logService.log('[Auth Service] New profile created successfully');
-      } else {
-        logService.log('[Auth Service] Profile exists, updating last login');
-        // Update last login
-        await firestoreService.updateLastLogin(firebaseUser.uid);
       }
 
       // Check if user is revoked
@@ -218,26 +227,24 @@ export const authService = {
   onAuthStateChange: (callback: (user: User | null) => void) => {
     return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Fetch user profile from Firestore to get latest customLimit, reportsGenerated, etc.
-        const profile = await firestoreService.getUserProfile(firebaseUser.uid);
-        
-        if (profile) {
-          // Use Firestore profile data
+        // Fetch user profile from backend to get latest customLimit, reportsGenerated, etc.
+        try {
+          const profile = await backendService.getProfile();
           const user: User = {
             email: profile.email,
             role: profile.role,
-            registeredAt: profile.createdAt.toISOString(),
-            isRevoked: profile.isRevoked,
-            reportsGenerated: profile.reportsGenerated,
-            customLimit: profile.customLimit,
+            registeredAt: profile.created_at || new Date().toISOString(),
+            isRevoked: profile.is_revoked || false,
+            reportsGenerated: profile.reports_generated || 0,
+            customLimit: profile.custom_limit,
             uid: profile.uid,
-            displayName: profile.displayName,
+            displayName: profile.display_name,
             emailVerified: firebaseUser.emailVerified,
-            photoURL: profile.photoURL
+            photoURL: profile.photo_url
           };
           callback(user);
-        } else {
-          // Fallback if profile doesn't exist (shouldn't happen normally)
+        } catch {
+          // Fallback if backend is unreachable
           const user: User = {
             email: firebaseUser.email || '',
             role: ADMIN_CONFIG.isAdmin(firebaseUser.email || '') ? 'admin' : 'student',

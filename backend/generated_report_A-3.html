@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXPERIMENT A-3: SIMPLE PENDULUM</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --surface: #ffffff;
+            --background: #f8fafc;
+            --text: #0f172a;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--surface);
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+        }
+        h1 {
+            color: var(--primary);
+            margin: 0 0 1rem 0;
+            font-size: 2.5rem;
+        }
+        .meta-info {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        h2 {
+            color: var(--primary);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        ul, ol {
+            padding-left: 1.5rem;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 0.75rem;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+        }
+        .simulation-container {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background: white;
+            border-radius: 4px;
+            max-width: 100%;
+        }
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            color: white;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>EXPERIMENT A-3: SIMPLE PENDULUM</h1>
+            <div class="meta-info">
+                <span><strong>Date:</strong> [Date: DD/MM/YYYY]</span>
+                <span><strong>Partners:</strong> [Partners: Student Names]</span>
+            </div>
+        </header>
+
+        <h2>Objectives</h2>
+        <ul>
+            <li>To measure the period of a simple pendulum.</li>
+        </ul>
+
+        <h2>Theory</h2>
+        <p>A simple pendulum consists of a point mass suspended by a weightless, inextensible string. The period of a simple pendulum is the time it takes for one complete oscillation. For small angles of swing, the period T is given by the formula T = 2π√(L/g), where L is the length of the pendulum and g is the acceleration due to gravity.</p>
+
+        <h2>Apparatus</h2>
+        <ul>
+            <li>Pendulum bob</li><li>String</li><li>Stopwatch</li><li>Meter rule</li>
+        </ul>
+
+        <h2>Procedure</h2>
+        <ol>
+            <li>The pendulum was hung with a measured length of 1 meter using the string and meter rule.</li><li>The pendulum bob was displaced by a small angle and released.</li><li>The time taken for 10 complete oscillations was measured using a stopwatch.</li><li>The procedure was repeated three times to ensure accuracy.</li><li>The average time for 10 oscillations was calculated, and the period T for one oscillation was determined.</li>
+        </ol>
+
+        <h2>Precautions</h2>
+        <ul>
+            <li>The angle of swing was kept small (less than 10 degrees) to ensure simple harmonic motion.</li><li>Parallax error was avoided by reading the meter rule at eye level.</li><li>The stopwatch was started and stopped accurately to minimize human reaction time errors.</li>
+        </ul>
+        
+        <h2>Data Collection</h2>
+<h3>Data for Pendulum Period</h3>
+<table>
+<thead>
+<tr><th>Length (L)</th><th>Time for 10 osc (t)</th><th>Period (T)</th><th>T^2</th></tr>
+</thead>
+<tbody><tr><td>1.00</td><td>20.10</td><td>2.01</td><td>4.04</td></tr>
+</tbody>
+</table>
+
+        <h2>Calculations & Analysis</h2>
+        <div style="background: #f8fafc; padding: 1rem; border-left: 4px solid var(--primary); border-radius: 4px;">
+            <p><strong>Script executed successfully.</strong></p>
+            <p><em>(In the real app, this runs the calculation script securely and fills the template)</em></p>
+            <p>The calculated period of the pendulum is {{period}} seconds.</p>
+        </div>
+
+        <h2>Interactive Simulation</h2>
+        <div class="simulation-container">
+            <canvas id="simCanvas" width="600" height="400"></canvas>
+            <div class="controls" id="simControls">
+
+                <div class="control-group">
+                    <label for="ctrl_0">Pendulum Length (m): <span id="val_0">1.0</span></label>
+                    <input type="range" id="ctrl_0" min="0.5" max="2.0" value="1.0" step="0.1">
+                </div>
+
+            </div>
+        </div>
+
+        <h2>Discussion</h2>
+        <p>The experimental period of the simple pendulum was calculated from the measured time. The results were consistent across multiple trials, indicating a high level of precision. The calculated period can be used to determine the acceleration due to gravity, g. Any slight deviations from expected values are likely due to air resistance and minor timing inaccuracies.</p>
+
+        <h2>Sources of Error</h2>
+        <ul>
+            <li>Human reaction time in starting and stopping the stopwatch.</li><li>Air resistance affecting the swing of the pendulum.</li><li>Slight inaccuracies in measuring the exact length of the string to the center of mass of the bob.</li>
+        </ul>
+
+        <h2>Conclusion</h2>
+        <p>The experiment successfully measured the period of a simple pendulum with a length of 1 meter. The objective was achieved, demonstrating the principles of simple harmonic motion.</p>
+
+        <h2>References</h2>
+        <ul>
+            <li>Lab Manual 2025 Edition</li><li>University Physics by Young & Freedman</li>
+        </ul>
+    </div>
+
+    <script>
+        // Setup Simulation
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        
+        let frame = 0;
+        let params = {
+            'length': 1.0,
+        };
+
+        // Bind controls
+
+        document.getElementById('ctrl_0').addEventListener('input', function(e) {
+            params['length'] = parseFloat(e.target.value);
+            document.getElementById('val_0').textContent = e.target.value;
+        });
+
+        // The AI generated script
+        function renderSimulation(ctx, width, height, frame, params) {
+            ctx.clearRect(0, 0, width, height);
+ctx.beginPath();
+ctx.moveTo(width / 2, 0);
+const angle = Math.sin(frame * 0.05) * 0.2;
+const length = params.length * 100;
+const bobX = width / 2 + length * Math.sin(angle);
+const bobY = length * Math.cos(angle);
+ctx.lineTo(bobX, bobY);
+ctx.stroke();
+ctx.beginPath();
+ctx.arc(bobX, bobY, 15, 0, 2 * Math.PI);
+ctx.fillStyle = 'red';
+ctx.fill();
+        }
+
+        function animate() {
+            renderSimulation(ctx, width, height, frame, params);
+            frame++;
+            requestAnimationFrame(animate);
+        }
+        
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>
