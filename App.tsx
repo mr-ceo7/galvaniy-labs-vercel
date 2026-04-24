@@ -8,19 +8,22 @@ import { History } from './components/History';
 import { Admin } from './components/Admin';
 import { ReportView } from './components/ReportView';
 import { InstallPrompt } from './components/InstallPrompt';
+import { VirtualLab } from './components/VirtualLab';
+import { LabBrowser } from './components/LabBrowser';
 import { User, Report } from './types';
 import { storageService } from './services/storageService';
 import { authService } from './services/authService';
 import { backendService } from './services/backendService';
 import { logService } from './services/logService';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, FlaskConical, Zap } from 'lucide-react';
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<'generator' | 'admin'>('generator');
+  const [view, setView] = useState<'generator' | 'admin' | 'labs'>('generator');
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [labExperiment, setLabExperiment] = useState<string | null>(null);
 
   logService.log('[App] Render - loading:', loading, 'user:', user?.email || 'none');
 
@@ -124,6 +127,14 @@ const App: React.FC = () => {
             </div>
             
             <div className="flex gap-2">
+              <button
+                onClick={() => { setView(view === 'labs' ? 'generator' : 'labs'); setLabExperiment(null); }}
+                className={`px-3 md:px-4 py-2 min-h-[44px] ${view === 'labs' ? 'bg-cyan-600 shadow-cyan-500/30 shadow-lg' : 'bg-cyan-600/30 hover:bg-cyan-600/50'} text-white rounded-lg text-xs md:text-sm transition-all flex items-center gap-1.5`}
+              >
+                <FlaskConical size={14} />
+                <span className="hidden md:inline">{view === 'labs' ? 'Reports' : 'Virtual Labs'}</span>
+                <span className="md:hidden">{view === 'labs' ? '📝' : '🧪'}</span>
+              </button>
               {user.role === 'admin' && (
                 <button
                   onClick={() => setView(view === 'admin' ? 'generator' : 'admin')}
@@ -142,34 +153,50 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 flex-grow">
-            {/* Main Content Area */}
-            <div className="md:col-span-2 space-y-4 md:space-y-6">
-              {view === 'generator' ? (
-                <>
-                  <div className="text-center mb-4 md:mb-8">
-                    <h1 className="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-2">
-                      Galvaniy Labs
-                    </h1>
-                    <p className="text-sm md:text-base text-slate-300 px-4">
-                      Enter your experiment code to instantly generate a comprehensive report.
-                    </p>
-                    <p className="text-slate-400 text-xs md:text-sm mt-1 italic">
-                      "your lab companion"
-                    </p>
-                  </div>
-                  <Generator user={user} onReportGenerated={handleReportGenerated} />
-                </>
+          {view === 'labs' ? (
+            /* Virtual Labs — full width, no sidebar */
+            <div className="flex-grow">
+              {labExperiment ? (
+                <VirtualLab
+                  experimentCode={labExperiment}
+                  onBack={() => setLabExperiment(null)}
+                />
               ) : (
-                <Admin />
+                <div className="glass-panel rounded-2xl overflow-hidden max-w-3xl mx-auto" style={{ maxHeight: 'calc(100vh - 160px)', overflowY: 'auto' }}>
+                  <LabBrowser onSelectExperiment={(code) => setLabExperiment(code)} />
+                </div>
               )}
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 flex-grow">
+              {/* Main Content Area */}
+              <div className="md:col-span-2 space-y-4 md:space-y-6">
+                {view === 'generator' ? (
+                  <>
+                    <div className="text-center mb-4 md:mb-8">
+                      <h1 className="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-2">
+                        Galvaniy Labs
+                      </h1>
+                      <p className="text-sm md:text-base text-slate-300 px-4">
+                        Enter your experiment code to instantly generate a comprehensive report.
+                      </p>
+                      <p className="text-slate-400 text-xs md:text-sm mt-1 italic">
+                        "your lab companion"
+                      </p>
+                    </div>
+                    <Generator user={user} onReportGenerated={handleReportGenerated} />
+                  </>
+                ) : (
+                  <Admin />
+                )}
+              </div>
 
-            {/* Sidebar / History */}
-            <div className="md:col-span-1">
-               <History reports={reports} onSelect={setSelectedReport} />
+              {/* Sidebar / History */}
+              <div className="md:col-span-1">
+                <History reports={reports} onSelect={setSelectedReport} />
+              </div>
             </div>
-          </div>
+          )}
           
           {/* Modal for viewing report */}
           <ReportView 
