@@ -8,6 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "vite preview --port 10000",
+    "engine:cli": "node scripts/run-ts-entry.mjs engine/cli-entry.ts",
+    "engine:test": "node scripts/run-ts-entry.mjs tests/comprehensive.ts",
     "postinstall": "vite build"
   },
   "dependencies": {

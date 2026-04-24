@@ -34,3 +34,7 @@ class AdminStats(BaseModel):
     total_reports: int = 0
     active_students: int = 0
     revoked_students: int = 0
+    total_lab_sessions: int = 0
+    manual_lab_sessions: int = 0
+    auto_lab_sessions: int = 0
+    students_using_virtual_lab: int = 0

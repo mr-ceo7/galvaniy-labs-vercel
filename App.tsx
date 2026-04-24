@@ -174,6 +174,7 @@ const App: React.FC = () => {
                 <VirtualLab
                   experimentCode={labExperiment}
                   onBack={() => setLabExperiment(null)}
+                  onReportGenerated={handleReportGenerated}
                 />
               ) : (
                 <div className="glass-panel rounded-2xl overflow-hidden max-w-3xl mx-auto" style={{ maxHeight: 'calc(100vh - 160px)', overflowY: 'auto' }}>

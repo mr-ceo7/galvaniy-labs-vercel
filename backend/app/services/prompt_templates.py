@@ -137,6 +137,29 @@ VALIDATION CHECKLIST:
 """
 
 
+def get_lab_config_instructions(experiment_code: str) -> str:
+    """Instructions for generating a structured LabConfig section."""
+    return f"""
+SEARCH the manual for experiment code "{experiment_code}".
+Generate a structured LabConfig JSON object for the experiment.
+
+Requirements:
+1. Prefer a built-in kit when the apparatus clearly matches a known first-year physics setup.
+2. If the experiment is physics-based but not built-in, output a composable configuration with:
+   - kitId
+   - tier
+   - controls
+   - instruments
+   - tables
+   - procedure
+3. If the experiment is outside the physics engine scope, output a legacy configuration with:
+   - tier: "legacy"
+   - legacySimulationScript omitted or empty
+   - simple controls/tables/procedure so the UI can still render
+4. Keep all values realistic for the experiment.
+"""
+
+
 # JSON examples for each section
 JSON_EXAMPLES = {
     "text_content": """{
@@ -169,6 +192,16 @@ JSON_EXAMPLES = {
       "ctx.fillRect(10,10,50,50);"
   ],
   "controls": [{ "id": "mass", "label": "Mass", "min": 0, "max": 10, "val": 5, "unit": "kg" }]
+}""",
+    "lab_config": """{
+  "experimentCode": "A-2",
+  "experimentTitle": "Simple Pendulum",
+  "kitId": "SimplePendulum",
+  "tier": "builtin",
+  "controls": [],
+  "instruments": [],
+  "tables": [],
+  "procedure": []
 }""",
 }
 

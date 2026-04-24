@@ -18,6 +18,32 @@ export interface Report {
   content: string; // JSON String of report data
 }
 
+export interface LabSessionEvent {
+  time: number;
+  type: string;
+  data: Record<string, unknown>;
+}
+
+export interface LabSession {
+  id: string;
+  userUid: string;
+  experimentCode: string;
+  mode: 'manual' | 'auto' | 'report_only';
+  startedAt: string;
+  completedAt: string;
+  savedAt: string;
+  dataPoints: Record<string, unknown>[];
+  controlValues: Record<string, number>;
+  sessionEvents: LabSessionEvent[];
+  dataPointCount: number;
+  eventCount: number;
+}
+
+export interface AdminLabSession extends LabSession {
+  userEmail: string;
+  displayName?: string;
+}
+
 export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;

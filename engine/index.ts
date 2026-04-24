@@ -50,10 +50,17 @@ export {
 
 // Renderer
 export { CanvasRenderer, GALVANIY_THEME } from './renderer/CanvasRenderer.ts';
+export { selectRenderer } from './renderer/RenderBridge.ts';
 
 // Apparatus Kit System
 export { ApparatusKit } from './apparatus/ApparatusKit.ts';
 export { KitRegistry } from './apparatus/KitRegistry.ts';
+export { ComposableKit } from './apparatus/ComposableKit.ts';
+export { LegacySimAdapter } from './apparatus/LegacySimAdapter.ts';
+
+// Auto mode support
+export { AutoRunner } from './autorun/AutoRunner.ts';
+export { ProcedureExecutor } from './autorun/ProcedureExecutor.ts';
 
 // Built-in Kits (import triggers self-registration)
 // Phase 1A — Flagship 5

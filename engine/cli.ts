@@ -1,13 +1,13 @@
-#!/usr/bin/env npx tsx
 /**
  * Galvaniy Physics Engine — CLI Bridge for Backend Integration
  * 
- * Usage: npx tsx engine/cli.ts <experiment_code>
+ * Usage: node scripts/run-ts-entry.mjs engine/cli-entry.ts <experiment_code>
  * 
  * Outputs JSON to stdout with:
  *   - tables: pre-formatted data tables from autoRun()
  *   - controls: available experiment controls
  *   - procedure: step-by-step procedure
+ *   - labConfig: full built-in lab config for the virtual lab UI
  *   - metadata: kit info (code, name, category, tier)
  * 
  * Called by the Python backend to inject deterministic physics data
@@ -19,26 +19,17 @@ import { KitRegistry } from './apparatus/KitRegistry.ts';
 // Trigger all kit self-registrations
 import './index.ts';
 
-const experimentCode = process.argv[2];
+export function buildCliOutput(experimentCode: string) {
+  const kit = KitRegistry.resolve(experimentCode);
 
-if (!experimentCode) {
-  console.error(JSON.stringify({ error: 'Usage: npx tsx engine/cli.ts <EXPERIMENT_CODE>' }));
-  process.exit(1);
-}
+  if (!kit) {
+    return {
+      available: false,
+      experimentCode: experimentCode.toUpperCase(),
+      message: `No built-in physics kit for "${experimentCode}". Falling back to AI generation.`,
+    };
+  }
 
-const kit = KitRegistry.resolve(experimentCode);
-
-if (!kit) {
-  // No built-in kit — return empty signal so the backend falls back to AI
-  console.log(JSON.stringify({
-    available: false,
-    experimentCode: experimentCode.toUpperCase(),
-    message: `No built-in physics kit for "${experimentCode}". Falling back to AI generation.`,
-  }));
-  process.exit(0);
-}
-
-try {
   // Run headless simulation
   const dataPoints = kit.autoRun();
 
@@ -73,6 +64,7 @@ try {
     name: kit.name,
     category: kit.category,
     tier: 'builtin',
+    labConfig: kit.getLabConfig(),
     tables,
     controls: controls.map(c => ({
       id: c.id,
@@ -86,12 +78,5 @@ try {
     dataPointCount: dataPoints.length,
   };
 
-  console.log(JSON.stringify(output));
-} catch (err: any) {
-  console.error(JSON.stringify({
-    available: false,
-    experimentCode: experimentCode.toUpperCase(),
-    error: err.message || 'Unknown error during autoRun()',
-  }));
-  process.exit(1);
+  return output;
 }

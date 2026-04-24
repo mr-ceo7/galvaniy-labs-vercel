@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { storageService } from '../services/storageService';
 import { logService } from '../services/logService';
 import { backendService, BackendStats, BackendSettings } from '../services/backendService';
-import { User, Theme, ManualPage } from '../types';
-import { Shield, RefreshCcw, Users, FileText, Trash2, Upload, AlertTriangle, Loader2, Search, Settings, Download, CheckCircle2 } from 'lucide-react';
+import { User, Theme, ManualPage, AdminLabSession } from '../types';
+import { Shield, RefreshCcw, Users, FileText, Trash2, Upload, AlertTriangle, Loader2, Search, Settings, Download, CheckCircle2, FlaskConical, Bot, Clock3 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import JSZip from 'jszip';
 
@@ -78,9 +78,11 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
   const [parallelGeneration, setParallelGeneration] = useState(true);
   const [apiProvider, setApiProvider] = useState<string>('gemini');
   const [customApiUrl, setCustomApiUrl] = useState<string>('');
+  const [labSessions, setLabSessions] = useState<AdminLabSession[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
 
   // Stats
-  const [stats, setStats] = useState<BackendStats>({ total_students: 0, total_reports: 0, active_students: 0, revoked_students: 0 });
+  const [stats, setStats] = useState<BackendStats>({ total_students: 0, total_reports: 0, active_students: 0, revoked_students: 0, total_lab_sessions: 0, manual_lab_sessions: 0, auto_lab_sessions: 0, students_using_virtual_lab: 0 });
 
   const loadData = async () => {
     try {
@@ -100,8 +102,14 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
       // Load stats
       const backendStats = await backendService.getStats();
       setStats(backendStats);
+
+      setLoadingSessions(true);
+      const backendSessions = await backendService.getAdminLabSessions(30);
+      setLabSessions(backendSessions);
     } catch (err) {
       logService.error('Failed to load admin data:', err);
+    } finally {
+      setLoadingSessions(false);
     }
     
     try {
@@ -319,7 +327,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
       )}
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="glass-panel p-6 rounded-xl flex items-center gap-4 border border-blue-500/20">
           <div className="p-4 bg-blue-500/20 rounded-full text-blue-400">
             <Users size={28} />
@@ -338,7 +346,6 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
             <p className="text-3xl font-bold text-white">{stats.total_reports}</p>
           </div>
         </div>
-        {/* Default Limit Control */}
         <div className="glass-panel p-6 rounded-xl flex items-center gap-4 border border-green-500/20">
             <div className="p-4 bg-green-500/20 rounded-full text-green-400">
                 <Settings size={28} />
@@ -352,6 +359,107 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
                 </div>
             </div>
         </div>
+        <div className="glass-panel p-6 rounded-xl flex items-center gap-4 border border-cyan-500/20">
+          <div className="p-4 bg-cyan-500/20 rounded-full text-cyan-400">
+            <FlaskConical size={28} />
+          </div>
+          <div>
+            <p className="text-slate-400 text-sm uppercase tracking-wide">Virtual Lab Sessions</p>
+            <p className="text-3xl font-bold text-white">{stats.total_lab_sessions || 0}</p>
+            <p className="text-xs text-slate-500 mt-1">{stats.students_using_virtual_lab || 0} students used labs</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="glass-panel p-5 rounded-xl border border-cyan-500/10">
+          <div className="flex items-center gap-3 text-cyan-300 mb-2">
+            <Clock3 size={18} />
+            <span className="text-sm uppercase tracking-wide">Manual Sessions</span>
+          </div>
+          <div className="text-2xl font-bold text-white">{stats.manual_lab_sessions || 0}</div>
+        </div>
+        <div className="glass-panel p-5 rounded-xl border border-amber-500/10">
+          <div className="flex items-center gap-3 text-amber-300 mb-2">
+            <Bot size={18} />
+            <span className="text-sm uppercase tracking-wide">Auto Sessions</span>
+          </div>
+          <div className="text-2xl font-bold text-white">{stats.auto_lab_sessions || 0}</div>
+        </div>
+        <div className="glass-panel p-5 rounded-xl border border-slate-500/10">
+          <div className="flex items-center gap-3 text-slate-300 mb-2">
+            <Users size={18} />
+            <span className="text-sm uppercase tracking-wide">Lab Adoption</span>
+          </div>
+          <div className="text-2xl font-bold text-white">{stats.students_using_virtual_lab || 0}</div>
+          <div className="text-xs text-slate-500 mt-1">students with saved virtual-lab sessions</div>
+        </div>
+      </div>
+
+      <div className="glass-panel rounded-2xl p-6 border border-cyan-500/20">
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+              <FlaskConical className="text-cyan-400" /> Virtual Lab Activity
+            </h2>
+            <p className="text-sm text-slate-400 mt-1">
+              Recent saved sessions. Admins can see who actually used the lab and whether the run was manual or auto.
+            </p>
+          </div>
+          <button onClick={loadData} className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-sm flex items-center gap-2">
+            <RefreshCcw size={14} />
+            Refresh
+          </button>
+        </div>
+
+        {loadingSessions ? (
+          <div className="flex items-center justify-center py-10 text-slate-400">
+            <Loader2 size={20} className="animate-spin mr-2" />
+            Loading virtual lab activity...
+          </div>
+        ) : labSessions.length === 0 ? (
+          <div className="text-center py-10 text-slate-500">
+            No virtual lab sessions have been saved yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-slate-400 border-b border-white/10">
+                  <th className="py-3 pr-4 font-medium">Student</th>
+                  <th className="py-3 pr-4 font-medium">Experiment</th>
+                  <th className="py-3 pr-4 font-medium">Mode</th>
+                  <th className="py-3 pr-4 font-medium">Data</th>
+                  <th className="py-3 pr-4 font-medium">Saved</th>
+                </tr>
+              </thead>
+              <tbody>
+                {labSessions.map((session) => (
+                  <tr key={session.id} className="border-b border-white/5 text-slate-200">
+                    <td className="py-3 pr-4">
+                      <div className="font-medium text-white">{session.displayName || session.userEmail || session.userUid}</div>
+                      <div className="text-xs text-slate-500">{session.userEmail || session.userUid}</div>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <div className="font-medium">{session.experimentCode}</div>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${session.mode === 'auto' ? 'bg-amber-500/15 text-amber-300' : 'bg-cyan-500/15 text-cyan-300'}`}>
+                        {session.mode}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4 text-slate-300">
+                      {session.dataPointCount} points
+                    </td>
+                    <td className="py-3 pr-4 text-slate-400">
+                      {new Date(session.savedAt || session.completedAt || session.startedAt).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Generation Settings */}

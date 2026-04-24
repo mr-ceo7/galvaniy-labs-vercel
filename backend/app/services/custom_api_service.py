@@ -15,8 +15,10 @@ from app.services.prompt_templates import (
     get_text_content_instructions,
     get_data_logic_instructions,
     get_simulation_instructions,
+    get_lab_config_instructions,
     JSON_EXAMPLES,
 )
+from app.services.lab_config_service import normalize_lab_config
 from app.services.report_validator import validate_report
 
 logger = logging.getLogger(__name__)
@@ -26,15 +28,13 @@ MAX_ATTEMPTS = 3
 
 def _clean_json_response(text: str) -> str:
     """Clean AI response text to extract valid JSON."""
-    text = text.replace("```json", "").replace("```", "")
+    start = text.find("{")
+    end = text.rfind("}")
 
-    first_brace = text.find("{")
-    last_brace = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        text = text[start : end + 1]
 
-    if first_brace != -1 and last_brace != -1:
-        text = text[first_brace : last_brace + 1]
-
-    text = re.sub(r"[\x00-\x09\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", text)
+    text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", text)
 
     return text
 
@@ -51,7 +51,7 @@ async def _upload_manual(api_url: str, manual_text: str) -> str:
         'context_mode': 'false'
     }
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=300.0) as client:
         response = await client.post(url, data=data, files=files)
         response.raise_for_status()
         result = response.json()
@@ -81,7 +81,7 @@ async def _generate_section(
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=300.0) as client:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()
                 result = response.json()
@@ -156,14 +156,21 @@ async def generate_lab_report(
         get_simulation_instructions(experiment_code),
     )
 
+    lab_config_coro = _generate_section(
+        api_url, uploaded_filename, experiment_code,
+        "Lab Config", JSON_EXAMPLES["lab_config"],
+        get_lab_config_instructions(experiment_code),
+    )
+
     if parallel:
-        text_json, data_json, sim_json = await asyncio.gather(
-            text_coro, data_coro, sim_coro
+        text_json, data_json, sim_json, lab_config_json = await asyncio.gather(
+            text_coro, data_coro, sim_coro, lab_config_coro
         )
     else:
         text_json = await text_coro
         data_json = await data_coro
         sim_json = await sim_coro
+        lab_config_json = await lab_config_coro
 
     # 3. Post-processing: Convert script line arrays to joined strings
     if isinstance(data_json.get("calculationScriptLines"), list):
@@ -174,6 +181,7 @@ async def generate_lab_report(
 
     # 4. Merge all sections
     full_report = {**text_json, **data_json, **sim_json}
+    full_report["labConfig"] = normalize_lab_config(lab_config_json, experiment_code)
 
     # 5. Validate
     validation = validate_report(full_report, experiment_code)
@@ -187,3 +195,24 @@ async def generate_lab_report(
         logger.warning(f"Report Validation Warnings: {validation.warnings}")
 
     return json.dumps(full_report)
+
+
+async def generate_lab_config(
+    api_url: str,
+    manual_text: str,
+    experiment_code: str,
+) -> Dict[str, Any]:
+    """Generate a structured LabConfig object using the custom API."""
+    if not api_url:
+        raise ValueError("Custom API URL is not configured in Admin settings.")
+
+    uploaded_filename = await _upload_manual(api_url, manual_text)
+    raw = await _generate_section(
+        api_url,
+        uploaded_filename,
+        experiment_code,
+        "Lab Config",
+        JSON_EXAMPLES["lab_config"],
+        get_lab_config_instructions(experiment_code),
+    )
+    return normalize_lab_config(raw, experiment_code)

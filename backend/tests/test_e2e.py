@@ -207,8 +207,14 @@ async def run_e2e_test():
     mock_fs, store = create_mock_firestore()
 
     # Override auth dependency to return our test user
-    app.dependency_overrides[get_current_user] = lambda: TEST_USER
-    app.dependency_overrides[require_admin] = lambda: TEST_USER
+    async def _current_user_override():
+        return TEST_USER
+
+    async def _require_admin_override():
+        return TEST_USER
+
+    app.dependency_overrides[get_current_user] = _current_user_override
+    app.dependency_overrides[require_admin] = _require_admin_override
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

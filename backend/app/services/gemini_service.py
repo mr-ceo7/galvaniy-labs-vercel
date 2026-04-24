@@ -18,8 +18,10 @@ from app.services.prompt_templates import (
     get_text_content_instructions,
     get_data_logic_instructions,
     get_simulation_instructions,
+    get_lab_config_instructions,
     JSON_EXAMPLES,
 )
+from app.services.lab_config_service import normalize_lab_config
 from app.services.report_validator import validate_report
 from app.services.physics_engine import get_engine_data, format_engine_tables_for_prompt
 
@@ -30,18 +32,15 @@ MAX_ATTEMPTS = 3
 
 def _clean_json_response(text: str) -> str:
     """Clean AI response text to extract valid JSON."""
-    # Remove markdown code fences
-    text = text.replace("```json", "").replace("```", "")
-
     # Find JSON boundaries
-    first_brace = text.find("{")
-    last_brace = text.rfind("}")
+    start = text.find("{")
+    end = text.rfind("}")
 
-    if first_brace != -1 and last_brace != -1:
-        text = text[first_brace : last_brace + 1]
+    if start != -1 and end != -1 and end > start:
+        text = text[start : end + 1]
 
     # Remove control characters
-    text = re.sub(r"[\x00-\x09\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", text)
+    text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]", "", text)
 
     return text
 
@@ -78,7 +77,7 @@ async def _generate_section(
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            response = client.models.generate_content(
+            response = await client.aio.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=full_prompt,
                 config=types.GenerateContentConfig(
@@ -182,14 +181,27 @@ async def generate_lab_report(
         get_simulation_instructions(experiment_code),
     )
 
+    lab_config_coro = None if engine_data else _generate_section(
+        client, enriched_manual, experiment_code,
+        "Lab Config", JSON_EXAMPLES["lab_config"],
+        get_lab_config_instructions(experiment_code),
+    )
+
     if parallel:
-        text_json, data_json, sim_json = await asyncio.gather(
-            text_coro, data_coro, sim_coro
-        )
+        if lab_config_coro:
+            text_json, data_json, sim_json, lab_config_json = await asyncio.gather(
+                text_coro, data_coro, sim_coro, lab_config_coro
+            )
+        else:
+            text_json, data_json, sim_json = await asyncio.gather(
+                text_coro, data_coro, sim_coro
+            )
+            lab_config_json = None
     else:
         text_json = await text_coro
         data_json = await data_coro
         sim_json = await sim_coro
+        lab_config_json = await lab_config_coro if lab_config_coro else None
 
     # Post-processing: Convert script line arrays to joined strings
     if isinstance(data_json.get("calculationScriptLines"), list):
@@ -207,11 +219,16 @@ async def generate_lab_report(
         full_report["tables"] = engine_data["tables"]
         # Replace AI controls with engine controls
         full_report["controls"] = engine_data.get("controls", full_report.get("controls", []))
+        # Engine-powered reports should not execute AI-provided canvas code in the preview.
+        full_report["simulationScript"] = ""
         # Tag the report as engine-powered
         full_report["enginePowered"] = True
         full_report["engineKit"] = engine_data.get("name", experiment_code)
         full_report["engineCategory"] = engine_data.get("category", "unknown")
+        full_report["labConfig"] = engine_data.get("labConfig")
         logger.info(f"[Gemini] ✅ Report enhanced with physics engine data")
+    elif lab_config_json:
+        full_report["labConfig"] = normalize_lab_config(lab_config_json, experiment_code)
 
     # Validate
     validation = validate_report(full_report, experiment_code)
@@ -225,3 +242,20 @@ async def generate_lab_report(
         logger.warning(f"Report Validation Warnings: {validation.warnings}")
 
     return json.dumps(full_report)
+
+
+async def generate_lab_config(
+    client: genai.Client,
+    manual_text: str,
+    experiment_code: str,
+) -> Dict[str, Any]:
+    """Generate a structured LabConfig object from the manual."""
+    raw = await _generate_section(
+        client,
+        manual_text,
+        experiment_code,
+        "Lab Config",
+        JSON_EXAMPLES["lab_config"],
+        get_lab_config_instructions(experiment_code),
+    )
+    return normalize_lab_config(raw, experiment_code)

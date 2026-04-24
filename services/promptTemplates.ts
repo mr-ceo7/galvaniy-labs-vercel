@@ -7,6 +7,7 @@ export interface PromptConfig {
   textContentInstructions: (experimentCode: string) => string;
   dataLogicInstructions: (experimentCode: string) => string;
   simulationInstructions: (experimentCode: string) => string;
+  labConfigInstructions: (experimentCode: string) => string;
 }
 
 // Main system role/persona
@@ -128,6 +129,26 @@ VALIDATION CHECKLIST:
 ✓ Would a student recognize this as the correct experiment setup?
 `;
 
+export const getLabConfigInstructions = (experimentCode: string): string => `
+SEARCH the manual for experiment code "${experimentCode}".
+Generate a structured LabConfig JSON object for the experiment.
+
+Requirements:
+1. Prefer a built-in kit when the apparatus clearly matches a known first-year physics setup.
+2. If the experiment is physics-based but not built-in, output a composable configuration with:
+   - kitId
+   - tier
+   - controls
+   - instruments
+   - tables
+   - procedure
+3. If the experiment is outside the physics engine scope, output a legacy configuration with:
+   - tier: "legacy"
+   - legacySimulationScript omitted or empty
+   - simple controls/tables/procedure so the UI can still render
+4. Keep all values realistic for the experiment.
+`;
+
 
 // JSON Examples for each section
 export const JSON_EXAMPLES = {
@@ -163,6 +184,17 @@ export const JSON_EXAMPLES = {
       "ctx.fillRect(10,10,50,50);"
   ],
   "controls": [{ "id": "mass", "label": "Mass", "min": 0, "max": 10, "val": 5, "unit": "kg" }]
+}`,
+
+  labConfig: `{
+  "experimentCode": "A-2",
+  "experimentTitle": "Simple Pendulum",
+  "kitId": "SimplePendulum",
+  "tier": "builtin",
+  "controls": [],
+  "instruments": [],
+  "tables": [],
+  "procedure": []
 }`
 };
 
@@ -186,5 +218,4 @@ ${JSON_FORMAT_INSTRUCTIONS}
 ${jsonExample}
 `;
 };
-
 

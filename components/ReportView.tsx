@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 import { logService } from '../services/logService';
 import toast, { Toaster } from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { SimulationPanel } from './SimulationPanel';
 
 interface ReportViewProps {
   report: Report | null;
@@ -34,6 +35,10 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme, 
             // Cleanup old fields to avoid confusion
             delete data.tableData;
             delete data.tableHeaders;
+        }
+
+        if (data.enginePowered) {
+          data.simulationScript = '';
         }
         
         setParsedReport(data);
@@ -201,11 +206,21 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme, 
           </div>
         </div>
         
-        <div className="flex-1 bg-black relative">
+        <div className={`flex-1 bg-black relative ${parsedReport?.enginePowered ? 'grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-0' : ''}`}>
+          {parsedReport?.enginePowered && (
+            <div className="border-b border-white/10 bg-slate-950 xl:border-b-0 xl:border-r">
+              <SimulationPanel
+                experimentCode={report.experimentCode}
+                engineKit={parsedReport.engineKit}
+                engineCategory={parsedReport.engineCategory}
+                onOpenLab={onOpenLab}
+              />
+            </div>
+          )}
           {iframeSrc ? (
             <iframe 
               src={iframeSrc} 
-              className="w-full h-full border-none" 
+              className="h-full w-full border-none" 
               title="Report Preview"
               sandbox="allow-scripts allow-same-origin allow-popups"
             />
@@ -1386,7 +1401,7 @@ function generateInteractiveHTML(data: any, code: string) {
             <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">(j) Data Analysis</p>
             <h2 class="text-xl font-semibold text-cyan-400 border-b border-white/10 pb-2 mb-4">Data Analysis</h2>
             <div id="analysisContent" class="prose prose-invert max-w-none text-slate-300 text-sm font-mono p-4 bg-black/20 rounded-xl">
-                ${data.analysisTemplate ? 'Loading analysis...' : 'No automated analysis available.'}
+                ${data.enginePowered ? 'Physics engine summary will appear here.' : (data.analysisTemplate ? 'Loading analysis...' : 'No automated analysis available.')}
             </div>
         </section>
 
@@ -1613,24 +1628,254 @@ function generateInteractiveHTML(data: any, code: string) {
             if(chartInstance) { chartInstance.data.datasets[0].data = getChartData(); chartInstance.update(); }
         }
 
-        function updateAnalysis() {
-            if (!reportData.calculationScript || !reportData.analysisTemplate) return;
-            try {
-                // Pass all tables to the calculation script
-                const calcFunc = new Function('tables', reportData.calculationScript);
-                const results = calcFunc(reportData.tables);
-                
-                let template = reportData.analysisTemplate;
-                for (const [key, value] of Object.entries(results)) {
-                    const regex = new RegExp(\`{{\${key}}}\`, 'g');
-                    const displayVal = typeof value === 'number' ? value.toFixed(4) : value;
-                    template = template.replace(regex, \`<span class="text-cyan-300 font-bold">\${displayVal}</span>\`);
-                }
-                analysisDiv.innerHTML = template.replace(/\\n/g, '<br>');
-            } catch (e) { 
-                console.error("Analysis Error", e);
-                analysisDiv.innerHTML = \`<span class="text-red-400">Analysis Error: \${e.message}</span><br><span class="text-xs text-slate-500">Check console for details or edit data.</span>\`; 
+        function getNumericColumns(table) {
+            if (!table || !table.headers || !table.rows || table.rows.length === 0) return [];
+            return table.headers
+                .map((header, index) => ({ header, index }))
+                .filter(({ index }) => table.rows.some(row => !isNaN(parseFloat(row[index]))));
+        }
+
+        function resolveEngineSeries() {
+            const tableIndex = reportData.graphConfig?.tableIndex || 0;
+            const table = reportData.tables?.[tableIndex] || reportData.tables?.[0];
+            if (!table) return null;
+
+            const numericColumns = getNumericColumns(table);
+            if (numericColumns.length === 0) return null;
+
+            let xIndex = reportData.graphConfig?.xColumnIndex;
+            let yIndex = reportData.graphConfig?.yColumnIndex;
+
+            if (typeof xIndex !== 'number' || typeof yIndex !== 'number') {
+                xIndex = numericColumns[0]?.index ?? 0;
+                yIndex = numericColumns[1]?.index ?? numericColumns[0]?.index ?? 0;
             }
+
+            const points = table.rows
+                .map(row => ({
+                    x: parseFloat(row[xIndex]),
+                    y: parseFloat(row[yIndex]),
+                }))
+                .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y));
+
+            return {
+                table,
+                xIndex,
+                yIndex,
+                xLabel: table.headers?.[xIndex] || 'X',
+                yLabel: table.headers?.[yIndex] || 'Y',
+                points,
+            };
+        }
+
+        function computeRegression(points) {
+            const n = points.length;
+            if (n < 2) return null;
+
+            const sumX = points.reduce((sum, point) => sum + point.x, 0);
+            const sumY = points.reduce((sum, point) => sum + point.y, 0);
+            const meanX = sumX / n;
+            const meanY = sumY / n;
+
+            let numerator = 0;
+            let denominator = 0;
+            for (const point of points) {
+                numerator += (point.x - meanX) * (point.y - meanY);
+                denominator += (point.x - meanX) ** 2;
+            }
+
+            const slope = denominator === 0 ? 0 : numerator / denominator;
+            const intercept = meanY - slope * meanX;
+
+            let ssRes = 0;
+            let ssTot = 0;
+            for (const point of points) {
+                const predicted = slope * point.x + intercept;
+                ssRes += (point.y - predicted) ** 2;
+                ssTot += (point.y - meanY) ** 2;
+            }
+
+            const r2 = ssTot === 0 ? 1 : 1 - (ssRes / ssTot);
+
+            return { slope, intercept, r2, meanX, meanY, count: n };
+        }
+
+        function formatMetric(value, digits = 4) {
+            if (!Number.isFinite(value)) return 'n/a';
+            return Number(value).toFixed(digits);
+        }
+
+        function renderEngineAnalysis() {
+            const series = resolveEngineSeries();
+            const kit = reportData.engineKit || reportData.title || '${code}';
+            const category = reportData.engineCategory || 'physics';
+
+            if (!series || series.points.length === 0) {
+                return '<span class="text-slate-300">No numeric engine data is available for automated analysis.</span>';
+            }
+
+            const regression = computeRegression(series.points);
+            const trend = regression
+                ? (regression.slope > 0.001 ? 'positive' : regression.slope < -0.001 ? 'negative' : 'flat')
+                : 'undetermined';
+
+            const tableRows = series.table.rows.length;
+            const xValues = series.points.map(point => point.x);
+            const yValues = series.points.map(point => point.y);
+            const minX = Math.min(...xValues);
+            const maxX = Math.max(...xValues);
+            const minY = Math.min(...yValues);
+            const maxY = Math.max(...yValues);
+
+            const summaryCards = [
+                { label: 'Observations', value: String(tableRows) },
+                { label: 'Trend', value: trend },
+                { label: 'Range (' + series.xLabel + ')', value: formatMetric(minX, 3) + ' → ' + formatMetric(maxX, 3) },
+                { label: 'Range (' + series.yLabel + ')', value: formatMetric(minY, 3) + ' → ' + formatMetric(maxY, 3) },
+            ];
+
+            const cardsHtml = summaryCards.map(card => (
+                '<div style="background:rgba(15,23,42,0.65);border:1px solid rgba(148,163,184,0.18);border-radius:14px;padding:12px 14px;">' +
+                    '<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#94a3b8;margin-bottom:6px;">' + card.label + '</div>' +
+                    '<div style="font-size:15px;font-weight:700;color:#e2e8f0;">' + card.value + '</div>' +
+                '</div>'
+            )).join('');
+
+            const regressionHtml = regression ? (
+                '<div style="margin-top:14px;padding:14px;border-radius:14px;background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.15);">' +
+                    '<div style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#67e8f9;margin-bottom:8px;">Deterministic Fit</div>' +
+                    '<div style="color:#e2e8f0;font-size:14px;line-height:1.7;">' +
+                        'Using the report data for <strong>' + series.yLabel + '</strong> against <strong>' + series.xLabel + '</strong>, ' +
+                        'the best-fit line is <strong>y = ' + formatMetric(regression.slope) + 'x ' + (regression.intercept >= 0 ? '+ ' : '- ') + formatMetric(Math.abs(regression.intercept)) + '</strong> ' +
+                        'with <strong>R² = ' + formatMetric(regression.r2) + '</strong>.' +
+                    '</div>' +
+                    '<div style="color:#94a3b8;font-size:13px;margin-top:8px;">' +
+                        'Mean ' + series.xLabel + ': <strong style="color:#e2e8f0;">' + formatMetric(regression.meanX, 4) + '</strong> | ' +
+                        'Mean ' + series.yLabel + ': <strong style="color:#e2e8f0;">' + formatMetric(regression.meanY, 4) + '</strong>' +
+                    '</div>' +
+                '</div>'
+            ) : '';
+
+            return (
+                '<div style="display:grid;gap:14px;">' +
+                    '<div style="color:#cbd5e1;font-size:14px;line-height:1.7;">' +
+                        'This analysis was computed directly from the built-in <strong style="color:#e2e8f0;">' + kit + '</strong> engine data. ' +
+                        'The report remains in the <strong style="color:#e2e8f0;text-transform:capitalize;">' + category + '</strong> domain, and the table/graph values are deterministic rather than AI-generated estimates.' +
+                    '</div>' +
+                    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">' + cardsHtml + '</div>' +
+                    regressionHtml +
+                '</div>'
+            );
+        }
+
+        function deriveAnalysisMetrics() {
+            const series = resolveEngineSeries();
+            if (!series || series.points.length === 0) {
+                return null;
+            }
+
+            const regression = computeRegression(series.points);
+            const xValues = series.points.map(point => point.x);
+            const yValues = series.points.map(point => point.y);
+            const firstPoint = series.points[0];
+            const lastPoint = series.points[series.points.length - 1];
+            const yMean = yValues.reduce((sum, value) => sum + value, 0) / yValues.length;
+            const xMean = xValues.reduce((sum, value) => sum + value, 0) / xValues.length;
+            const ySpan = Math.max(...yValues) - Math.min(...yValues);
+            const xSpan = Math.max(...xValues) - Math.min(...xValues);
+
+            return {
+                series,
+                regression,
+                values: {
+                    slope: regression?.slope ?? 0,
+                    gradient: regression?.slope ?? 0,
+                    intercept: regression?.intercept ?? 0,
+                    r2: regression?.r2 ?? 0,
+                    rSquared: regression?.r2 ?? 0,
+                    count: series.points.length,
+                    observations: series.points.length,
+                    xMin: Math.min(...xValues),
+                    xMax: Math.max(...xValues),
+                    yMin: Math.min(...yValues),
+                    yMax: Math.max(...yValues),
+                    xRange: xSpan,
+                    yRange: ySpan,
+                    meanX: xMean,
+                    meanY: yMean,
+                    firstX: firstPoint?.x ?? 0,
+                    firstY: firstPoint?.y ?? 0,
+                    lastX: lastPoint?.x ?? 0,
+                    lastY: lastPoint?.y ?? 0,
+                    deltaX: (lastPoint?.x ?? 0) - (firstPoint?.x ?? 0),
+                    deltaY: (lastPoint?.y ?? 0) - (firstPoint?.y ?? 0),
+                    res: regression?.slope ?? yMean,
+                },
+            };
+        }
+
+        function replacePlaceholders(template, values) {
+            return String(template).replace(/{{\s*([\w.]+)\s*}}/g, (_, key) => {
+                const value = values[key];
+                if (value === undefined || value === null) {
+                    return '<span class="text-amber-300 font-semibold">n/a</span>';
+                }
+                const displayVal = typeof value === 'number' ? Number(value).toFixed(4) : String(value);
+                return '<span class="text-cyan-300 font-bold">' + displayVal + '</span>';
+            });
+        }
+
+        function renderStandardAnalysis() {
+            const metrics = deriveAnalysisMetrics();
+            if (!metrics) {
+                return '<span class="text-slate-300">No numeric data is available for automated analysis.</span>';
+            }
+
+            const { series, regression, values } = metrics;
+            const trend = regression
+                ? (regression.slope > 0.001 ? 'positive' : regression.slope < -0.001 ? 'negative' : 'flat')
+                : 'undetermined';
+
+            const templateHtml = reportData.analysisTemplate
+                ? replacePlaceholders(reportData.analysisTemplate, values)
+                : '<span class="text-slate-300">No narrative template was provided for this report.</span>';
+
+            const stats = [
+                { label: 'Observations', value: String(values.observations) },
+                { label: 'Trend', value: trend },
+                { label: series.xLabel + ' Range', value: formatMetric(values.xMin, 3) + ' → ' + formatMetric(values.xMax, 3) },
+                { label: series.yLabel + ' Range', value: formatMetric(values.yMin, 3) + ' → ' + formatMetric(values.yMax, 3) },
+            ];
+
+            const statsHtml = stats.map(stat => (
+                '<div style="background:rgba(15,23,42,0.55);border:1px solid rgba(148,163,184,0.16);border-radius:12px;padding:10px 12px;">' +
+                    '<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:#94a3b8;margin-bottom:4px;">' + stat.label + '</div>' +
+                    '<div style="font-size:14px;font-weight:700;color:#e2e8f0;">' + stat.value + '</div>' +
+                '</div>'
+            )).join('');
+
+            const regressionHtml = regression ? (
+                '<div style="color:#94a3b8;font-size:13px;line-height:1.7;margin-top:12px;">' +
+                    'Best-fit line: <strong style="color:#e2e8f0;">y = ' + formatMetric(values.slope) + 'x ' + (values.intercept >= 0 ? '+ ' : '- ') + formatMetric(Math.abs(values.intercept)) + '</strong>' +
+                    ' | R² = <strong style="color:#e2e8f0;">' + formatMetric(values.r2) + '</strong>' +
+                '</div>'
+            ) : '';
+
+            return (
+                '<div style="display:grid;gap:14px;">' +
+                    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;">' + statsHtml + '</div>' +
+                    '<div style="color:#cbd5e1;font-size:14px;line-height:1.8;">' + templateHtml.replace(/\\n/g, '<br>') + '</div>' +
+                    regressionHtml +
+                '</div>'
+            );
+        }
+
+        function updateAnalysis() {
+            if (reportData.enginePowered) {
+                analysisDiv.innerHTML = renderEngineAnalysis();
+                return;
+            }
+            analysisDiv.innerHTML = renderStandardAnalysis();
         }
 
         function updateSimParam(id, val, unit) {
@@ -1638,13 +1883,381 @@ function generateInteractiveHTML(data: any, code: string) {
             simulation.params[id] = parseFloat(val);
         }
 
-        // DYNAMIC SIMULATION ENGINE
-        let drawFunc = null;
-        try {
-            if (reportData.simulationScript) {
-                drawFunc = new Function('ctx', 'width', 'height', 'frame', 'params', reportData.simulationScript);
+        function getSimulationText() {
+            return [
+                reportData.title || '',
+                ...(reportData.apparatus || []),
+                ...(reportData.objectives || []),
+                ...(reportData.procedure || [])
+            ].join(' ').toLowerCase();
+        }
+
+        function resolveSimulationMode() {
+            const text = getSimulationText();
+            if (/pendulum|oscillation|bob|string/.test(text)) return 'pendulum';
+            if (/ohm|resistor|ammeter|voltmeter|circuit|current|voltage/.test(text)) return 'circuit';
+            if (/boyle|gas|pressure|piston|volume|syringe/.test(text)) return 'gas';
+            if (/lens|mirror|refraction|reflection|prism|optics|ray/.test(text)) return 'optics';
+            if (/heat|cool|temperature|calor|thermal|expansion/.test(text)) return 'thermal';
+            if (/wave|sound|string|frequency|resonan|harmonic/.test(text)) return 'wave';
+            return 'generic';
+        }
+
+        function drawPanelFrame(ctx, w, h, title, subtitle) {
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, w, h);
+
+            const bg = ctx.createLinearGradient(0, 0, w, h);
+            bg.addColorStop(0, 'rgba(34, 211, 238, 0.08)');
+            bg.addColorStop(1, 'rgba(168, 85, 247, 0.08)');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.strokeStyle = 'rgba(148,163,184,0.18)';
+            ctx.lineWidth = 1;
+            for (let x = 30; x < w; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, h);
+                ctx.stroke();
             }
-        } catch (e) { console.error("Invalid Simulation Script", e); }
+            for (let y = 30; y < h; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = 'rgba(15,23,42,0.88)';
+            ctx.beginPath();
+            ctx.roundRect(16, 16, 250, 58, 14);
+            ctx.fill();
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '700 16px Inter';
+            ctx.fillText(title, 28, 40);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Inter';
+            ctx.fillText(subtitle, 28, 60);
+        }
+
+        function getParamNumber(keys, fallback) {
+            for (const key of keys) {
+                const value = simulation.params[key];
+                const parsed = typeof value === 'number' ? value : parseFloat(value);
+                if (Number.isFinite(parsed)) return parsed;
+            }
+            return fallback;
+        }
+
+        function drawControlBadges(ctx, w, h) {
+            const entries = Object.entries(simulation.params).slice(0, 3);
+            entries.forEach(([key, value], index) => {
+                const x = 18 + index * 155;
+                const y = h - 54;
+                ctx.fillStyle = 'rgba(15,23,42,0.8)';
+                ctx.beginPath();
+                ctx.roundRect(x, y, 140, 34, 10);
+                ctx.fill();
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '11px Inter';
+                ctx.fillText(key, x + 12, y + 14);
+                ctx.fillStyle = '#22d3ee';
+                ctx.font = '700 12px Inter';
+                ctx.fillText(String(Number.isFinite(Number(value)) ? Number(value).toFixed(2) : value), x + 12, y + 27);
+            });
+        }
+
+        function drawDataTrend(ctx, w, h) {
+            const series = resolveEngineSeries();
+            if (!series || series.points.length < 2) return;
+
+            const chartX = w - 250;
+            const chartY = 24;
+            const chartW = 220;
+            const chartH = 110;
+
+            ctx.fillStyle = 'rgba(15,23,42,0.75)';
+            ctx.beginPath();
+            ctx.roundRect(chartX, chartY, chartW, chartH, 14);
+            ctx.fill();
+
+            const xs = series.points.map(point => point.x);
+            const ys = series.points.map(point => point.y);
+            const minX = Math.min(...xs);
+            const maxX = Math.max(...xs);
+            const minY = Math.min(...ys);
+            const maxY = Math.max(...ys);
+            const toX = (value) => chartX + 18 + ((value - minX) / (maxX - minX || 1)) * (chartW - 36);
+            const toY = (value) => chartY + chartH - 18 - ((value - minY) / (maxY - minY || 1)) * (chartH - 36);
+
+            ctx.strokeStyle = 'rgba(148,163,184,0.18)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(chartX + 18, chartY + 12);
+            ctx.lineTo(chartX + 18, chartY + chartH - 18);
+            ctx.lineTo(chartX + chartW - 12, chartY + chartH - 18);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#22d3ee';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(toX(series.points[0].x), toY(series.points[0].y));
+            for (let i = 1; i < series.points.length; i++) {
+                ctx.lineTo(toX(series.points[i].x), toY(series.points[i].y));
+            }
+            ctx.stroke();
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '11px Inter';
+            ctx.fillText('Data Preview', chartX + 18, chartY + 18);
+        }
+
+        function drawPendulumPreview(ctx, w, h, frame) {
+            drawPanelFrame(ctx, w, h, 'Pendulum Preview', 'Safe built-in apparatus renderer');
+            const length = getParamNumber(['length'], 0.8);
+            const amplitudeDeg = getParamNumber(['amplitude', 'angle'], 8);
+            const anchorX = w * 0.32;
+            const anchorY = 82;
+            const swing = Math.sin(frame / 25) * (amplitudeDeg * Math.PI / 180);
+            const bobX = anchorX + Math.sin(swing) * (90 + length * 65);
+            const bobY = anchorY + Math.cos(swing) * (90 + length * 65);
+
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(anchorX, 38);
+            ctx.lineTo(anchorX, anchorY);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(anchorX, anchorY);
+            ctx.lineTo(bobX, bobY);
+            ctx.stroke();
+
+            ctx.fillStyle = '#22d3ee';
+            ctx.beginPath();
+            ctx.arc(bobX, bobY, 16, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Inter';
+            ctx.fillText('Small-angle oscillation based on report controls', 28, h - 76);
+            drawControlBadges(ctx, w, h);
+            drawDataTrend(ctx, w, h);
+        }
+
+        function drawCircuitPreview(ctx, w, h, frame) {
+            drawPanelFrame(ctx, w, h, 'Circuit Preview', 'Voltage-current visualization');
+            const voltage = getParamNumber(['voltage', 'potential'], 5);
+            const resistance = getParamNumber(['resistance'], 100);
+            const current = resistance > 0 ? voltage / resistance : 0;
+            const left = 80, top = 95, right = 430, bottom = 215;
+
+            ctx.strokeStyle = '#60a5fa';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(left, top);
+            ctx.lineTo(right, top);
+            ctx.lineTo(right, bottom);
+            ctx.lineTo(left, bottom);
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(left - 8, 128, 10, 54);
+            ctx.fillRect(left - 22, 138, 6, 34);
+
+            ctx.fillStyle = '#854d0e';
+            ctx.fillRect(225, bottom - 10, 70, 20);
+
+            const phase = (frame / 16) % 1;
+            for (let i = 0; i < 6; i++) {
+                const t = ((phase + i / 6) % 1);
+                const px = left + t * (right - left);
+                ctx.fillStyle = '#22d3ee';
+                ctx.beginPath();
+                ctx.arc(px, top, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '12px Inter';
+            ctx.fillText('Estimated current: ' + current.toFixed(4) + ' A', 28, h - 76);
+            drawControlBadges(ctx, w, h);
+            drawDataTrend(ctx, w, h);
+        }
+
+        function drawGasPreview(ctx, w, h, frame) {
+            drawPanelFrame(ctx, w, h, 'Gas Law Preview', 'Pressure-volume chamber');
+            const volume = getParamNumber(['volume'], 50);
+            const pressure = getParamNumber(['pressure'], 100);
+            const chamberX = 105, chamberY = 90, chamberW = 300, chamberH = 120;
+            const pistonX = chamberX + 40 + (volume / 100) * 210;
+
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(chamberX, chamberY, chamberW, chamberH);
+
+            ctx.fillStyle = 'rgba(59,130,246,0.35)';
+            ctx.fillRect(chamberX + 2, chamberY + 2, pistonX - chamberX - 2, chamberH - 4);
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(pistonX, chamberY - 8, 10, chamberH + 16);
+
+            for (let i = 0; i < 12; i++) {
+                const px = chamberX + 18 + ((i * 37 + frame * 1.4) % Math.max(40, pistonX - chamberX - 30));
+                const py = chamberY + 18 + ((i * 23 + frame * 1.1) % (chamberH - 36));
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.beginPath();
+                ctx.arc(px, py, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '12px Inter';
+            ctx.fillText('Volume: ' + volume.toFixed(1) + ' | Pressure: ' + pressure.toFixed(1), 28, h - 76);
+            drawControlBadges(ctx, w, h);
+            drawDataTrend(ctx, w, h);
+        }
+
+        function drawOpticsPreview(ctx, w, h, frame) {
+            drawPanelFrame(ctx, w, h, 'Optics Preview', 'Ray-path approximation');
+            const angle = getParamNumber(['angle', 'incidence', 'theta'], 25) * Math.PI / 180;
+            const centerX = 300;
+
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(centerX, 70);
+            ctx.lineTo(centerX, 230);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#22d3ee';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(80, 180);
+            ctx.lineTo(centerX, 180 - Math.tan(angle) * 120);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.moveTo(centerX, 180 - Math.tan(angle) * 120);
+            ctx.lineTo(520, 180 - Math.tan(angle * 0.65) * 80 + Math.sin(frame / 30) * 4);
+            ctx.stroke();
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '12px Inter';
+            ctx.fillText('Rays respond to the inferred incidence control', 28, h - 76);
+            drawControlBadges(ctx, w, h);
+            drawDataTrend(ctx, w, h);
+        }
+
+        function drawThermalPreview(ctx, w, h, frame) {
+            drawPanelFrame(ctx, w, h, 'Thermal Preview', 'Temperature response view');
+            const temperature = getParamNumber(['temperature', 'temp'], 35);
+            const fillHeight = Math.max(20, Math.min(140, (temperature / 100) * 140));
+
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(140, 70, 70, 150);
+            ctx.fillStyle = 'rgba(239,68,68,0.75)';
+            ctx.fillRect(146, 214 - fillHeight, 58, fillHeight);
+
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(140, 70, 70, 150);
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '12px Inter';
+            ctx.fillText('Temperature: ' + temperature.toFixed(1), 28, h - 76);
+
+            ctx.strokeStyle = '#fb7185';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < 160; i++) {
+                const x = 260 + i * 2;
+                const y = 150 + Math.sin((i / 18) + frame / 18) * (12 + temperature / 10);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            drawControlBadges(ctx, w, h);
+            drawDataTrend(ctx, w, h);
+        }
+
+        function drawWavePreview(ctx, w, h, frame) {
+            drawPanelFrame(ctx, w, h, 'Wave Preview', 'Standing-wave style motion');
+            const frequency = getParamNumber(['frequency', 'freq'], 2);
+            const amplitude = getParamNumber(['amplitude'], 20);
+            ctx.strokeStyle = '#22d3ee';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i <= 480; i++) {
+                const x = 70 + i;
+                const y = 150 + Math.sin((i / 38) + frame / 18 * frequency) * (18 + amplitude);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '12px Inter';
+            ctx.fillText('Frequency-driven preview derived from report controls', 28, h - 76);
+            drawControlBadges(ctx, w, h);
+            drawDataTrend(ctx, w, h);
+        }
+
+        function drawGenericPreview(ctx, w, h, frame) {
+            drawPanelFrame(ctx, w, h, 'Lab Preview', 'Safe fallback apparatus visualization');
+
+            ctx.fillStyle = 'rgba(15,23,42,0.65)';
+            ctx.beginPath();
+            ctx.roundRect(80, 86, 360, 124, 18);
+            ctx.fill();
+
+            const bars = Object.entries(simulation.params).slice(0, 4);
+            bars.forEach(([key, raw], index) => {
+                const value = Number(raw);
+                const normalized = Number.isFinite(value) ? Math.max(0.08, Math.min(1, value / (Math.abs(value) + 10))) : 0.45;
+                const barX = 112 + index * 72;
+                const barH = 86 * normalized;
+                ctx.fillStyle = 'rgba(34,211,238,0.18)';
+                ctx.fillRect(barX, 180 - barH, 40, barH);
+                ctx.strokeStyle = '#22d3ee';
+                ctx.strokeRect(barX, 94, 40, 86);
+                ctx.fillStyle = '#cbd5e1';
+                ctx.font = '11px Inter';
+                ctx.fillText(key.slice(0, 8), barX - 6, 198);
+            });
+
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(480, 90);
+            for (let i = 0; i < 100; i++) {
+                const x = 480 + i * 2.2;
+                const y = 155 + Math.sin((i / 8) + frame / 20) * 24;
+                ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            drawControlBadges(ctx, w, h);
+            drawDataTrend(ctx, w, h);
+        }
+
+        function drawSafeSimulation(ctx, w, h, frame) {
+            const mode = resolveSimulationMode();
+            if (mode === 'pendulum') return drawPendulumPreview(ctx, w, h, frame);
+            if (mode === 'circuit') return drawCircuitPreview(ctx, w, h, frame);
+            if (mode === 'gas') return drawGasPreview(ctx, w, h, frame);
+            if (mode === 'optics') return drawOpticsPreview(ctx, w, h, frame);
+            if (mode === 'thermal') return drawThermalPreview(ctx, w, h, frame);
+            if (mode === 'wave') return drawWavePreview(ctx, w, h, frame);
+            return drawGenericPreview(ctx, w, h, frame);
+        }
 
         const simulation = {
             active: false, frame: 0, params: initialParams,
@@ -1656,17 +2269,15 @@ function generateInteractiveHTML(data: any, code: string) {
                 simCtx.clearRect(0,0,w,h);
                 simCtx.fillStyle = '#1e293b'; simCtx.fillRect(0,0,w,h);
                 
-                if (drawFunc) {
-                    try {
-                        drawFunc(simCtx, w, h, this.frame, this.params);
-                    } catch (e) {
-                        simCtx.fillStyle = 'red';
-                        simCtx.fillText("Sim Error: " + e.message, 10, 20);
-                    }
+                if (reportData.enginePowered) {
+                    simCtx.fillStyle = '#e2e8f0';
+                    simCtx.font = "700 22px Inter";
+                    simCtx.fillText("Physics engine data attached to this report.", 165, 132);
+                    simCtx.fillStyle = '#94a3b8';
+                    simCtx.font = "15px Inter";
+                    simCtx.fillText("Open Virtual Lab to interact with the full built-in apparatus.", 145, 162);
                 } else {
-                    simCtx.fillStyle = '#64748b';
-                    simCtx.font = "20px Inter";
-                    simCtx.fillText("No visual simulation provided for this experiment.", 200, 150);
+                    drawSafeSimulation(simCtx, w, h, this.frame);
                 }
             }
         };
@@ -1723,7 +2334,7 @@ function generateInteractiveHTML(data: any, code: string) {
         }
         
         function shareReport() {
-            const reportTitle = '${data.title} - Lab Report';
+            const reportTitle = ${JSON.stringify((data.title || 'Experiment') + ' - Lab Report')};
             const reportText = 'Check out this interactive lab report from Chiromo Labs!';
             
             // Check if Web Share API is supported

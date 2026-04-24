@@ -10,6 +10,7 @@ from app.services.firestore_service import firestore_service
 from app.models.user import UserResponse, UserProfileUpdate
 from app.models.settings import GlobalSettings, GlobalSettingsUpdate, AdminStats
 from app.models.manual import ManualMetadata, ManualPage
+from app.models.session import AdminLabSessionResponse
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,15 @@ async def update_user(
 async def get_admin_stats(admin: AuthenticatedUser = Depends(require_admin)):
     """Get admin dashboard statistics."""
     return await firestore_service.get_admin_stats()
+
+
+@router.get("/lab-sessions", response_model=List[AdminLabSessionResponse])
+async def list_lab_sessions(
+    limit: int = 50,
+    admin: AuthenticatedUser = Depends(require_admin),
+):
+    """List recent virtual lab sessions with owner metadata."""
+    return await firestore_service.get_all_lab_sessions(limit=limit)
 
 
 # ==================== SETTINGS ====================

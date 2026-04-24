@@ -46,70 +46,55 @@ class AuthenticatedUser:
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> AuthenticatedUser:
-    """Verify Firebase ID token and return authenticated user.
-
-    Extracts the Bearer token from the Authorization header,
-    verifies it with Firebase Admin SDK, and determines the user's role.
+    """Verify the Firebase ID token and return an AuthenticatedUser.
 
     Raises:
         HTTPException 401: If token is missing, invalid, or expired.
     """
-    if credentials is None:
+    if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required. Please provide a valid token.",
+            detail="Authentication required. Missing Bearer token.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token = credentials.credentials
-
     try:
-        # Verify the Firebase ID token
+        token = credentials.credentials
         decoded_token = firebase_auth.verify_id_token(token)
+
+        # Ensure the user exists in Firebase (optional but recommended)
+        user_record = firebase_auth.get_user(decoded_token["uid"])
+
+        # Role defaults to 'student' if not set in custom claims
+        role = decoded_token.get("role", "student")
+
+        return AuthenticatedUser(
+            uid=user_record.uid,
+            email=user_record.email or "",
+            role=role,
+            email_verified=user_record.email_verified,
+            display_name=user_record.display_name,
+            photo_url=user_record.photo_url,
+        )
     except firebase_auth.ExpiredIdTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired. Please sign in again.",
+            detail="Authentication failed. Token has expired.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except firebase_auth.InvalidIdTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except firebase_auth.RevokedIdTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has been revoked. Please sign in again.",
+            detail="Authentication failed. Invalid token.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except Exception as e:
-        logger.error(f"Token verification failed: {e}")
+        logger.error(f"Auth error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed. Please try again.",
+            detail="Authentication failed.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    uid = decoded_token.get("uid", "")
-    email = decoded_token.get("email", "")
-    email_verified = decoded_token.get("email_verified", False)
-    display_name = decoded_token.get("name", None)
-    photo_url = decoded_token.get("picture", None)
-
-    # Determine role based on admin config
-    settings = get_settings()
-    role = "admin" if settings.is_admin_email(email) else "student"
-
-    return AuthenticatedUser(
-        uid=uid,
-        email=email,
-        role=role,
-        email_verified=email_verified,
-        display_name=display_name,
-        photo_url=photo_url,
-    )
 
 
 async def require_admin(

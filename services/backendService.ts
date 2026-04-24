@@ -9,7 +9,7 @@
 
 import { getAuth } from 'firebase/auth';
 import { logService } from './logService';
-import { Report, User, ManualPage } from '../types';
+import { Report, User, ManualPage, LabSession, LabSessionEvent, AdminLabSession } from '../types';
 
 // ==================== Configuration ====================
 
@@ -96,6 +96,10 @@ export interface BackendStats {
   total_reports: number;
   active_students: number;
   revoked_students: number;
+  total_lab_sessions?: number;
+  manual_lab_sessions?: number;
+  auto_lab_sessions?: number;
+  students_using_virtual_lab?: number;
 }
 
 export interface BackendManualMetadata {
@@ -104,6 +108,39 @@ export interface BackendManualMetadata {
   uploaded_by?: string;
   version?: number;
   page_count?: number;
+}
+
+export interface BackendLabSetupResponse {
+  experiment_code: string;
+  mode: 'builtin' | 'composable' | 'legacy';
+  requested_by: string;
+  lab_config: Record<string, unknown>;
+}
+
+export interface BackendLabSessionEvent {
+  time: number;
+  type: string;
+  data: Record<string, unknown>;
+}
+
+export interface BackendLabSession {
+  id: string;
+  user_uid: string;
+  experiment_code: string;
+  mode: 'manual' | 'auto' | 'report_only';
+  started_at: string;
+  completed_at: string;
+  saved_at: string;
+  data_points: Record<string, unknown>[];
+  control_values: Record<string, number>;
+  session_events: BackendLabSessionEvent[];
+  data_point_count: number;
+  event_count: number;
+}
+
+export interface BackendAdminLabSession extends BackendLabSession {
+  user_email: string;
+  display_name?: string;
 }
 
 // ==================== Auth & Profile ====================
@@ -145,6 +182,17 @@ const generateReport = async (experimentCode: string): Promise<Report> => {
     date: data.date,
     content: data.content,
   };
+};
+
+/**
+ * Fetch the built-in virtual lab configuration for an experiment.
+ */
+const getLabSetup = async (experimentCode: string): Promise<BackendLabSetupResponse> => {
+  const res = await apiFetch('/api/lab-setup', {
+    method: 'POST',
+    body: JSON.stringify({ experiment_code: experimentCode }),
+  });
+  return res.json();
 };
 
 /**
@@ -279,21 +327,79 @@ const checkHealth = async (): Promise<boolean> => {
 
 interface LabSessionPayload {
   experiment_code: string;
-  mode: string;
+  mode: 'manual' | 'auto' | 'report_only';
   started_at: string;
   completed_at: string;
   data_points: Record<string, unknown>[];
   control_values: Record<string, number>;
+  session_events?: BackendLabSessionEvent[];
 }
+
+const mapLabSession = (session: BackendLabSession): LabSession => ({
+  id: session.id,
+  userUid: session.user_uid,
+  experimentCode: session.experiment_code,
+  mode: session.mode,
+  startedAt: session.started_at,
+  completedAt: session.completed_at,
+  savedAt: session.saved_at,
+  dataPoints: session.data_points || [],
+  controlValues: session.control_values || {},
+  sessionEvents: (session.session_events || []).map((event): LabSessionEvent => ({
+    time: event.time,
+    type: event.type,
+    data: event.data || {},
+  })),
+  dataPointCount: session.data_point_count || 0,
+  eventCount: session.event_count || 0,
+});
+
+const mapAdminLabSession = (session: BackendAdminLabSession): AdminLabSession => ({
+  ...mapLabSession(session),
+  userEmail: session.user_email,
+  displayName: session.display_name,
+});
 
 /**
  * Save a Virtual Lab session to Firestore via the backend.
  */
-const saveLabSession = async (session: LabSessionPayload): Promise<void> => {
-  await apiFetch('/api/reports/lab-session', {
+const saveLabSession = async (session: LabSessionPayload): Promise<{ session_id: string }> => {
+  const res = await apiFetch('/api/reports/lab-session', {
     method: 'POST',
     body: JSON.stringify(session),
   });
+  return res.json();
+};
+
+const listLabSessions = async (): Promise<LabSession[]> => {
+  const res = await apiFetch('/api/reports/lab-sessions');
+  const data: BackendLabSession[] = await res.json();
+  return data.map(mapLabSession);
+};
+
+const getLabSession = async (sessionId: string): Promise<LabSession> => {
+  const res = await apiFetch(`/api/reports/lab-sessions/${sessionId}`);
+  const data: BackendLabSession = await res.json();
+  return mapLabSession(data);
+};
+
+const generateReportFromSession = async (sessionId: string): Promise<Report> => {
+  const res = await apiFetch(`/api/reports/lab-sessions/${sessionId}/generate-report`, {
+    method: 'POST',
+  });
+  const data = await res.json();
+  return {
+    id: data.id,
+    experimentCode: data.experiment_code,
+    date: data.date,
+    content: data.content,
+  };
+};
+
+const getAdminLabSessions = async (limit = 50): Promise<AdminLabSession[]> => {
+  const res = await apiFetch(`/api/admin/lab-sessions?limit=${limit}`);
+  const data: BackendAdminLabSession[] = await res.json();
+  return data.map(mapAdminLabSession);
 };
 
 // ==================== Exports ====================
@@ -306,9 +412,14 @@ export const backendService = {
   // Reports
   generateReport,
   listReports,
+  getLabSetup,
 
   // Lab Sessions
   saveLabSession,
+  listLabSessions,
+  getLabSession,
+  generateReportFromSession,
+  getAdminLabSessions,
 
   // Admin
   getUsers,

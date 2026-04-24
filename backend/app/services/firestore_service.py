@@ -1,6 +1,7 @@
 """Galvaniy Labs Backend — Firestore Service.
 
-Handles all Firestore CRUD operations for users, settings, manual, and reports.
+Handles all Firestore CRUD operations for users, settings, manual, reports, and
+virtual lab sessions.
 """
 
 import logging
@@ -13,6 +14,7 @@ from app.models.user import UserProfile
 from app.models.settings import GlobalSettings, AdminStats
 from app.models.manual import ManualPage, ManualMetadata
 from app.models.report import Report
+from app.models.session import LabSessionResponse, AdminLabSessionResponse, SessionEvent
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,59 @@ class FirestoreService:
             from app.dependencies import get_firestore_client
             self._db = get_firestore_client()
         return self._db
+
+    @staticmethod
+    def _isoformat(value: Any) -> str:
+        """Convert Firestore/native timestamps to ISO strings."""
+        if value is None:
+            return ""
+        if isinstance(value, datetime):
+            return value.replace(tzinfo=None).isoformat()
+        if hasattr(value, "isoformat"):
+            try:
+                return value.isoformat()
+            except Exception:
+                return str(value)
+        return str(value)
+
+    def _serialize_session(self, doc_id: str, data: Dict[str, Any]) -> LabSessionResponse:
+        """Normalize Firestore session data into a response model."""
+        raw_events = data.get("session_events") or data.get("sessionEvents") or []
+        events: List[SessionEvent] = []
+        for event in raw_events:
+            if isinstance(event, SessionEvent):
+                events.append(event)
+            elif isinstance(event, dict):
+                events.append(
+                    SessionEvent(
+                        time=float(event.get("time", 0) or 0),
+                        type=str(event.get("type", "")),
+                        data=event.get("data", {}) if isinstance(event.get("data", {}), dict) else {},
+                    )
+                )
+
+        data_points = data.get("data_points") or data.get("dataPoints") or []
+        control_values = data.get("control_values") or data.get("controlValues") or {}
+        saved_at = (
+            data.get("saved_at")
+            or data.get("savedAt")
+            or self._isoformat(data.get("createdAt"))
+        )
+
+        return LabSessionResponse(
+            id=data.get("id", doc_id),
+            user_uid=data.get("user_uid", data.get("userUid", "")),
+            experiment_code=data.get("experiment_code", data.get("experimentCode", "")),
+            mode=data.get("mode", "manual"),
+            started_at=data.get("started_at", data.get("startedAt", "")),
+            completed_at=data.get("completed_at", data.get("completedAt", "")),
+            saved_at=saved_at,
+            data_points=data_points if isinstance(data_points, list) else [],
+            control_values=control_values if isinstance(control_values, dict) else {},
+            session_events=events,
+            data_point_count=len(data_points) if isinstance(data_points, list) else 0,
+            event_count=len(events),
+        )
 
     # ==================== SETTINGS ====================
 
@@ -386,17 +441,64 @@ class FirestoreService:
 
     # ==================== LAB SESSIONS ====================
 
-    async def save_lab_session(self, user_uid: str, session_data: Dict[str, Any]) -> None:
+    async def save_lab_session(self, user_uid: str, session_data: Dict[str, Any]) -> str:
         """Save a Virtual Lab experiment session."""
         try:
             session_id = f"{user_uid}_{int(datetime.utcnow().timestamp() * 1000)}"
             doc_ref = self.db.collection("lab_sessions").document(session_id)
             session_data["createdAt"] = SERVER_TIMESTAMP
+            session_data["id"] = session_id
+            session_data["user_uid"] = user_uid
             doc_ref.set(session_data)
             logger.info(f"[Firestore] Lab session saved: {session_id}")
+            return session_id
         except Exception as e:
             logger.error(f"Error saving lab session: {e}")
             raise
+
+    async def get_user_lab_sessions(self, user_uid: str, limit: int = 50) -> List[LabSessionResponse]:
+        """Get saved lab sessions for a single user."""
+        try:
+            query = self.db.collection("lab_sessions").where("user_uid", "==", user_uid)
+            docs = query.get()
+            sessions = [self._serialize_session(doc.id, doc.to_dict()) for doc in docs]
+            sessions.sort(key=lambda s: s.saved_at or s.completed_at or s.started_at, reverse=True)
+            return sessions[:limit]
+        except Exception as e:
+            logger.error(f"Error getting user lab sessions: {e}")
+            return []
+
+    async def get_lab_session(self, session_id: str) -> Optional[LabSessionResponse]:
+        """Get a single lab session by ID."""
+        try:
+            doc = self.db.collection("lab_sessions").document(session_id).get()
+            if not doc.exists:
+                return None
+            return self._serialize_session(doc.id, doc.to_dict())
+        except Exception as e:
+            logger.error(f"Error getting lab session {session_id}: {e}")
+            return None
+
+    async def get_all_lab_sessions(self, limit: int = 100) -> List[AdminLabSessionResponse]:
+        """Get recent lab sessions with user metadata for admin visibility."""
+        try:
+            docs = self.db.collection("lab_sessions").get()
+            sessions: List[AdminLabSessionResponse] = []
+            for doc in docs:
+                session = self._serialize_session(doc.id, doc.to_dict())
+                profile = await self.get_user_profile(session.user_uid)
+                sessions.append(
+                    AdminLabSessionResponse(
+                        **session.model_dump(),
+                        user_email=profile.email if profile else "",
+                        display_name=profile.display_name if profile else None,
+                    )
+                )
+            sessions.sort(key=lambda s: s.saved_at or s.completed_at or s.started_at, reverse=True)
+            return sessions[:limit]
+        except Exception as e:
+            logger.error(f"Error getting admin lab sessions: {e}")
+            return []
 
     # ==================== ADMIN STATS ====================
 
@@ -405,12 +507,17 @@ class FirestoreService:
         try:
             users = await self.get_all_users()
             students = [u for u in users if u.role == "student"]
+            sessions = await self.get_all_lab_sessions(limit=5000)
 
             return AdminStats(
                 total_students=len(students),
                 total_reports=sum(u.reports_generated for u in students),
                 active_students=len([u for u in students if not u.is_revoked]),
                 revoked_students=len([u for u in students if u.is_revoked]),
+                total_lab_sessions=len(sessions),
+                manual_lab_sessions=len([s for s in sessions if s.mode == "manual"]),
+                auto_lab_sessions=len([s for s in sessions if s.mode == "auto"]),
+                students_using_virtual_lab=len({s.user_uid for s in sessions if s.user_uid}),
             )
 
         except Exception as e:
