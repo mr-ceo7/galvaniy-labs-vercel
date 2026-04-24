@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Apparatus Kit Base Class
+ * GalvaniyPhysics - Apparatus Kit Base Class
  *
  * Every experiment kit extends this class. A kit encapsulates:
  * - How to set up the physics world (bodies, constraints)

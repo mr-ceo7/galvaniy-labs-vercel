@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Shared Type Definitions
+ * GalvaniyPhysics - Shared Type Definitions
  * 
  * Central type definitions for the physics engine, apparatus kits,
  * measurement system, and lab session recording.
@@ -158,7 +158,7 @@ export interface LabConfig {
   expectedRelationship?: string;
   acceptableErrorPercent?: number;
 
-  // Legacy fallback (raw Canvas code — only used for tier='legacy')
+  // Legacy fallback (raw Canvas code - only used for tier='legacy')
   legacySimulationScript?: string;
   legacyControls?: LabControl[];
 }

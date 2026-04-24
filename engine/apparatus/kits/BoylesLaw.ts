@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Boyle's Law Kit (Experiment C-12)
+ * GalvaniyPhysics - Boyle's Law Kit (Experiment C-12)
  * UoN Manual: PV = const at constant temperature
  * Physics: P₁V₁ = P₂V₂, plot P vs 1/V → straight line
  */
@@ -13,7 +13,7 @@ import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/type
 
 export class BoylesLawKit extends ApparatusKit {
   readonly kitId = 'BoylesLaw';
-  readonly name = "Boyle's Law — PV = const";
+  readonly name = "Boyle's Law - PV = const";
   readonly experimentCode = 'C-12';
   readonly category = 'heat' as const;
 

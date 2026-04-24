@@ -78,7 +78,7 @@ export const LabBrowser: React.FC<LabBrowserProps> = ({ onSelectExperiment }) =>
           <span>Virtual Labs</span>
         </motion.h1>
         <p className="vlab-browser-subtitle relative z-10">
-          {kits.length} interactive experiments — powered by the Galvaniy Physics Engine
+          {kits.length} interactive experiments - powered by the Galvaniy Physics Engine
         </p>
       </div>
 

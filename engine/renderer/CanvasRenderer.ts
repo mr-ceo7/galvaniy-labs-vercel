@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Canvas2D Renderer
+ * GalvaniyPhysics - Canvas2D Renderer
  *
  * Renders physics worlds and apparatus to an HTML5 Canvas.
  * Optimized for mobile performance. Uses the Galvaniy dark theme.

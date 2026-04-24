@@ -1,6 +1,6 @@
 /**
- * GalvaniyPhysics — Speed of Sound Kit (Experiment D-15)
- * UoN Manual: Resonance tube method — determine speed of sound.
+ * GalvaniyPhysics - Speed of Sound Kit (Experiment D-15)
+ * UoN Manual: Resonance tube method - determine speed of sound.
  * Physics: λ = 4(L + 0.3d) for closed tube, v = fλ
  */
 import { ApparatusKit, DataPoint } from '../ApparatusKit.ts';
@@ -10,7 +10,7 @@ import { KitRegistry } from '../KitRegistry.ts';
 import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/types.ts';
 
 export class SpeedOfSoundKit extends ApparatusKit {
-  readonly kitId = 'SpeedOfSound'; readonly name = 'Speed of Sound — Resonance Tube';
+  readonly kitId = 'SpeedOfSound'; readonly name = 'Speed of Sound - Resonance Tube';
   readonly experimentCode = 'D-15'; readonly category = 'waves' as const;
 
   private frequency = 512; private tubeDiameter = 0.04; // m

@@ -1,5 +1,5 @@
 /**
- * VirtualLab — Interactive lab workspace component.
+ * VirtualLab - Interactive lab workspace component.
  * Renders the physics engine canvas with controls, data table, and procedure steps.
  */
 import React, { useRef, useEffect, useState, useCallback } from 'react';

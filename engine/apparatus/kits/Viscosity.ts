@@ -1,6 +1,6 @@
 /**
- * GalvaniyPhysics — Viscosity Kit (Experiment B-10)
- * UoN Manual: Stokes' Law — determine viscosity of glycerine.
+ * GalvaniyPhysics - Viscosity Kit (Experiment B-10)
+ * UoN Manual: Stokes' Law - determine viscosity of glycerine.
  * Physics: F_drag = 6πηrv, terminal velocity: v_t = 2r²(ρ_s - ρ_f)g / 9η
  */
 import { ApparatusKit, DataPoint } from '../ApparatusKit.ts';
@@ -10,7 +10,7 @@ import { KitRegistry } from '../KitRegistry.ts';
 import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/types.ts';
 
 export class ViscosityKit extends ApparatusKit {
-  readonly kitId = 'Viscosity'; readonly name = "Viscosity — Stokes' Law";
+  readonly kitId = 'Viscosity'; readonly name = "Viscosity - Stokes' Law";
   readonly experimentCode = 'B-10'; readonly category = 'mechanics' as const;
 
   private ballRadius = 0.002; private ballDensity = 7800; // steel
@@ -105,7 +105,7 @@ export class ViscosityKit extends ApparatusKit {
     ctx.strokeStyle = 'rgba(148,163,184,0.3)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.roundRect(10, 10, 250, 100, 10); ctx.stroke();
     ctx.font = 'bold 11px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left';
-    ctx.fillText("STOKES' LAW — VISCOSITY", 20, 28);
+    ctx.fillText("STOKES' LAW - VISCOSITY", 20, 28);
     ctx.font = '12px Inter, sans-serif'; ctx.fillStyle = '#22d3ee';
     ctx.fillText(`v = ${(this.ballVelocity * 100).toFixed(2)} cm/s`, 20, 48);
     ctx.fillStyle = '#f59e0b'; ctx.fillText(`v_t = ${(this.terminalVelocity * 100).toFixed(2)} cm/s`, 20, 66);
@@ -132,4 +132,4 @@ export class ViscosityKit extends ApparatusKit {
   renderFrame(): void { this.renderer?.render(); }
   getRenderer(): CanvasRenderer | null { return this.renderer; }
 }
-KitRegistry.register('B-10', "Viscosity — Stokes' Law", 'mechanics', () => new ViscosityKit());
+KitRegistry.register('B-10', "Viscosity - Stokes' Law", 'mechanics', () => new ViscosityKit());

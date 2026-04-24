@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Friction Kit (Experiment A-5)
+ * GalvaniyPhysics - Friction Kit (Experiment A-5)
  * UoN Manual: Determine coefficient of static/kinetic friction.
  * Physics: f = μN, μs (static) > μk (kinetic)
  */

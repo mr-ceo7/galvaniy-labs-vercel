@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Specific Heat Capacity Kit (Experiment C-13)
+ * GalvaniyPhysics - Specific Heat Capacity Kit (Experiment C-13)
  * UoN Manual: Method of mixtures to determine specific heat capacity.
  * Physics: m_s c_s (T_s - T_f) = m_w c_w (T_f - T_w)
  */
@@ -10,7 +10,7 @@ import { KitRegistry } from '../KitRegistry.ts';
 import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/types.ts';
 
 export class SpecificHeatKit extends ApparatusKit {
-  readonly kitId = 'SpecificHeat'; readonly name = 'Specific Heat Capacity — Method of Mixtures';
+  readonly kitId = 'SpecificHeat'; readonly name = 'Specific Heat Capacity - Method of Mixtures';
   readonly experimentCode = 'C-13'; readonly category = 'heat' as const;
 
   private solidMass = 0.1; private solidTemp = 100; private solidC = 900; // aluminum J/(kg·K)
@@ -94,7 +94,7 @@ export class SpecificHeatKit extends ApparatusKit {
     ctx.strokeStyle = 'rgba(148,163,184,0.3)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.roundRect(10, 10, 260, 110, 10); ctx.stroke();
     ctx.font = 'bold 11px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left';
-    ctx.fillText('SPECIFIC HEAT — METHOD OF MIXTURES', 20, 28);
+    ctx.fillText('SPECIFIC HEAT - METHOD OF MIXTURES', 20, 28);
     ctx.font = '12px Inter, sans-serif'; ctx.fillStyle = '#ef4444';
     ctx.fillText(`Solid: ${(this.solidMass*1000).toFixed(0)}g at ${this.solidTemp}°C`, 20, 48);
     ctx.fillStyle = '#3b82f6'; ctx.fillText(`Water: ${(this.waterMass*1000).toFixed(0)}g at ${this.waterTemp}°C`, 20, 66);

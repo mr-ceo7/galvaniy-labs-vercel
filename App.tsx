@@ -168,7 +168,7 @@ const App: React.FC = () => {
           </div>
 
           {view === 'labs' ? (
-            /* Virtual Labs — full width, no sidebar */
+            /* Virtual Labs - full width, no sidebar */
             <div className="flex-grow">
               {labExperiment ? (
                 <VirtualLab

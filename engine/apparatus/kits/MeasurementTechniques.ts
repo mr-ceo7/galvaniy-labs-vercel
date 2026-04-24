@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Measurement Techniques Kit (Experiment A-1)
+ * GalvaniyPhysics - Measurement Techniques Kit (Experiment A-1)
  * UoN Manual: Use of vernier caliper and micrometer screw gauge.
  * Physics: Least count, zero error, systematic/random errors.
  */
@@ -13,7 +13,7 @@ import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/type
 
 export class MeasurementTechniquesKit extends ApparatusKit {
   readonly kitId = 'MeasurementTechniques';
-  readonly name = 'Measurement Techniques — Vernier & Micrometer';
+  readonly name = 'Measurement Techniques - Vernier & Micrometer';
   readonly experimentCode = 'A-1';
   readonly category = 'measurement' as const;
 

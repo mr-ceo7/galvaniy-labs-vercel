@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Resonance / Sonometer Kit (Experiment D-14)
+ * GalvaniyPhysics - Resonance / Sonometer Kit (Experiment D-14)
  * UoN Manual: Verify f = (1/2L)√(T/μ) using a sonometer.
  * Physics: Standing waves on string, resonance with tuning fork.
  */
@@ -10,7 +10,7 @@ import { KitRegistry } from '../KitRegistry.ts';
 import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/types.ts';
 
 export class SonometerKit extends ApparatusKit {
-  readonly kitId = 'Sonometer'; readonly name = 'Resonance — Sonometer';
+  readonly kitId = 'Sonometer'; readonly name = 'Resonance - Sonometer';
   readonly experimentCode = 'D-14'; readonly category = 'waves' as const;
 
   private tension = 20; // N
@@ -133,7 +133,7 @@ export class SonometerKit extends ApparatusKit {
     ctx.strokeStyle = 'rgba(148,163,184,0.3)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.roundRect(10, 10, 250, 90, 10); ctx.stroke();
     ctx.font = 'bold 11px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left';
-    ctx.fillText('SONOMETER — RESONANCE', 20, 28);
+    ctx.fillText('SONOMETER - RESONANCE', 20, 28);
     ctx.font = '12px Inter, sans-serif'; ctx.fillStyle = '#22d3ee';
     ctx.fillText(`f = ${this.forkFrequency} Hz | T = ${this.tension} N`, 20, 48);
     ctx.fillStyle = '#f59e0b';
@@ -163,4 +163,4 @@ export class SonometerKit extends ApparatusKit {
   renderFrame(): void { this.renderer?.render(); }
   getRenderer(): CanvasRenderer | null { return this.renderer; }
 }
-KitRegistry.register('D-14', 'Sonometer — Resonance', 'waves', () => new SonometerKit());
+KitRegistry.register('D-14', 'Sonometer - Resonance', 'waves', () => new SonometerKit());

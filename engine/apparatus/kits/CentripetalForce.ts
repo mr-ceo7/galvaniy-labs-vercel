@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Centripetal Force Kit (Experiment B-7)
+ * GalvaniyPhysics - Centripetal Force Kit (Experiment B-7)
  * UoN Manual: F = mv²/r = mω²r
  */
 import { ApparatusKit, DataPoint } from '../ApparatusKit.ts';

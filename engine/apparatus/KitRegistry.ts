@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Kit Registry (3-Tier Resolution)
+ * GalvaniyPhysics - Kit Registry (3-Tier Resolution)
  *
  * Maps experiment codes to the best available apparatus kit:
  *   Tier 1: Built-in kit (hand-tuned, highest quality)
@@ -106,10 +106,10 @@ class KitRegistryImpl {
       return fuzzyMatch.factory();
     }
 
-    // Tier 2: Composable kit (Phase 2C — not yet implemented)
+    // Tier 2: Composable kit (Phase 2C - not yet implemented)
     // TODO: AI assembles kit from physics primitives
 
-    // Tier 3: Legacy fallback (Phase 2C — not yet implemented)
+    // Tier 3: Legacy fallback (Phase 2C - not yet implemented)
     // TODO: Wrap existing eval-based simulation
 
     return null;

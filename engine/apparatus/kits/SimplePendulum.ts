@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Simple Pendulum Kit (Experiment A-2)
+ * GalvaniyPhysics - Simple Pendulum Kit (Experiment A-2)
  *
  * UoN Physics Lab Manual: "Acceleration Due to Gravity - The Simple Pendulum"
  *
@@ -22,7 +22,7 @@ import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/type
 
 export class SimplePendulumKit extends ApparatusKit {
   readonly kitId = 'SimplePendulum';
-  readonly name = 'Simple Pendulum — Acceleration Due to Gravity';
+  readonly name = 'Simple Pendulum - Acceleration Due to Gravity';
   readonly experimentCode = 'A-2';
   readonly category = 'mechanics' as const;
 
@@ -451,4 +451,4 @@ export class SimplePendulumKit extends ApparatusKit {
 }
 
 // Register this kit with the global registry
-KitRegistry.register('A-2', 'Simple Pendulum — Acceleration Due to Gravity', 'mechanics', () => new SimplePendulumKit());
+KitRegistry.register('A-2', 'Simple Pendulum - Acceleration Due to Gravity', 'mechanics', () => new SimplePendulumKit());

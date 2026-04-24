@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Rigid Body
+ * GalvaniyPhysics - Rigid Body
  *
  * Represents a physics body in the simulation. Bodies can be circles, rectangles,
  * or particles. Supports both dynamic (moving) and static (fixed) bodies.
@@ -30,7 +30,7 @@ export class Body {
   friction: number;
   damping: number;
 
-  // State — mutable for simulation stepping
+  // State - mutable for simulation stepping
   position: Vector2;
   previousPosition: Vector2;  // for Verlet integration
   velocity: Vector2;

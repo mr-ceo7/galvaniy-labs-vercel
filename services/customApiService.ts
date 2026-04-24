@@ -171,7 +171,7 @@ export const generateLabReport = async (experimentCode: string): Promise<string>
   }
 
   // Allow empty string base (""), which indicates use of relative `/api` path
-  // (e.g., when the frontend is HTTPS but the configured API is HTTP — use Vercel proxy).
+  // (e.g., when the frontend is HTTPS but the configured API is HTTP - use Vercel proxy).
   if (apiUrl === null || apiUrl === undefined) {
     const error = new Error("Custom API URL is not configured. Please contact Admin to set it in Admin settings.");
     throw errorService.wrapError('Custom API: Configuration', error);

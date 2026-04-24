@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Hooke's Law Kit (Experiment A-4)
+ * GalvaniyPhysics - Hooke's Law Kit (Experiment A-4)
  * UoN Manual: F = kx, determine spring constant.
  * Physics: Plot F vs x, slope = k (spring constant).
  */
@@ -13,7 +13,7 @@ import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/type
 
 export class HookesLawKit extends ApparatusKit {
   readonly kitId = 'HookesLaw';
-  readonly name = "Hooke's Law — Spring Constant";
+  readonly name = "Hooke's Law - Spring Constant";
   readonly experimentCode = 'A-4';
   readonly category = 'mechanics' as const;
 

@@ -1,5 +1,5 @@
 /**
- * Galvaniy Physics Engine — Comprehensive Terminal Test Suite
+ * Galvaniy Physics Engine - Comprehensive Terminal Test Suite
  * 
  * Tests every feature end-to-end with edge cases.
  * Run: node scripts/run-ts-entry.mjs tests/comprehensive.ts
@@ -82,7 +82,7 @@ test('Resolve empty string returns null', () => {
 });
 
 // ============================================================
-// 2. ALL 20 KITS — CORE METHODS
+// 2. ALL 20 KITS - CORE METHODS
 // ============================================================
 console.log('\n━━━ 2. KIT CORE METHODS (all 20) ━━━');
 
@@ -200,7 +200,7 @@ test('Simple Pendulum: T² proportional to L', () => {
       }
     }
   } else {
-    warn('Pendulum T²∝L', 'Could not verify — check column names');
+    warn('Pendulum T²∝L', 'Could not verify - check column names');
   }
 });
 

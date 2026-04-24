@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Ohm's Law Kit (Experiment F-18)
+ * GalvaniyPhysics - Ohm's Law Kit (Experiment F-18)
  * UoN Physics Lab Manual: V = IR
  */
 
@@ -12,7 +12,7 @@ import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/type
 
 export class OhmsLawKit extends ApparatusKit {
   readonly kitId = 'OhmsLaw';
-  readonly name = "Ohm's Law — V-I Characteristics";
+  readonly name = "Ohm's Law - V-I Characteristics";
   readonly experimentCode = 'F-18';
   readonly category = 'electricity' as const;
 

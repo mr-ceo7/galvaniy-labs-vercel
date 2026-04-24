@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Conservation of Momentum Kit (Experiment B-9)
+ * GalvaniyPhysics - Conservation of Momentum Kit (Experiment B-9)
  * UoN Manual: Verify m1v1 + m2v2 = m1v1' + m2v2' using air track.
  */
 import { ApparatusKit, DataPoint } from '../ApparatusKit.ts';

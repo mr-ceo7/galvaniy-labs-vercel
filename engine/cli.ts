@@ -1,5 +1,5 @@
 /**
- * Galvaniy Physics Engine — CLI Bridge for Backend Integration
+ * Galvaniy Physics Engine - CLI Bridge for Backend Integration
  * 
  * Usage: node scripts/run-ts-entry.mjs engine/cli-entry.ts <experiment_code>
  * 
@@ -52,7 +52,7 @@ export function buildCliOutput(experimentCode: string) {
   );
 
   const tables = [{
-    title: dataTable.title || `${kit.name} — Observation Table`,
+    title: dataTable.title || `${kit.name} - Observation Table`,
     headers,
     rows,
   }];

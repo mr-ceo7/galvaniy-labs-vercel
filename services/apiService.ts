@@ -1,4 +1,4 @@
-// API Service — Routes all report generation through the Python backend
+// API Service - Routes all report generation through the Python backend
 //
 // Previously this was a facade switching between Gemini and Custom API.
 // Now the backend handles provider selection, prompt templates, and rate limiting.

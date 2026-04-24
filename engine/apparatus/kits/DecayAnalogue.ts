@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Radioactivity Decay Analogue Kit (Experiment N-1)
+ * GalvaniyPhysics - Radioactivity Decay Analogue Kit (Experiment N-1)
  * UoN Manual: Simulate radioactive decay using cubes with one marked face.
  * Physics: N(t) = N₀ × (5/6)^n, λ = ln(6/5), t½ = ln2/λ
  */
@@ -44,7 +44,7 @@ export class DecayAnalogueKit extends ApparatusKit {
     this.lastDecayed = new Set();
   }
 
-  /** Perform one throw — each active cube has 1/6 chance of decaying. */
+  /** Perform one throw - each active cube has 1/6 chance of decaying. */
   performThrow(): void {
     this.lastDecayed = new Set();
     for (let i = 0; i < this.cubeStates.length; i++) {
@@ -107,7 +107,7 @@ export class DecayAnalogueKit extends ApparatusKit {
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.roundRect(x, y, cubeSize, cubeSize, 2); ctx.fill(); ctx.stroke();
       } else if (this.lastDecayed.has(i) && this.animationProgress < 1) {
-        // Just decayed — fade out animation
+        // Just decayed - fade out animation
         const alpha = 1 - this.animationProgress;
         ctx.fillStyle = `rgba(239,68,68,${alpha})`;
         ctx.strokeStyle = `rgba(239,68,68,${alpha * 0.8})`;
@@ -118,7 +118,7 @@ export class DecayAnalogueKit extends ApparatusKit {
         ctx.roundRect(x - offset, y - offset, cubeSize * scale, cubeSize * scale, 2);
         ctx.fill(); ctx.stroke();
       } else {
-        // Already decayed — ghost
+        // Already decayed - ghost
         ctx.fillStyle = 'rgba(71,85,105,0.15)';
         ctx.beginPath(); ctx.roundRect(x, y, cubeSize, cubeSize, 2); ctx.fill();
       }

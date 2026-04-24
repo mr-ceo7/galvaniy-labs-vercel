@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — World
+ * GalvaniyPhysics - World
  *
  * The physics world manages all bodies, constraints, and simulation stepping.
  * Provides a clean API for apparatus kits to build upon.
@@ -116,7 +116,7 @@ export class World {
       integrate(body, dt, this.gravity, this.integrator);
     }
 
-    // 3. Solve position-based constraints (distance, pin) — iterative
+    // 3. Solve position-based constraints (distance, pin) - iterative
     const constraintIterations = 4;
     for (let i = 0; i < constraintIterations; i++) {
       for (const constraint of this.constraints.values()) {

@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — 2D Vector Math
+ * GalvaniyPhysics - 2D Vector Math
  * 
  * Lightweight, immutable-style vector class optimized for physics calculations.
  * Methods return new vectors to prevent mutation bugs in simulations.
@@ -101,7 +101,7 @@ export class Vector2 {
     return this.x * other.x + this.y * other.y;
   }
 
-  /** 2D cross product — returns scalar (z-component of 3D cross). */
+  /** 2D cross product - returns scalar (z-component of 3D cross). */
   cross(other: Vector2): number {
     return this.x * other.y - this.y * other.x;
   }

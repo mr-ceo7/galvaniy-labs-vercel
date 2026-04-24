@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Constraints
+ * GalvaniyPhysics - Constraints
  *
  * Constraints connect bodies together or to world anchors.
  * Supports pin joints (fixed point), distance (rigid rod),
@@ -112,7 +112,7 @@ export class Constraint {
         this.solveSpring(dt);
         break;
       case 'slider':
-        // Slider constraints restrict motion to an axis — simplified for now
+        // Slider constraints restrict motion to an axis - simplified for now
         break;
     }
   }

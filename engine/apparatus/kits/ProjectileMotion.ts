@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Projectile Motion Kit (Experiment B-6)
+ * GalvaniyPhysics - Projectile Motion Kit (Experiment B-6)
  * UoN Manual: Verify range equation R = v²sin(2θ)/g
  * Physics: x = v₀cosθ·t, y = v₀sinθ·t - ½gt²
  */
@@ -13,7 +13,7 @@ import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/type
 
 export class ProjectileMotionKit extends ApparatusKit {
   readonly kitId = 'ProjectileMotion';
-  readonly name = 'Projectile Motion — Range Equation';
+  readonly name = 'Projectile Motion - Range Equation';
   readonly experimentCode = 'B-6';
   readonly category = 'mechanics' as const;
 

@@ -117,7 +117,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
       // Check manual metadata via backend
       const metadata = await backendService.getManualMetadata();
       if (metadata && metadata.page_count && metadata.page_count > 0) {
-        // We don't have page images from backend — show placeholder info
+        // We don't have page images from backend - show placeholder info
         const placeholderPages: ManualPage[] = [];
         for (let i = 1; i <= metadata.page_count; i++) {
           placeholderPages.push({
@@ -241,7 +241,7 @@ export const Admin: React.FC<AdminProps> = ({ theme }) => {
     setUploadProgress(30);
 
     try {
-      // Upload raw PDF to the backend — backend handles text extraction
+      // Upload raw PDF to the backend - backend handles text extraction
       const result = await backendService.uploadManual(file);
       
       setUploadProgress(100);

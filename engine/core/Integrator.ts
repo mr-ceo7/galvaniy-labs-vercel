@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Numerical Integrators
+ * GalvaniyPhysics - Numerical Integrators
  *
  * Provides Verlet and RK4 integration methods for advancing physics state.
  * Verlet is the default (energy-conserving, stable for constraints).

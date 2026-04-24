@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Equilibrium of Forces Kit (Experiment A-3)
+ * GalvaniyPhysics - Equilibrium of Forces Kit (Experiment A-3)
  * UoN Manual: Resolve forces using a force table (Lami's theorem).
  * Physics: ΣF = 0 at equilibrium, Lami: F1/sin α1 = F2/sin α2 = F3/sin α3
  */
@@ -15,14 +15,14 @@ interface ForceVec { magnitude: number; angle: number; color: string; }
 
 export class EquilibriumOfForcesKit extends ApparatusKit {
   readonly kitId = 'EquilibriumOfForces';
-  readonly name = 'Equilibrium of Forces — Force Table';
+  readonly name = 'Equilibrium of Forces - Force Table';
   readonly experimentCode = 'A-3';
   readonly category = 'mechanics' as const;
 
   private forces: ForceVec[] = [
     { magnitude: 1.5, angle: 0, color: '#3b82f6' },
     { magnitude: 2.0, angle: 120, color: '#22d3ee' },
-    { magnitude: 0, angle: 0, color: '#a855f7' }, // equilibrant — auto-calculated
+    { magnitude: 0, angle: 0, color: '#a855f7' }, // equilibrant - auto-calculated
   ];
   private protractor: Protractor;
 

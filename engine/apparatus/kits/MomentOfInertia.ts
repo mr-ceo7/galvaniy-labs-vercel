@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Moment of Inertia Kit (Experiment B-8)
+ * GalvaniyPhysics - Moment of Inertia Kit (Experiment B-8)
  * UoN Manual: Determine moment of inertia of a flywheel.
  * Physics: Iα = τ - friction, energy: ½Iω² = mgh - friction losses
  */
@@ -10,7 +10,7 @@ import { KitRegistry } from '../KitRegistry.ts';
 import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/types.ts';
 
 export class MomentOfInertiaKit extends ApparatusKit {
-  readonly kitId = 'MomentOfInertia'; readonly name = 'Moment of Inertia — Flywheel';
+  readonly kitId = 'MomentOfInertia'; readonly name = 'Moment of Inertia - Flywheel';
   readonly experimentCode = 'B-8'; readonly category = 'mechanics' as const;
   private hangingMass = 0.2; private fallHeight = 1.0; private axleRadius = 0.02;
   private I = 0.05; private frictionTorque = 0.01; private numWindings = 5;
@@ -84,7 +84,7 @@ export class MomentOfInertiaKit extends ApparatusKit {
     ctx.strokeStyle = 'rgba(148,163,184,0.3)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.roundRect(10, 10, 230, 80, 10); ctx.stroke();
     ctx.font = 'bold 11px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left';
-    ctx.fillText('MOMENT OF INERTIA — FLYWHEEL', 20, 28);
+    ctx.fillText('MOMENT OF INERTIA - FLYWHEEL', 20, 28);
     ctx.font = '12px Inter, sans-serif'; ctx.fillStyle = '#22d3ee';
     ctx.fillText(`I = ${this.I.toFixed(4)} kg·m²`, 20, 48);
     ctx.fillStyle = '#f59e0b'; ctx.fillText(`m = ${(this.hangingMass*1000).toFixed(0)} g | h = ${(this.fallHeight*100).toFixed(0)} cm`, 20, 66);

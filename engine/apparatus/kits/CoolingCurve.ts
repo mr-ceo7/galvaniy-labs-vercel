@@ -1,6 +1,6 @@
 /**
- * GalvaniyPhysics — Newton's Law of Cooling Kit (Experiment C-11)
- * UoN Manual: Investigate Newton's law of cooling — exponential temp decay.
+ * GalvaniyPhysics - Newton's Law of Cooling Kit (Experiment C-11)
+ * UoN Manual: Investigate Newton's law of cooling - exponential temp decay.
  * Physics: dT/dt = -k(T - T_env), solution T(t) = T_env + (T0 - T_env)e^(-kt)
  */
 

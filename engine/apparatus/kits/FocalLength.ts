@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Focal Length of Lenses Kit (Experiment E-17)
+ * GalvaniyPhysics - Focal Length of Lenses Kit (Experiment E-17)
  * UoN Manual: Thin lens equation 1/f = 1/u + 1/v
  */
 import { ApparatusKit, DataPoint } from '../ApparatusKit.ts';
@@ -144,7 +144,7 @@ export class FocalLengthKit extends ApparatusKit {
     ctx.strokeStyle = 'rgba(148,163,184,0.3)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.roundRect(10, 10, 260, 110, 10); ctx.stroke();
     ctx.font = 'bold 11px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left';
-    ctx.fillText('THIN LENS — FOCAL LENGTH', 20, 28);
+    ctx.fillText('THIN LENS - FOCAL LENGTH', 20, 28);
     ctx.font = '12px Inter, sans-serif'; ctx.fillStyle = '#ef4444';
     ctx.fillText(`u = ${(this.objectDist * 100).toFixed(1)} cm`, 20, 48);
     ctx.fillStyle = '#3b82f6';

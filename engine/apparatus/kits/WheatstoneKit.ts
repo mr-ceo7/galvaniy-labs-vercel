@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Wheatstone Bridge Kit (Experiment F-19/20)
+ * GalvaniyPhysics - Wheatstone Bridge Kit (Experiment F-19/20)
  * UoN Manual: Determine unknown resistance using Wheatstone bridge.
  * Physics: At balance, R1/R2 = R3/R4, or Rx = R · L2/L1 (meter bridge)
  */

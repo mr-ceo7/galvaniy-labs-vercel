@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Engine Entry Point
+ * GalvaniyPhysics - Engine Entry Point
  *
  * Public API for the Galvaniy Physics Engine.
  * Import everything from here.
@@ -63,13 +63,13 @@ export { AutoRunner } from './autorun/AutoRunner.ts';
 export { ProcedureExecutor } from './autorun/ProcedureExecutor.ts';
 
 // Built-in Kits (import triggers self-registration)
-// Phase 1A — Flagship 5
+// Phase 1A - Flagship 5
 import './apparatus/kits/SimplePendulum.ts';
 import './apparatus/kits/OhmsLaw.ts';
 import './apparatus/kits/CoolingCurve.ts';
 import './apparatus/kits/BoylesLaw.ts';
 import './apparatus/kits/DecayAnalogue.ts';
-// Phase 1B — Full Lab Manual
+// Phase 1B - Full Lab Manual
 import './apparatus/kits/MeasurementTechniques.ts';
 import './apparatus/kits/EquilibriumOfForces.ts';
 import './apparatus/kits/HookesLaw.ts';

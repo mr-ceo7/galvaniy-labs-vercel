@@ -1,5 +1,5 @@
 /**
- * GalvaniyPhysics — Snell's Law Kit (Experiment E-16)
+ * GalvaniyPhysics - Snell's Law Kit (Experiment E-16)
  * UoN Manual: Verify n₁sinθ₁ = n₂sinθ₂, find refractive index.
  */
 import { ApparatusKit, DataPoint } from '../ApparatusKit.ts';
@@ -9,7 +9,7 @@ import { KitRegistry } from '../KitRegistry.ts';
 import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/types.ts';
 
 export class SnellsLawKit extends ApparatusKit {
-  readonly kitId = 'SnellsLaw'; readonly name = "Snell's Law — Refraction";
+  readonly kitId = 'SnellsLaw'; readonly name = "Snell's Law - Refraction";
   readonly experimentCode = 'E-16'; readonly category = 'optics' as const;
 
   private n1 = 1.0; private n2 = 1.5; // glass

@@ -15,11 +15,11 @@ import { Report, User, ManualPage, LabSession, LabSessionEvent, AdminLabSession 
 
 // Resolve base URL: Vite env → relative (for Vercel proxy)
 const resolveBaseUrl = (): string => {
-  // @ts-ignore — Vite injects import.meta.env
+  // @ts-ignore - Vite injects import.meta.env
   const envUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL;
   if (envUrl) return envUrl.replace(/\/$/, '');
 
-  // In production (Vercel), use relative path — the rewrite proxy handles routing
+  // In production (Vercel), use relative path - the rewrite proxy handles routing
   return '';
 };
 
@@ -294,7 +294,7 @@ const uploadManual = async (file: File): Promise<{ page_count: number }> => {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
-      // Note: Do NOT set Content-Type for FormData — the browser sets it with the boundary
+      // Note: Do NOT set Content-Type for FormData - the browser sets it with the boundary
     },
     body: formData,
   });

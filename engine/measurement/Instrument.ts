@@ -1,9 +1,9 @@
 /**
- * GalvaniyPhysics — Base Instrument
+ * GalvaniyPhysics - Base Instrument
  *
  * Virtual measuring instruments that read physics state and produce
  * readings with configurable noise and precision. This is the core
- * educational value — students learn about measurement uncertainty
+ * educational value - students learn about measurement uncertainty
  * from instruments that behave realistically.
  */
 
@@ -109,7 +109,7 @@ export abstract class Instrument {
 // ============================================================
 
 /**
- * Stopwatch — measures elapsed time between start/stop events.
+ * Stopwatch - measures elapsed time between start/stop events.
  * Includes reaction-time noise to simulate human error.
  */
 export class Stopwatch extends Instrument {
@@ -171,7 +171,7 @@ export class Stopwatch extends Instrument {
 }
 
 /**
- * Ruler — measures distance/length.
+ * Ruler - measures distance/length.
  * Includes parallax error noise.
  */
 export class Ruler extends Instrument {
@@ -201,7 +201,7 @@ export class Ruler extends Instrument {
 }
 
 /**
- * Thermometer — measures temperature.
+ * Thermometer - measures temperature.
  * Includes thermal lag (sluggish response) noise.
  */
 export class Thermometer extends Instrument {
@@ -227,7 +227,7 @@ export class Thermometer extends Instrument {
     this.targetTemperature = temp;
   }
 
-  /** Simulate thermal lag — call each physics step. */
+  /** Simulate thermal lag - call each physics step. */
   update(): void {
     // Exponential approach: displayed temp moves toward target
     this.displayedTemperature =
@@ -241,7 +241,7 @@ export class Thermometer extends Instrument {
 }
 
 /**
- * Ammeter — measures electrical current.
+ * Ammeter - measures electrical current.
  */
 export class Ammeter extends Instrument {
   private currentValue: number = 0;
@@ -269,7 +269,7 @@ export class Ammeter extends Instrument {
 }
 
 /**
- * Voltmeter — measures electrical voltage.
+ * Voltmeter - measures electrical voltage.
  */
 export class Voltmeter extends Instrument {
   private voltageValue: number = 0;
@@ -297,7 +297,7 @@ export class Voltmeter extends Instrument {
 }
 
 /**
- * Protractor — measures angles in degrees.
+ * Protractor - measures angles in degrees.
  */
 export class Protractor extends Instrument {
   private angleValue: number = 0;
@@ -325,7 +325,7 @@ export class Protractor extends Instrument {
 }
 
 /**
- * PressureGauge — measures pressure.
+ * PressureGauge - measures pressure.
  */
 export class PressureGauge extends Instrument {
   private pressureValue: number = 101325; // Pa (1 atm)
