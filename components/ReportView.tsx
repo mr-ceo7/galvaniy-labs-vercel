@@ -1345,7 +1345,7 @@ function generateInteractiveHTML(data: any, code: string) {
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 relative bg-black/40 rounded-xl overflow-hidden border border-white/5 h-[300px] flex items-center justify-center">
-                    <canvas id="simCanvas" width="800" height="300"></canvas>
+                    <canvas id="simCanvas" width="800" height="300" class="w-full max-w-full object-contain"></canvas>
                     <div id="simOverlay" class="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <p class="text-white/20 font-bold text-4xl uppercase tracking-widest">Simulation Paused</p>
                     </div>
