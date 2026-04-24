@@ -1,0 +1,5577 @@
+STUDENT REG. NUMBER: ……………………………….
+
+FIRST YEAR LABORATORY
+MANUAL
+2025 EDITION
+
+A
+V
+
++
+-
+
+Department of Physics, University of Nairobi
+
+Edited by F. W. Nyongesa
+and
+D. L. Omucheni
+1
+
+Table of Contents
+AIMS OF THE PRACTICAL COURSE .............................................................................. 4
+INSTRUCTIONS TO THE STUDENT ............................................................................... 5
+LABORATORY REPORT WRITING................................................................................. 6
+INTRODUCTORY EXPERIMENT ....................................................................................... 10
+Experiment A0: Precision Measurements ........................................................................... 10
+MECHANICS ......................................................................................................................... 14
+Experiment: A-1: Parallelogram and Triangle of Forces .................................................... 14
+Experiment: A-2: Acceleration Due to Gravity - The Simple Pendulum .......................... 16
+Experiment: A-3: Principles of Equilibrium ....................................................................... 21
+Experiment A-5: Variable Inertia Bar................................................................................. 24
+PROPERTIES OF MATTER ................................................................................................. 28
+Experiment B-6: Young’s Modulus of Elasticity .............................................................. 28
+Experiment B-7: Viscosity .................................................................................................. 32
+HEAT ...................................................................................................................................... 36
+Experiment C-8: Linear Expansion .................................................................................... 36
+Experiment C-9: Specific Heat Capacity by the Method of Mixtures ............................... 39
+Experiment C-10: Thermal Conductivity – Searle’s Bar ................................................... 42
+Experiment C-11: Newton’s Law Of Cooling ................................................................... 46
+Experiment C-12: Boyle’s Law ......................................................................................... 49
+WAVE MOTION.................................................................................................................... 52
+Experiment D-14: Standing Waves in a Taut String ......................................................... 52
+OPTICS ................................................................................................................................... 56
+Experiment E-15: Laws of Reflection ............................................................................... 56
+Experiment E-16: Laws of Refraction and Properties of Lenses ........................................ 61
+Experiment E-17: The Spectometer – Refractive Index ..................................................... 67
+ELECTRICITY ....................................................................................................................... 71
+Experiment F-18: Ohm’s Law ............................................................................................ 71
+Experiment F-19: The Thermistor ...................................................................................... 75
+Experiment F- 20: The Pontentiometer............................................................................... 77
+Experiment F-21: The Oscilloscope ................................................................................... 80
+RADIOACTIVITY ................................................................................................................. 84
+Experiment N-1: Radioactivity Decay Analogue ............................................................... 84
+RENEWABLE ENERGY ....................................................................................................... 87
+Experiment S-1: PV Panel Characteristics ........................................................................ 87
+Experiment S-2: Rated Voltage and Power of a Device ..................................................... 91
+APPENDIX A ......................................................................................................................... 94
+Error Analysis ..................................................................................................................... 94
+APPENDIX B ....................................................................................................................... 101
+Resistor Colour Codes ...................................................................................................... 101
+APPENDIX C ....................................................................................................................... 103
+A General Introduction to the Spectrometer ..................................................................... 103
+Department of Physics, University of Nairobi
+
+2
+
+INTRODUCTION
+This laboratory manual has been designed for First Year Students taking Physics in the following
+degree courses: B.Sc, B.Ed, B.Sc (MIT, Metrology, Industrial Chemistry, Geology) and Engineering.
+The aim of the lab session is to demonstrate what has been learned in the lectures as well as laying
+emphasis on laboratory techniques and discipline, data analysis and the interpretation of results. You
+will learn how to take measurements and estimate reading errors using various instruments, how to
+analyze and interpret data, how to discuss results and draw intelligent conclusions therefrom. You will
+be exposed to different types of equipment, illustrating different laboratory and analytic techniques and
+of course learn some physics.
+Each experiment is designed to be completed within a three (3) hour session. Pre-prepared
+worksheets are provided within the manual, which you will be expected to fill in during the course of
+the experiment. The worksheets include blank data tables, spaces for data manipulation and error
+calculation, questions on the experiment and spaces for discussion and conclusion. You will also find
+information on graphical analysis and error analysis (appendix A) which form an important part of the
+course.
+You will be required to plot a rough graph during the experiment (as a rough guide to see that all is
+going well). This way, you will be able to spot any measurements that may have to be repeated. You
+will then do all calculations, including error calculations, draw any graphs required and answer any
+questions posed, write a complete lab report to be handed in for marking.
+You will be required to perform a Minimum of 8 experiments in a semester/part (for Distance
+Learners).
+Before you begin your lab sessions, you will be given two tutorial sessions on the following
+(i)
+Laboratory conduct and safety, units, significant figures, how to draw and interpret graphs
+(ii)
+Error analysis:- Types of Errors, How to estimate reading errors, how to reduce or eliminate
+errors, calculations involving errors with examples
+(iii)
+Skills on report writing
+Most of the information that you will need such as resistor color codes, electric symbols etc. are
+provided at the Appendix.
+
+Department of Physics, University of Nairobi
+
+3
+
+AIMS OF THE PRACTICAL COURSE
+The aims of this course are to:
+(a) To demonstrate to you what has been learned in the lectures through well designed studies of experimental
+and practical physics. In particular, this course will enable you to acquire sufficient understanding and
+practical knowledge to recognize the usefulness, and limitations, of scientific method and to appreciate its
+applicability in other disciplines and in everyday life;
+(b) Develop in you, attitudes relevant to physics such as
+(i)
+Concern for accuracy and precision
+(ii)
+Enquiry Initiative and Inventiveness
+(c) Guide you on how to write a good practical or technical report in the accepted formal style
+(d) Develop experimental abilities and skills on
+(i)
+How to use various scientific instruments
+(ii)
+How to interpret and analyze scientific data
+(iii)
+How to reduce/eliminate errors and how to calculate errors in readings and measured quantities
+(iv)
+Laboratory techniques and laboratory safety
+
+OBJECTIVES
+At the end of this course, you should be able to
+1. Demonstrate experimental skills in relation to scientific instruments and apparatus,
+including techniques of operation and aspects of safety.
+
+2. Identify problems to be investigated in a given experiment, plan and carry out
+investigations, including the selection and techniques to be used, choice of
+apparatus, measuring devices and materials. You should be able to use apparatus,
+handle measuring devices and materials effectively and safely;
+3. Follow written instructions for the assembly and use of apparatus provided. Indicate
+how you carried out a required instruction and describe precautions taken in
+carrying out a procedure;
+4. Interpret, evaluate and report upon observations and experimental data. In
+particular, you should be able to
+
+
+Present your data graphically where appropriate, using suitable axes and
+scales and plotting the points accurately
+
+
+
+Determine a gradient, intercept or intersection on a graph
+
+5. To discuss results and draw intelligent conclusions. Comment on a procedure used
+in an experiment and suggest any improvements where necessary.
+
+Department of Physics, University of Nairobi
+
+4
+
+INSTRUCTIONS TO THE STUDENT
+Before you come to the lab, make sure you have done a sufficient preliminary reading of the
+experiment to be performed to have the nature of the problem to be investigated and a plan of
+campaign clear in your mind. Bring with you, to the lab, a notebook, a lab manual and a calculator.
+
+While in the laboratory
+
+(a) Look at your apparatus
+Before taking any measurements, check that you have all the apparatus needed. Study your apparatus
+to know the function of every control, knob, switch, screw, slice, locking device etc. If anything is
+missing, or you need extra equipment, ask the lab technologist.
+(b) Assemble the apparatus/draw circuit diagram
+Assemble the apparatus and have the set-up checked by the demonstrator. Observe the following for
+electrical experiments
+(i)
+Always draw the circuit diagram first. This way, it is easier to spot any anomalies in the circuit.
+(ii)
+Have the circuit checked by your demonstrator before you switch on or connect to power
+supplier or cells. This is to ensure that no damage is caused to any electrical equipment as a
+result of wrong connections.
+(iii)
+Do not switch electronic equipment ON and OFF:- Most strain and damage occurs with
+electronic equipment when it is switched on, while it is warming up. Many parts may be
+temporarily overloaded under such abnormal conditions.
+(c) Taking readings
+Record all original readings in your notebook without any processing or editing. Sample tables are
+provided to help you record your readings. Give the unit and estimated error for every reading. Fill in
+(using ink) the data sheet(s) provided or required with the actual observations made during the
+experiment. Data sheets and reports written in pencil are not acceptable.
+(d) Repeat Readings
+It is better to repeat measurements so as to obtain both an average value with a smaller random error
+and an indication of the size of the random error. Suitable data sheets are provided in the manual.
+(e) Plot rough Graphs
+Plot a rough graph during the experiment (as a rough guide to see that all is going well). This way, you
+will be able to spot any measurements that may have to be repeated.
+(f) Present your data to the Demonstrator
+You should make sure that your data has been verified, certified and signed by your lab demonstrator
+before you leave the lab. Unsigned data will not be marked.
+(g) Presentation and marking
+In marking, emphasis will be laid on the following
+ Clarity and neatness of work; graphs in particular
+ Realistic estimation of errors, signs of initiative and common sense in taking precautions as a
+means of improving the results and minimizing errors
+ Error analysis
+ Clearly explained and well-thought-out comments and conclusions, among others
+(h) Submission
+The reports MUST be submitted within ONE WEEK after carrying out the experiment.
+Department of Physics, University of Nairobi
+
+5
+
+LABORATORY REPORT WRITING
+This format will guide you on how to write a good laboratory or technical report. Study it carefully and
+observe the same format in your report writing. Remember, an important part of your grade in this
+course depends on your performance in the laboratory and the way you present your report.
+FORMAT OF THE LAB REPORT
+ When writing your report, please observe the following
+(i)
+Always begin a new report on a fresh (ruled) page
+(ii)
+Your report should contain good written language i.e., the language should be clear, logically
+express your ideas, contain proper syntax (spelling and punctuation's) and intelligible with the
+purpose of being understood.
+
+
+The Report should follow a logical order (style) and should come under some of the following
+headings
+
+(a) CODE & TITLE OF THE EXPERIMENT:- This is important for ease of referencing and
+identification e.g., "EXP A2: THE SIMPLE PENDULUM". The Title tells the reader what the report
+is all about.
+(b) DATE:- This is important because the nature of some phenomena like radioactivity, changes with
+time. As such, the results obtained are depended on the date of measurement.
+(c) NAME OF PARTNERS:- List the collaborators involved in the investigation (experiment).
+(d) OBJECTIVES (AIMS):- They set the targets or the goals of the investigation e.g. "To determine g
+using a simple pendulum".
+(e) THEORY (INTRODUCTION):- You should provide the introduction to the experiment that sets the
+scene for what follows. It shows the relation of your practical work to some theoretical body of
+knowledge. You should highlight any assumptions and approximations if any.
+(f) LIST OF APPARATUS:- List all the apparatus required for the particular experiment.
+(g) METHOD (PROCEDURE):- Your procedures (including all the details and steps) must be reported
+(in past tense) in clear and telling manner in the sequence in which they were executed. You
+should prefer the passive voice to the active voice i.e., the notion of objectivity to subjectivity e.g.,
+you should use phrases like "This and that was done ….", rather than "I did this and that …", which
+is rather too egotistical. Notably, the use of an active voice in the first person plural to imply the
+reader and the writer i.e., "we" is allowed.
+
+
+You should include diagrams/figures to illustrate the set-up where necessary. Such diagrams
+should be reasonably large, well labeled, numbered serially and consecutively in order of their
+appearance and with figure captions e.g., "Fig. A3.1: Schematic illustration of a simple pendulum".
+
+
+
+Precautions (if any):- You should highlight any potential risks, damages, or hazards, which
+may be caused e.g., when the equipment is mishandled.
+
+(h) RESULTS:- Your results should be neatly presentation either in text, tables or using graphs.
+Tables and graphs should be numbered with titles e.g., " Table 3.1: Variation of Voltage with current in
+a resistor". Where relevant, units should always be quoted e.g., in headings of tables, axes of
+graphs and in statements of results. All units must be in SI or derived SI units.
+Department of Physics, University of Nairobi
+
+6
+
+(i) DATA ANALYSIS (Calculations, Graphs, Error analysis etc):- This is where you provide
+sufficient evidence upon which your investigations stands or fails.
+Note: During the experiment, you should collect as much data required as possible and sketch
+out essential graphs, diagrams and calculations while the experiment is running. This will help
+you see if there are any gaps or erroneous measurements that need to be repeated.
+Calculations
+All calculations should be clearly shown. You should also show how you compute errors
+associated with derived quantities (see Error analysis pg. xiv). You should observe
+consistence of SI units and avoid spurious expressions of accuracy e.g., x = 4.3333 cm
+(obtained from a calculation) is unrealistic and inconsistent with the level of accuracy as
+determined by the equipment (e.g., meter rule in this case).
+Error Analysis
+Since accuracy cannot be increased without limit, experimental error is thus the discrepancy
+between the observed and the expected result. You should take into account the contributions
+from zero errors, systematic errors, reading errors random errors etc. (see Pg. xiv for details).
+Graphs
+You should draw all graphs on graph paper. Each graph should be headed with a brief tittle or
+have a figure caption. Note the following when drawing graphs:
+
+
+The readings used for plotting graphs should appear on the same double page as the
+graph, commonly opposite the graphs so as to leave the whole page clear for this graph.
+Error bars should be drawn according to the errors estimated for either or both
+coordinates, specially for the square variables.
+
+
+
+Always plot the effect (physical quantity which is varied in consciously controlled steps
+e.g., pendulum length) against the cause (physical quantity which is then measured e.g.,
+pendulum period). For a linear relationship of the form y = mx + c; y is the measured
+variable and is plotted on the vertical axis while x is the controlled variable and is plotted
+on the horizontal axis. Both axes should be labeled with appropriate titles and relevant
+units
+
+
+
+Choose suitable scales and draw the graph as large as possible, preferably covering
+three quarters of the page
+
+
+
+Use a sharp pencil to draw all graphs. Data points should be clearly marked (using
+crosses (+) or circles(O)) with error bars (  x) where necessary.
+
+Drawing curved graphs
+ If when plotted, the data points indicate a curve, draw a smooth curve through the points.
+It does not matter if some points lie outside the curve. Never join the dots to give a linked
+line.
+Slopes
+ Always choose the largest possible triangle from which to calculate the slopes. The larger
+the values of the sides of the triangle, the smaller the percentage error in them.
+Remember -The vertical and horizontal values must be measured in the units of the
+Department of Physics, University of Nairobi
+
+7
+
+scales of the graphs, NOT in "cm" or "squares". For example, for a linear relationship of
+the form
+y = mx + c
+a straight line graph on the x - y coordinate frame can be drawn, as shown below
+
+Slope M1
+Y
+B1
+
+y4
+y3
+
+Slope M2
+
+y2
+
+B2
+
+y1
+
+A
+
+D
+
+C1
+C2
+
+Dotted lines are
+error lines
+C
+
+O
+
+x1
+
+x2
+
+X
+
+Fig. 1. Illustration of how to calculate slopes from linear graphs
+
+From the graph,
+ B D  y  y1
+Slope M1 =  1   4
+ AD  x2  x1
+
+Therefore;
+
+Intercept C1 = OC1
+Mean Slope, M =
+
+and
+
+ B D  y  y1
+and Slope M2 =  2   2
+ AD  x2  x1
+
+Intercept C2 = OC2
+
+Slope M1  Slope M 2
+2
+
+
+
+ Slope M1  Slope M 2 
+Error in Slope, M = 
+
+1
+ 2 Slope M1  Slope M 2 
+Percentage error in Slope =
+
+Average intercept C =
+Department of Physics, University of Nairobi
+
+M
+ 100
+M
+
+OC1  OC 2
+2
+
+8
+
+…………….(1)
+
+…….(2)
+
+…………….(3)
+
+…………….(4)
+
+NB. Graphical analysis is the best most accurate method of obtaining your final result as
+compared to doing calculations from each individual pair of results and then averaging.
+However, the accuracy of the graph may be affected by the choice of the slope. The most
+accurate slope measured is made from a line inclined approximately 45o to the axis.
+(j) DISCUSSIONS:- Examine by argument, your case supported by your results. In particular, discuss
+the sources of error in the experiment and whether they are acceptable. Compare and contrast
+your result with those of any previous investigations or standard values (from theory). Justify for
+the discrepancies. In particular, your discussions should answer the following questions; What is
+What is the significance of your results? Can you explain any unexpected findings? Are there ways
+of improving the experiment?
+(k) CONCLUSIONS:- This is where you sum up and decisively justify your results. Your conclusion
+should reflect the objectives. It should be a short and thoughtful summary of your
+discussions/findings.
+(l) REFERENCES:- Cite/list any references used.
+
+Department of Physics, University of Nairobi
+
+9
+
+INTRODUCTORY EXPERIMENT
+Experiment A0: Precision Measurements
+Introduction
+Whenever we make a measurement, the level of accuracy in that measurement depends on
+the instrument used. For precision and high accuracy measurements, we employ the use of
+high precision instruments.
+In this experiment, you are going to perform measurements of various parameters on various
+objects using appropriate instruments.
+
+Objectives
+To study some of the instruments and methods used in precision
+measurements, and to compute the volume and density of various items
+
+Apparatus
+You will require a metre rule, vernier calipers, micrometer screw gauge, electronic balance
+and traveling microscope. The objects you require include a copper cylinder, steel ball and
+glass capillary tube.
+The micrometer screw gauge
+In order to measure lengths to a higher degree of accuracy than the millimeter, Pierre Vernier
+(1580-1637) designed a scale which is now known as a Vernier scale. Such a scale, V, is
+made to slide along a millimeter scale, M, as shown in the figure 1.1.
+
+Fig. 1.1. The vernier Scale
+The vernier scale has a length of 0.9cm and 10 divisions. Hence, each division on the vernier
+scale is 0.1mm less than each division on the millimeter scale i.e., 0.1- 0.09cm = 0.01cm =
+0.1mm. This difference between the smallest division on the millimeter scale and one vernier
+division is called the least count.
+When a vernier scale is used, one looks along this scale, V, and the main scale, M, and notes
+down the division on V which coincides with one of the divisions on M. The measured
+length is then computed as follows.
+Length = scale reading immediately to the left of vernier zero +
+(vernier division of coincidence x least count)
+The vernier scale may be linear as the ones in the vernier calipers, Fortin’s barometer and in
+the travelling microscope, or circular as the ones in the micrometer screw gauge and in the
+spectrometer, figure 1.2.
+
+Department of Physics, University of Nairobi
+
+10
+
+Fig. 1.2. Circular vernier scale
+The micrometer screw gauge
+When measuring a length using a micrometer screw gauge, the main scale is marked in
+1/2mm divisions and a circular vernier scale divides this into 50 divisions. Thus, one
+division on the vernier scale corresponds to 0.01mm, figure 1.3.
+
+Fig. 1.3. The micrometer screw gauge
+
+Method
+1.
+
+Record in the worksheet, the Zero and Reading errors of the various instruments
+provided.
+
+2.
+
+Using each of the instruments (where feasible), measure and record in the worksheet,
+the dimensions of the objects provided. At least two instruments should be used for
+each measurement and the precision obtained in each case compared. All weightings
+should be done on the electronic balance.
+
+3.
+
+Using a traveling microscope, measure the internal diameter of the capillary tube as
+follows:
+Cross wires
+
+4.
+(i)
+
+First, position the cross wires of the
+traveling microscope at one end of the
+tube as shown in Fig. 1.4 and record
+the vernier reading (say reading A)
+
+(ii)
+
+Now move the cross wires to the
+other edge of the capillary tube using
+the sliding knobe on the traveling
+microscope and record the new
+vernier reading (say reading B). Be
+Department of Physics, University of Nairobi
+11
+
+Internal diameter
+Fig. 1.4
+
+careful not to move the telescope in
+the process.
+(iii) Now Compute the diameter of the
+capillary tube as the difference in the
+two readings (B –A).
+5.
+
+Calculate the volume and density of the metal objects and the capacity of the capillary
+tube determined. Tabulate your results in Table 1 and show all your workings.
+
+6.
+
+Work out the errors in the volumes and densities calculated in 4 above by using the
+reading errors of the appropriate instruments. Show all your workings. Refer to the
+section on errors in this manual for instructions on how to calculate errors.
+
+7.
+
+Using an ammeter, a milliammeter and a microammeter, measure the current in the
+electrical circuits already set up for you. Estimate and record the zero and reading
+errors in each case. Record your data in Table 2
+
+Table 1: Table 1: Measurements and Errors
+Measurement
+Vernier
+Micrometer
+Calipers
+screw gauge
+
+Instrument
+
+Meter
+Rule
+
+Object
+
+Zero Error
+Reading Error
+
+
+
+
+
+
+
+Copper
+Cylinder
+Steel Ball
+
+Height
+Diameter
+Diameter
+
+Copper
+Wire
+Capillary
+Tube
+
+Length
+Diameter
+Length
+Diameter
+
+Volume
+
+Error
+
+Weighting
+Balance
+
+
+
+
+
+
+
+Density
+
+Error
+
+Table 2: Volume and Density
+
+Copper Cylinder
+Steel Ball
+Capillary Tube
+
+
+
+
+
+
+
+
+
+
+
+
+
+Table 3: Current and Errors
+Instrument
+Ammeter
+Department of Physics, University of Nairobi
+
+Current
+
+Error
+
+
+12
+
+Unit
+
+Milliammeter
+
+
+
+Microammeter
+
+
+
+1. Answers the following questions
+a) Why is it appropriate to use the meter rule for measuring the length of the
+copper wire but the micrometer screw gauge for the diameter?
+b) What are the potential sources of error in each experiment, and how can they
+be minimized or accounted for?
+c) What is the importance of calculating the error in the volume and density
+measurements, and how do these errors influence your final results?
+d) How does the precision of the Vernier calipers compare to that of the
+micrometer screw gauge, and in what situations is one preferred over the
+other?
+2. Discussion
+ Compare the measured values of density for the copper cylinder and steel ball
+with their known values from the reference book.
+ Discuss the precision of the instruments used. For example, the micrometer
+screw gauge provides a higher precision than the Vernier calipers.
+ Analyze the errors encountered during measurements. Comment on whether
+the zero errors and reading errors significantly affected the result.
+3. Conclusion
+ The volume of the copper cylinder was found to be …… ± …… (units), and
+its density was …… ± …… (units).
+ The volume of the steel ball was found to be …… ± …… (units), and its
+density was …… ± …… (units).
+ The internal diameter of the capillary tube was …… ± …… (units).
+
+Write similar conclusions for the steel ball and capillary tube and compare your values with
+the correct values for the densities of copper and steel and comment. The true value may be
+found in the reference book: Kaye G. W. C. and Labye., Tables of Physical and Chemical
+Constants, 15th Ed., Longman, 1986.
+.
+Example: These results were compared with the known values of copper and steel
+densities, and the experimental values were close/within acceptable error margins,
+demonstrating the precision of the instruments used. The accuracy of the instruments,
+calibration errors, and other factors like parallax could have contributed to the slight
+deviations observed.
+
+Department of Physics, University of Nairobi
+
+13
+
+MECHANICS
+Experiment: A-1: Parallelogram and Triangle of Forces
+In this experiment, you are going to will verify the theorems of Parallelogram and Triangle
+of forces.
+
+Objectives
+To verify the parallelogram and Triangle Theorems
+
+Apparatus
+Force Board (A), pulleys (B1 and B2), sheet of paper (C), string (D), Selection of weights
+(W)
+B1
+
+B2
+A
+T1
+
+T2
+D
+
+W1
+
+C
+
+W2
+
+E
+F
+
+W3
+Figure A-1. T1 and T2 represent tensions in the string
+
+Theory
+Parallelogram Theorem
+If two concurrent coplanar forces are represented in magnitude and direction by the sides of
+a parallelogram, drawn from one angular point, then their resultant is represented in
+magnitude and direction by the diagonal of the parallelogram drawn from the same point
+(see Fig. A-1.)
+Triangle Theorem
+If three concurrent coplanar forces are in equilibrium, then their magnitudes and directions
+may be represented by the sides of a triangle.
+
+Method
+1.
+2.
+
+Set up the apparatus as shown in Fig. A-1
+Adjust the three weights W1, W2 and W3 to produce equilibrium. Arrange such that
+DB1, DB2 and DW3 are fairly central on the sheet of paper. Record the mass and
+weights of the three masses (W1, W2 and W3) in Table A-1 together with errors in their
+measurements
+
+Department of Physics, University of Nairobi
+
+14
+
+3.
+
+Transfer the directions of T1, T2 and W3 carefully to the sheet of paper.
+
+4.
+
+Remove the sheet of paper from the force board
+
+5.
+
+Using a suitable scale (e.g., 1 cm to represent 1N), mark lengths along DB1 and BW3 to
+represent the forces T1 (i.e., W1) and T2 (i.e., W3) respectively
+
+6.
+
+Repeat steps 1 to 5 using another set of weights W1, W2 and W3
+
+Parallelogram Theorem
+Complete the parallelogram and draw the diagonal from point D. This diagonal should be
+collinear with DB2, act in opposite direction and be equal in magnitude to T2 since T2 is the
+equilibrant of T1 and W3. This verifies the parallelogram theorem
+Triangle Theorem
+Produce B1D towards E. Using a suitable scale, mark off lengths along DE and DF to
+represent the forces T1 (i.e., W1) and W3. Join the ends of these lengths with FE. The line FE
+should be parallel to DB2, and have a length which represents T2 (i.e., W2) according to the
+scale used. This verifies the Triangle theorem.
+
+Results
+Table A-1
+Units
+
+Mass ….. (Kg)
+
+Weight …….. (N)
+
+W1
+W2
+W3
+
+NB: You must hand in the original Ray Diagrams
+
+Questions
+1. How do you convert Kilograms to Newtons?
+2. Comment on your drawings and state whether or not you have verified
+the two theorems
+1. What are the sources of error in this experiment?
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+15
+
+Experiment: A-2: Acceleration Due to Gravity - The Simple Pendulum
+Introduction
+The simple pendulum is a simple mechanical device that executes simple harmonic motion
+(SHM) under certain conditions. On applying mathematical treatment, a simple formula for
+its period (T) is derived which can be used to determine the value of acceleration due to
+gravity (g).
+In this experiment, you are going to determine the value of the acceleration due to gravity
+(g), in Nairobi using a simple pendulum. At the end of the experiment, answer all the
+questions based on the experiment.
+
+Objectives
+In this experiment, you should be able to determine
+1. The acceleration due to gravity (g) using a simple pendulum
+2. The effect of the amplitude () of swing on the periodic time (T) of a
+simple pendulum
+
+Apparatus
+You are provided with a pendulum bob, string, a clamp mounted on a stand, stopwatch, a
+metre rule and a steel ball.
+
+Theory
+An ideal model of a simple pendulum consists of a small mass (bob) of mass M attached to a
+thread of length (l) and allowed to oscillate freely in a vertical plane under the action of
+gravity (Fig. 1). In this case it is assumed that the bob is a point mass of negligible
+dimensions suspended by an inextensible string of negligible mass.
+The motion of a simple pendulum can be analyzed using Newton's second law (F = Ma).
+From the ideal mode of Fig 1, when the string is displaced by an angle () from the
+equilibrium position, the component of the weight (Mg) which acts on the bob as a restoring
+force (F) is F = Mgsin.
+Thus, from Newton’s second law, it thus follows that
+dv
+- Mg sin = Ma = M
+dt
+
+
+
+From Fig.1,
+ Force Mg cos  balances
+Tension (FT).
+ Mg sin  is the unbalanced
+force and as a result causes
+motion along the arc AB.
+
+FT
+l
+
+A
+
+s
+
+B
+
+
+Mg cos
+
+O
+Department of Physics, University of Nairobi
+
+..……………………………(1)
+
+Mg sin
+16
+
+Fig. A-2: The simple pendulum
+
+But v = l, where l = length of the pendulum and  is the angular velocity (  
+
+d
+).
+dt
+
+ 2 
+d
+l   ml d  d   M  d  
+2
+d
+dt  dt 
+ dt 
+d 2
+
+Hence - Mg sin = M
+
+ g sin   l
+Or
+
+
+
+dt 2
+
+d 2 g
+ sin   0
+dt 2 l
+
+If  is small (< 10), then, sin   in radians (from series expansion*)
+
+
+
+d 2 g
+  0
+dt 2 l
+
+…………………………………….(2a)
+
+Equation (2a) is similar to a simple harmonic motion (SHM) equation of the form
+
+d 2x
+ k 2x  0
+2
+dt
+
+where
+
+g
+k    and  = x.
+l
+
+The solution of equation (2a) has the form
+g
+l
+
+  sin  t
+
+……………………………………(2b)
+
+For a complete oscillation, we set t = T (the period) and
+satisfied i.e.,
+
+  2 , hence equation (2b) is
+
+g
+2  T  
+l
+
+
+
+ l  2
+T  2   
+g 
+
+…….………………………(3)
+
+where  is a constant called the angular frequency and 2 =g/l.
+Thus equation (3) can be used to determine the acceleration due to gravity (g) from
+measurements of the period (T) and length (l).
+
+Note: For the actual solution shown in Fig. 1, T is given by
+
+l c
+
+T  2 
+ g 
+
+Department of Physics, University of Nairobi
+
+17
+
+where c is a constant length from the point of attachment of the thread to the centre
+of gravity of the bob.
+
+Part A: To determine the value of (g)
+Procedure
+
+1. Set the pendulum string to 50 cm. Displace the bob through a small angle (  < 10o) and
+let it swing with small oscillations as shown in Fig. 1.
+2. Record the time for 50 oscillations. (HINT: Begin your counting through the equilibrium
+position).
+3. Repeat step 1 for a number of different pendulum lengths between 50 and 100 cm.
+Record the reading errors in both the time (t) and length (l). Tabulate your results as
+shown in Table 1.
+4. Determine and also record the error in T and T2 (i.e. 2Tdt).
+
+Results
+Table 1.
+Length (l)
+0.5 m
+
+Time (t) for 50
+Oscillations …(s)
+Set 1
+
+Average
+t …….(s)
+
+Period (T)
+…… (s)
+
+T2
+
+ 2Tdt
+
+Set 2
+0.6 m
+
+Set 1
+Set 2
+
+0.7 m
+
+Set 1
+Set 2
+
+0.8 m
+
+Set 1
+Set 2
+
+0.9 m
+
+Set 1
+Set 2
+
+1.0 m
+
+Set 1
+Set 2
+
+Reading error: Length = …………..
+
+Time = ……………
+
+Data Analysis
+(a) Using equation (3), draw a suitable graph from which you can deduce the value of
+acceleration due to gravity, g. Plot the error bars on your graph and draw slope lines for
+maximum and minimum slopes. Compute the average slope with errors and calculate
+the percentage error in g as well.
+(b) Provide short answers to the following Questions:
+18
+
+Department of Physics, University of Nairobi
+
+Activity
+1.
+
+What is the purpose of timing 50 oscillations instead of only one to
+determine the periodic time?
+
+2.
+
+Why must the size of the amplitude be small?
+
+3.
+
+Compare your value of g obtained with the standard value of g in
+Nairobi (g = 9.81 ms-2) and comment on these two values i.e., why
+aren't the two values the same?
+
+4.
+
+What pendulum length in Nairobi would have a time period of 1s?
+
+5.
+
+What are the assumptions implied by the ideal model of a simple
+pendulum?
+
+Discussions
+Discuss your results in comparison to standard value of g in Nairobi.
+
+Part B: To investigate the effect of the amplitude on the periodic time (T)
+In this part, you are going to investigate the relation between  and the time period (T) of a
+simple pendulum.
+
+Procedure
+1. Fix the length of the pendulum to say 70 cm. Adjust the amplitude of the swing to about
+10o with the help of a protractor and set the pendulum to swing as in Fig. 1. Record the
+time for 50 oscillations. Tabulate your results as shown in Table 2.
+2. Repeat for different values of amplitude ranging between 10o and 70o. Record the
+reading errors in both the amplitude and the time.
+
+Results
+Table 2.
+Amplitude
+( ) 
+10o
+
+Time (t) for 50
+Oscillations  ..(s)
+Set 1
+
+Average t
+ ……..(s)
+
+Set 2
+20o
+
+Set 1
+Set 2
+
+……….
+
+Set 1
+Set 2
+
+70o
+
+Set 1
+Set 2
+
+Department of Physics, University of Nairobi
+
+19
+
+Period (T)
+
+ dT
+
+Data Analysis
+(a)
+
+Plot a graph of the period (T) against the amplitude (). The time period axis should
+be between the minimum and maximum (T) only. Draw the curve carefully, plotting
+the error bar in (T) and ().
+
+(b)
+
+What can you deduce from the graph about the relationship between the amplitude 
+of swing and the period (T) for a constant length  ?
+
+(c) Answer the following questions
+
+Activity
+
+1. A pendulum of length (0.600  0.002)m is used to determine
+the value of g. The value of T was found to be (1.55  0.01)s.
+Find the percentage error on the value of g.
+2. Derive an equation for the time period of a simple pendulum
+for which amplitudes are not small. (HINT: Look up Halliday
+and Resnick).
+
+Discussions
+Discuss your results appropriately
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+20
+
+Experiment: A-3: Principles of Equilibrium
+In this experiment you are going to verify the necessary and sufficient conditions for a rigid
+body to remain in static equilibrium using a simple supported beam.
+
+Objectives
+To verify the principles of equilibrium using a simple supported beam.
+
+Apparatus
+A beam AB resting on two supports attached to weighing scales R1 and R2, a set of masses
+
+Theory
+Consider a beam of length AB carrying weights W1 and W2 and being supported by two
+springs of tensions R1 and R2 respectively as shown in Fig. 3-1. We can see that for the beam
+to remain in equilibrium, the total upward force (R1 and R2 ) should balance the total
+downward force (W1 and W2).
+R1
+
+L
+L2
+L
+1
+
+A
+
+B
+
+O
+R1
+
+W1
+
+W2
+
+R2
+
+Fig. 3-1.
+Additionally, forces W1 and R2 act to turn the body in anti-clockwise direction about point O
+while W2 and R1 acts to turn the body in a clockwise direction. This turning effect of a force
+is the moment. The moment (M) of a force about a point is the product of the force and the
+perpendicular distance from the point to the line of action of the force. Thus, for static
+equilibrium of the beam, the sum of clockwise moments about any point = the sum of anticlockwise moment about the same point (called principle of moments). For example, taking
+moments about point A we have
+R2  L
+
+(clockwise moments)
+
+W1  L1   W2  L2 
+(anti-clockwise moments)
+
+Generally, the necessary and sufficient conditions for equilibrium of parallel forces are
+(i)
+The sum of external forces on the body (beam) must be zero
+(i)
+The sum of the moments on the body (beam) must be zero (i.e., sum of clockwise
+moments = sum of anti-clockwise moments)
+
+Method
+1.
+
+Set up the apparatus as shown in Fig. 3-1.
+21
+
+Department of Physics, University of Nairobi
+
+2.
+
+Adjust the scales to zero before loading the masses.
+
+3.
+
+Place weights W1 (= 50g) at a distance of L1 ( = 0.1 m) and W2 (= 50g) at a distance of
+L2 on the beam as shown in the figure.
+
+4.
+
+Move the weight W2 until equilibrium is achieved and record the readings on the scales
+R1 and R2 in worksheet 3-1.
+
+5.
+
+Measure the distances L1, L2 and L using a metre rule stick.
+
+6.
+
+Vary the loads W1 and W2 and note the new scale readings R1 and R2 as well L1 and L2
+(and L if any). Record all your readings in the worksheet
+
+7.
+
+Answer the questions that follow
+
+Results
+Total length of beam (between supports), L =
+Worksheet A-3.1
+First Try
+Units
+Value .…
+
+Second Try
+Units
+Value….…
+
+W1
+W2
+L1
+L2
+R1
+R2
+
+Analysis
+1. R1 + R2 should equal to W1 + W2. Check that this is true using the worksheet below
+Worksheet A-3.2
+First Try
+Units
+Value……
+
+Second Try
+Units
+Value……
+
+R1 + R2 = R
+W1 + W2 = W
+
+2. By taking moments about the left hand support (point A) we have:
+R2  L  W1  L1   W2  L2 
+
+Department of Physics, University of Nairobi
+
+22
+
+Therefore
+
+ W  L   W2  L2  
+R2   1 1
+
+L
+
+
+
+Calculate the value of R2 and check that the calculated value = scale reading for R2.
+This verifies the second theorem of equilibrium. Record all your results in the
+worksheet.
+Worksheet A – 3.3
+First Try
+Units
+Value……
+
+Second Try
+Units
+Value……
+
+R2 Scale reading
+R2 Calculated
+
+Similarly, take moments about the right-hand support (point B) to find R1 using (L L2), and (L - L1) as the distance of the loads W2 and W1 from the support respectively.
+Record your results in the worksheet and check all units carefully.
+Worksheet A -3.4
+First Try
+Units
+Value……
+
+Second Try
+Units
+Value……
+
+R1 Scale reading
+R1 Calculated
+
+Activity
+1. State the reading errors in:
+(i) Mass = 
+(ii) Length = 
+(iii) Scale reading of R = 
+2.
+3.
+
+Calculate the error in R1 + R2
+Calculate the error in W1 + W2
+
+4.
+
+What other sources of error are there in this experiment?
+
+5. What would you expect if one of the loads (e.g., W 2) was directly
+over the support?
+6. What would happen if W, the sum of the weights acted upwards?
+
+Conclusions
+Make a statement as to whether or not the principles of equilibrium were verified in your
+experiment.
+Department of Physics, University of Nairobi
+
+23
+
+Experiment A-5: Variable Inertia Bar
+Introduction
+A rigid body can simultaneously undergo two kinds of motion i.e., it can change the position
+of its centre of mass (C.M) in space (translational motion) and/or it can change its
+orientation in space (rotational motion about some axis). In this experiment, we shall study a
+rotating rigid body and verify the laws of conservation of angular momentum
+
+Objectives
+1. To show that the angular acceleration of a rotating system is
+proportional to the applied torque.
+2. To show that the moment of inertia of the system varies with the
+square of the distance of the rotating mass from the center of rotation.
+At
+
+k
+
+k
+
+M
+
+r
+
+M
+h
+W
+
+Apparatus
+
+Fig. 5-1
+
+A light bar with sliding masses M rotating about a central spindle. A cord wrapped around
+the spindle and a weight suspended from the free end. (When the assembly is released, the
+weight descends a distance h metres, giving the inertia bar an angular acceleration,  rad
+per square second. A stopwatch is used to time the descent.)
+
+Theory I
+When a pair of equal and parallel forces (couple) acting on a body in opposite direction
+they produces a turning effect called a torque () or the moment of a couple. Torque () is
+fiven by
+Department of Physics, University of Nairobi
+24
+
+ = Frsin
+where F = the force due to the couple
+The torque causes the body to rotate and the applied Torque is proprtional to the angular
+acceleration
+ = I
+
+…………………………………………(5.1)
+
+ = angular acceleration and
+I = moment of inertia
+
+where
+
+From figure 5-1 above,  = Wr and the linear acceleration a 
+
+2h
+t2
+
+assuming the mass
+
+begins from rest
+where
+
+W = weight of mass at end of string
+r = radius of spindle
+a = linear acceleration of mass W
+h = height descended
+t = time of descent
+
+Since   a / r , then substituting for  in equation (5.1) we have
+ = Wr  I  I
+
+a
+2h
+I 2
+r
+t r
+
+2hI
+, so that
+t 2r 2
+
+
+
+W 
+
+
+
+W  Kt 2 where K 
+
+2hI
+r2
+
+……………………….(5.2)
+
+K is a constant
+
+Method I
+1.
+
+Cut a length of cord just sufficient to allow the falling mass to reach the floor. Knot
+one end and thread the cord through the small hole in the spindle. Attach the free and
+to the weight carrier (W).
+
+2.
+
+Rotate the spindle thus winding on the cord, ensuring that the adjacent turns are evenly
+arranged. Use a metre stick to check when the bottom of the carrier is exactly one
+metre from the floor.
+Release the inertia bar and start the stopwatch simultaneously. Stop the watch when the
+weight strikes the floor. Note the time t and return the weight to its former height by
+winding in the same direction as before.
+Repeat the process with five or six different weights (W). Use worksheet 5-1 to record
+your readings
+
+3.
+
+4.
+
+5.
+
+Plot a graph W against I/t2
+
+Department of Physics, University of Nairobi
+
+25
+
+Theory II
+I  Mk
+
+(to be demonstrated)
+where M is the mass on the bar and k is the radius of gyration.
+From Equation 5.1, T  I
+
+
+
+=
+
+T Wr
+
+I Mk
+
+But from equation 5.2, W 
+
+
+
+
+Wr a 2h
+ 
+Mk r t 2 r
+
+2hI
+, Therefore
+t 2r 2
+………………………………………(5.3)
+
+h, r, W, and M are constants; therefore 1/t2 is proportional to 1/k.
+
+Method II
+(In general the same as for Method I)
+1.
+
+2.
+
+Using a fixed weight by varying the position of the masses, M, from the center, obtain
+a set of values of time of fall, t, for each value of k, the distance of the mass, M, from
+the centre.
+Plot a graph of t2 against k.
+
+Results
+Worksheet 5-1
+Weight W
+ ……..(N)
+
+Time (t)
+ ……..(s)
+
+t2 ……(s)
+
+Worksheet 5-2
+Time (t)
+ ……..(s)
+
+t2 ……(s)
+
+Department of Physics, University of Nairobi
+
+Distamce k
+……
+
+26
+
+1/ t2
+……(s-1)
+
+Analysis
+1.
+
+2.
+3.
+4.
+
+Plot a graph of W against 1/t2 including error bars on both W and 1/t2
+Plot a graph of t2 against k including error bars on t2.
+Comment on your two graphs and state whether or not the objectives of the
+experiments have been achieved.
+Assume no error in W. What other errors are found in this experiment?
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+27
+
+PROPERTIES OF MATTER
+Experiment B-6: Young’s Modulus of Elasticity
+In this experiment, you are going to determine the Young’s modulus of a wire
+
+Objectives
+To determine Young’s modulus (E) for a wire
+
+Apparatus
+Two long wires of the material X and Y suspended side by side from the same support. The
+ends of the two wires are attached to frames connected by a spirit level S, one end of which
+rests on a screw C operated by a graduated wheel B. The movement of B can be measured as
+a fixed scale graduated in mm. The heavy weight W and the initial loading L ensures that the
+wires are taut and free from kinks. The overall arrangement (due to C.F. Searle) avoids any
+errors due to temperature changes or yielding of the support.
+
+Fig. 6-1.
+
+Theory
+Elasticity is the property of a material by virtue to which deformation caused by applied load
+disappears upon the removal of the load. Within the elastic limit, Hook’s law is obeyed i.e.,
+
+E
+
+Stress ( )
+Strain ( )
+
+……………………………………(6.1)
+
+where E is the Young’s modulus, .
+
+Department of Physics, University of Nairobi
+
+28
+
+But  
+
+Applied Force
+Cross sec tional Area
+
+and  
+
+Change in Length
+.
+Original Length
+
+Thus in terms of material parameters, E can be written as
+E=
+
+Stress Mg A  MgL 
+
+  d 2  Nm 2
+x L    4 x 
+Strain
+
+Or
+
+E=
+
+MgL
+Ax
+
+…………………………………..
+
+(6.2)
+
+2
+
+where A is the cross-sectional area of the wire  A  d  .
+4 
+
+
+Therefore, E can be determined from measurements of Mg (=Weight, W) and x.
+where M = mass hanging on wire
+g = acceleration due to gravity
+d = diameter of wire
+W = weight (in newtons)
+L = Original length of wirein metres
+A = cross sectional area of wire in metres squared
+x = extension, metres
+NOTE: Equation 6.2 applies only within the elastic region up to the limit of proportionality.
+
+Method
+1.
+
+Measure the ‘original’ length of the test wire Y using a metre rule.
+
+2.
+
+Measure the diameter of the wire using a micrometer screw gauge. Take readings at
+several points along the length of the wire and then calculate the mean diameter.
+
+3.
+
+With the initial load in place, adjust the spirit level by means of the wheel B so that it is
+horizontal. Note the reading on the scale.
+
+4.
+
+Add an extending load to the pan in steps up to a maximum total load of 3.5kg. After
+each step, adjust the spirit level so that it is horizontal and take the readings at each
+step as before. Use worksheet 6 to record your readings
+
+5.
+
+Remove the load step by step, and record the scale readings at each step as before.
+
+Results
+Readings
+Original length of wire L
+
+= ……….…. 
+
+m
+
+Original Diameter of wire
+
+= …………… 
+
+m
+
+Mean diameter
+
+= ………….
+
+
+
+m
+
+Initial reading of scale A
+
+= ………..
+
+
+
+Department of Physics, University of Nairobi
+
+29
+
+Worksheet 6
+Extending load, W (N)
+W = mg (kg)
+
+Scale A Reading
+Loading
+Unloading
+
+Mean
+
+Extension, x
+(m)
+
+Analysis
+1.
+
+Plot a graph of extending load, W (in newtons) versus extension, x (in metres). The
+graph should be a straight line possibly through the origin. The slope of the graph is
+EA
+where A is the cross-sectional area of the wire.
+L
+
+2.
+
+From your graph, calculate the slope of the graph (=EA/L) and the cross-sectional area
+of the wire.
+From the value of the slope, determine the value of Young’s modulus and the error in
+your value.
+
+3.
+
+Error in calculation (i.e. error in E = (% error in L) + 2 (% error in d) + (% error in
+slope)
+6. Comment on your value and the error.
+7. Answer the following Questions
+
+Questions
+(a) Why is it acceptable to use a metre rule to measure L, while
+a micrometer screw is used to measure d?
+(b) What is the yield strength?
+
+Department of Physics, University of Nairobi
+
+30
+
+Discussions
+Compare the calculated value of E with the accepted value for the material of the wire and
+comment. The accepted value of E can be obtained from relevant textbooks.
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+31
+
+Experiment B-7: Viscosity
+Introduction
+When a fluid flows through a pipe or conduit, the layers of the fluid adjacent to the walls
+stick to the walls thereby causing a viscous drag between these layers and the adjacent layers
+of the fluid. This tends to stop the flow of the fluid.
+The property by virtue of which a liquid opposes relative motion between its different layers
+is called viscosity. By definition, Viscosity is the internal friction in a fluid or it is the
+stickiness within the fluid that offers resistance to its flow. For instance, honey is a fluid of
+high viscosity, whereas water is a fluid of fairly low viscosity. Viscous friction (viscosity)
+increases with speed of flow. A perfect fluid is one in which there is no internal friction
+within the fluid. In this experiment, you are going to measure the viscosity of water.
+
+Objective
+To measure the coefficient of viscosity of water.
+
+Apparatus
+Aspirator, length of capillary tubing, stop watch, thermometer, beaker
+
+Aspirator
+Capillary tube
+h
+
+L
+B
+water
+
+Fig. 7-1
+
+Theory
+For a real (viscous) fluid flowing in a a long horizontal pipe, it will gradually slow down
+and stop due to frictional resistance generated by viscous forces. To keep a real fluid
+flowing, a pressure difference between the ends of the pipe must be provided so that the
+excess pressure at the upstream pushes the fluid along and overcomes the frictional
+resistance.
+
+Department of Physics, University of Nairobi
+
+32
+
+According to Poiseuille's equation, the pressure difference( P = P1 -P2) required to
+maintain the flow along a tube is proportional to the coefficient of viscosity (), the length of
+pipe (L) and the rate of flow or delivery (Q) and inversely proportional to the fourth power
+of the radius (r) of the tube.
+
+P 
+
+8L
+Q
+r 4
+
+…………………….………..…… ….(8.1)
+
+where
+Q = volume of water flowing per second through the tube of length L and
+radius r.
+But the pressure difference P between the ends of the tube is also given by
+P  gh
+
+where
+
+………………………………………...(8.2)
+
+g = acceleration due to gravity
+ = density of the fluid
+h = height in metres
+
+Take Note
+The dependence on r4 implies that for the same rate of delivery, a
+much larger pressure difference is required to push a viscous fluid
+through a small pipe than through a large one.
+
+Method
+1.
+
+Set up the apparatus as shown in Fig 7-1.
+
+2.
+
+Adjust the rate of flow through the capillary tube so that water emerges slowly in drops
+from B. Smear a little Vaseline under the end B to prevent water running along the
+outside of the tube.
+
+3.
+
+Weigh a clean dry beaker and record its mass.
+
+4.
+
+Time the collection of about 50ml of water and reweigh the beaker plus water. Record
+this as the second scale reading in worksheet 7.
+
+5.
+
+Repeat the water collection several times, and note the room temperature each time.
+Use Table 7 to record your readings.
+
+6.
+
+Measure the length (L) of the capillary tube. Measure the diameter (d) of the capillary
+tube using the travelling microscope. Remember to level the microscope before use. A
+separate capillary tube is provided for this purpose. Do not remove the one fixed to the
+aspirator.
+
+7.
+
+Fill the data into the tables provided and calculated the coefficient of viscosity of
+water.
+
+Department of Physics, University of Nairobi
+
+33
+
+Worksheet 7
+First scale
+reading (= initial
+Mass of beaker
+plus water (kg))
+
+Second scale
+reading (= Final
+Mass of beaker
+plus water (kg))
+
+Difference
+= Mass of
+water (kg)
+
+Mass of beaker =…………..
+
+Room
+Temp
+(oC)
+
+Time (s)
+
+Length of capillary tube = …………..
+
+NB. Volume flow per second, Q (kg/m3s) = (mass of water)/time
+
+Traveling microscope measurement: ( To find the internal radius of capillary tube).
+Average diameter =
+
+Radius =
+
+Error in scale of microscope =
+
+Error in radius =
+
+Density of liquid (water) =
+Height, h =
+
+Analysis
+1.
+
+From the data, calculate the coefficient of viscosity () for each volume of water (Q)
+timed.
+
+2.
+
+Calculate the average coefficient of viscosity
+
+3.
+
+What are the units of viscosity? Derive this by balancing the units
+
+4.
+
+Now calculate the error in your value of viscosity using one set of data.
+
+Discussions
+What is the accepted value for the coefficient of viscosity of water at room temperature? Is
+your value within experimental error of this accepted value? If not, Why? Note: The
+standard value of the coefficient of viscosity can be obtained from relevant textbooks.
+How does the coefficient of viscosity vary with temperature? Why?
+Department of Physics, University of Nairobi
+
+34
+
+Answer the following Questions
+
+Activity
+1. Explain why a slight buildup of plaque in the arteries may cause high blood
+pressure due to overwoking the heart. [HINT: see Equation 8.1]
+2. Explain the old saying that blood is thicker than water. [HINT:  H 2O = 1.1
+x 10-3 N s m-2 and  blood = 2.1 x 10-3 N s m-2. ]
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+35
+
+HEAT
+Experiment C-8: Linear Expansion
+When a material (e.g. metal) is heated, it increases in length. The change in size of materials when
+subjected to heat is called thermal expansion. In this experiment, you are going to measure the
+
+coefficient of linear expansion of copper
+
+Objectives
+To measure the coefficient of linear expansion of copper.
+
+Apparatus (see Fig.8-1 below)
+
+Fig.8-1.
+
+Theory
+If a solid bar of metal is heated, the increase in length L of the material is directly
+proportional to the increase in temperature T and to the original length (L1) of the material.
+i.e.
+L =  L1 T
+where  is the average coefficient of linear expansion of the metal over the
+temperature range.
+But L = L2 – L1 and T = T2 – T1 where L1 is the length of the bar at temperature T1 oC and
+L2 is its length at temperature T2 oC. Thus
+Department of Physics, University of Nairobi
+
+36
+
+L2 – L1 =  L1 (T2 – T1)
+Making  the subject of the formula, we have
+
+
+
+L2  L1
+L1T2  T1 
+
+………………………………….(1)
+
+Method
+1.
+
+Remove the bar of metal from the steam jacket and measure its length L1, and
+temperature T1
+
+2.
+
+Replace the bar in its steam jacket and adjust the micrometer until it just tips the end of
+the bar. Record the micrometer reading E1. Repeat this measurement three times to
+obtain an average value.
+
+3.
+
+Reset the micrometer back from the end of the bar to allow room for expansion of the
+bar.
+Heat the water in the flask and allow steam to flow around the bar until the expansion
+is complete. This will take 10 to 15 minutes.
+With steam still passing through the jacket record the new reading E2 on the
+micrometer (repeat this reading 3 times) and temperature of the steam T2.
+
+4.
+5.
+
+Results
+Worksheet 8
+Readings
+
+Error
+
+unit
+
+Initial length of bar, L1
+Initial temperature of bar, T1
+Final temperature of bar, T2
+Initial micrometer setting, E1
+Final micrometer setting, E2
+
+Analysis
+1.
+
+Using equation (1) Calculate the coefficient of linear expansion of the copper and the
+error in the value.
+Average E1 =
+Average E2 =
+Expansion of bar = E2 - E1 = L = (L2 – L1) =
+Error in expansion of bar =
+
+Department of Physics, University of Nairobi
+
+37
+
+Temperature difference T2 – T1 =
+Error in temperature difference =
+
+2.
+
+Substitute the values into the equation for the coefficient of expansion.  
+and calculate 
+
+3.
+
+L2  L1
+L1T2  T1 
+
+Calculate the error in the value of  where
+
+
+
+
+
+
+
+Expansion .
+Expansion
+
+This gives the fractional error.
+
+Questions
+1.
+What would happen if the micrometer screw gauge was not reset back from the end
+of the bar.
+2.
+
+Why is it necessary to measure the expansion with a micrometer screw gauge,
+whereas the initial length of the bar can be measured with a meter rule?
+
+Discussions
+
+Compare your value of  with the standard value, which may be found from relevant
+textbooks and comment
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+38
+
+Experiment C-9: Specific Heat Capacity by the Method of Mixtures
+Specific heat is the quantity of heat required to raise the temperature of 1Kg of a material by
+1oC. In this experiment you are going to determine the specific heat capacity of Zinc.
+
+Objectives
+To determine the specific heat capacity of zinc by the method of mixtures.
+
+Apparatus
+Thermometer, zinc, copper calorimeter with insulating jacket, cold water, bunsen burner,
+beaker, cotton wool, tripod, gauze, chemical balance.
+
+Thermometer
+Cotton
+wool
+Zinc
+
+Calorimeter
+
+Hot Zinc
+
+Beaker
+
+Insulation
+Tripod
+stand
+
+cold water
+
+Bunsen
+burner
+
+Jacket
+
+Fig. 9-1
+
+Theory
+The specific heat capacity (C) of a material is given by the relation
+
+c=
+
+Quantity of heat (Q)
+Q
+
+Mass (m)  temperature rise ( ) m
+
+(J kg-1 K-1)
+
+…….…….(9.1)
+
+If hot zinc is added to cold water in a calorimeter, which is insulated, then from equation
+(9.1) we see that:
+Heat (Q) gained by water and calorimeter = Heat (Q) lost by the zinc particles i.e.,
+
+M w C w  M c C c T2  T1   M zn C zn T3  T2 
+where Mw = mass of water
+Cw = specific heat of water
+Department of Physics, University of Nairobi
+
+39
+
+….………(9.2)
+
+Mc = mass of calorimeter
+T2 = final temperature of mixture
+Cc = specific heat of calorimeter
+T1 = initial temperature of water
+Mzn = mass of zinc
+Czn = specific heat of zinc
+T3 = temperature of hot zinc
+Thus Equation (9.2) can be used to find the specific heat capacity of Zinc (Czn) if the other
+parameters are known.
+
+Method
+1.
+
+Setup the apparatus as shown in Fig. 9-1. Put the thermometer into the boiling tube and
+put as much zinc as possible around the thermometer. Place some cotton wool on top .
+
+2.
+
+Place the boiling tube in a beaker of water and heat to boil. Keep the water boiling for
+at least five minutes.
+
+3.
+
+Meanwhile, weigh the calorimeter empty and record its mass (Mc) then add about 1/3
+full of water and record the new mass (M1).
+
+4.
+
+Replace the calorimeter in its jacket. Record the temperature (T1) of the water. Record
+the temperature of the hot zinc, (T3).
+
+5.
+
+Remove the cotton wool and the thermometer from the boiling tube, and immediately
+pour the zinc into the calorimeter. Stir the contents of the calorimeter and record the
+highest temperature (T2) reached. Remove the thermometer.
+
+6.
+
+Weigh the calorimeter and its contents and record this as mass M2. Record the data in
+the work sheet and evaluate the specific heat capacity of zinc.
+
+Results
+Worksheet 9
+Reading
+Mass of Calorimeter, Mc
+Mass of Calorimeter + cold water, M1
+Temperature of cold water, T1
+Temperature of hot Zinc, T3
+Temperature of mixture, T2
+Mass of Calorimeter, water + Zinc, M2
+
+Department of Physics, University of Nairobi
+
+40
+
+Reading Error ()
+
+units
+
+Analysis
+Value
+
+Error
+
+Unit
+
+Mass of cold water Mw = M1-Mc
+Mass of Zinc Mzn = M2-M1
+Increase in temperature water
+and calorimeter (T2-T1)
+Decrease in temperature of zinc
+(T3-T2)
+Specific heat capacity of water = 4186 J/kg deg C
+Specific heat capacity of copper = 380 J/kg deg C
+1. Using these values, calculate the specific heat capacity of zinc.
+2. Calculate the error in the specific heat of Zinc.
+
+Questions
+1.
+What are the sources of error in this experiment?
+2.
+Why is water the medium used in so many heat exchange processes?
+
+Discussions
+Compare and contrast the specific heat for zinc obtained in this experiment with the standard
+value. You can get the standard value for the specific heat capacity of zinc from relevant
+textbooks or from Tables of Physical Constants.
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+41
+
+Experiment C-10: Thermal Conductivity – Searle’s Bar
+Introduction
+The thermal conductivity of a material is the rate of flow of heat through the material per
+unit area per unit temperature gradient. In this experiment, you will determine the thermal
+conductivity of copper.
+
+Objectives
+To measure the thermal conductivity coefficient of copper using Searle’s
+apparatus.
+
+Apparatus
+AB is a solid copper bar, which is heated at end A by steam. At end B, a coil carrying water
+is wrapped around the bar. Thermometers T1, T2, T3 and T4 are inserted. The apparatus is
+well lagged and is enclosed in a wooden box.
+
+Fig. 10.
+
+Theory
+Consider a copper rod AB heated at end A by steam while end B is maintained at a lower
+temperature by passing cold water. If the temperature difference between the ends of the bar
+is T (= T2-T1), then the rate of heat flow (Q/t) by conduction along the copper rod is given
+by:
+
+(T  T2 )
+Q
+ KA 1
+t
+d
+
+(1)
+
+where K = coefficient of thermal conductivity
+Department of Physics, University of Nairobi
+
+42
+
+A = cross sectional area of bar
+T1  T2
+= temperature gradient
+d
+If it is assumed that the rate of heat transfer along the bar is constant, this rate is equal to the
+rate of gain of heat by the water at end B, i.e.,
+
+Q m
+ C T3  T4 
+t
+t
+
+(2)
+
+where m = mass of water flowing through the coil at B in t seconds.
+C = specific heat of water
+T3 = temperature of output water
+T4 = temperature of input water
+Combining Q/t from equations (1) and (2), K can be evaluated from the equation
+
+KA
+
+
+
+T1  T2 
+
+K
+
+d
+
+
+
+m
+C.T3  T4 
+t
+
+mCd T3  T4 
+t T1  T2 
+
+(3)
+
+Method
+1.
+
+Take several readings of the diameter of the copper bar using the vernier calipers
+provided. Record all readings and get their average.
+
+2.
+
+Measure and record the distance d between the thermometers T1 and T2
+
+3.
+
+Close up the wooden box and heat the water in the steam generator.
+
+4.
+
+Adjust the constant head device to give a small rate of flow of water through the coil at
+the end B. Loosen thermometers T3 and T4 momentarily to eliminate the air pockets in
+the water jacket, then insert the stoppers securely so that there are no leaks.
+
+5.
+
+While the steam is circulating around end A, record temperatures T1, T2, T3 and T4
+every five minutes. The purpose of these readings is to enable you to ascertain easily
+when the steady state has been reached, i.e. that none of the temperatures is changing
+with time.
+
+6.
+
+When this state has been reached, the temperature difference between T3 and T4 should
+be about 10oC. Adjust the water flow if necessary.
+
+7.
+
+Then record the mass of water collected from exit B in a beaker during a time of five
+minutes. If marked fluctuations appear in any of the temperatures during water
+collection, repeat this reading and take an average.
+
+8.
+
+Record all data in worksheet 10-1 and 10-2. Calculate the value of K, and estimate its
+error.
+Department of Physics, University of Nairobi
+43
+
+Results
+Worksheet 10-1
+Reading
+
+Average
+Reading
+
+Error in
+Reading()
+
+T3 oC
+
+T4 oC
+
+units
+
+Bar diameter
+Cross section area of bar,
+A
+Distance (d) between
+thermometer T1 and T2
+Mass of water collected in
+15 minutes
+Average mass of water per second (m/s)
+
+Analysis
+Worksheet 10-2
+Time, mins
+
+1.
+2.
+
+T1 oC
+
+T2 oC
+
+Identify the steady state conditions
+Calculate the value of K and the error in this value
+
+Questions
+1. Explain why this method is not a good one for poor thermal
+conductors
+2. Due you think that the accuracy of the experiment would be
+improved if a bar of larger diameter was used?
+Department of Physics, University of Nairobi
+
+44
+
+Discussions
+By what percentage does your value of K deviate from the standard value of K for copper?
+You can get the standard value of K from relevant textbooks or from Tables of Physical
+Constants.
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+45
+
+Experiment C-11: Newton’s Law Of Cooling
+Introduction
+Newton’s law of cooling states that in conditions of forced convection (i.e. a draught), the
+rate of heat loss from a body is directly proportional to the excess temperature of the body
+over that of its surroundings. Newton’s law of cooling is an approximation, which can be
+used only when a body cannot surround itself with a layer of warm air, i.e. in conditions of
+force convection. In still air, the approximation can still be used provided that temperature
+differences do not exceed about 30K. We use the law to predict heat losses of a body at
+various temperatures so that we can design suitable heating systems or make corrections for
+any losses which may occur during measurements of heat.
+
+Objectives
+To investigate Newton’s law of cooling.
+
+Apparatus
+Bunsen burner, tripod, gauze, beakers, thermometer, stopwatch.
+
+Thermometer
+
+Beaker
+Tripod
+Stand
+Bunsen
+Burner
+Heating
+
+Cooling
+
+Figure 11-1
+
+Theory
+Newton’s law of cooling states that in conditions of forced convection (i.e. a draught), the
+rate of heat loss from a body is directly proportional to the excess temperature of the body
+over that of its surroundings.
+To obtain the rate of cooling, we first plot a cooling curve as shown in Fig 11.2(a). The rate
+of cooling at any instant is then given by the corresponding slope, j, of the curve. This rate of
+cooling j is proportional to the excess temperature () at that instant as shown in Fig 11-2(b)
+Department of Physics, University of Nairobi
+
+46
+
+i.e,
+
+j1   1 ; j 2   2 ; etc.
+or in general,
+
+j  k
+
+……………………………………(11.1)
+
+Excess
+Temp
+
+Excess
+Temp
+3
+
+2
+1
+
+Room
+temp
+
+t1
+
+t2
+
+t3
+
+Time
+
+Room
+Temp
+
+j1
+
+(a)
+
+j2
+
+j3
+
+Rate of
+cooling, j
+
+(b)
+Figure 11-2
+
+Method
+1.
+
+Heat the liquid to temperature close to 60oC as shown in Fig 11.1. and thereafter
+withdraw the source of heat from the liquid.
+
+2.
+
+Record the temperature of the liquid every minute, until the temperature reaches about
+35oC
+
+Results
+Worksheet 11
+Room temperature = …………………..
+
+Temperature Time
+(oC)
+(min)
+
+Department of Physics, University of Nairobi
+
+Temperature Time
+(oC)
+(min)
+
+47
+
+Temperature
+(oC)
+
+Time
+(min)
+
+Analysis
+1.
+
+Plot a graph using all the data of excess temperature versus time. The excess
+temperature is obtained by subtracting the room temperature from a given
+temperature.
+
+2.
+
+From the graph, determine the rate of cooling j, at particular instances of time
+Temperature (oC)
+
+3.
+
+Temperature Excess (oC)
+
+Slope, joC/min
+
+Plot a graph of temperature excess against rate of cooling, j.
+
+Discussions
+Comment on your results.
+
+Conclusions
+Write suitable conclusion reflecting the objectives.
+
+Department of Physics, University of Nairobi
+
+48
+
+Experiment C-12: Boyle’s Law
+Introduction
+Boyle's Law is a fundamental principle in physics that describes the relationship between the
+pressure and volume of a gas at constant temperature. This experiment aims to verify Boyle's
+Law using standard laboratory apparatus.
+
+Objectives
+1. To verify Boyle’s law
+2. To determine atmospheric pressure graphically
+
+Apparatus
+Standard Boyle’s law apparatus with a volume of air enclosed in a length of tube. The
+Pressure is supplied by a mechanical pump or a compressed air source in the lab.
+
+Figure 12-1. Boyles apparatus
+Theory
+Boyle's Law states that for a given mass of an ideal gas at constant temperature, the volume
+of the gas is inversely proportional to its pressure. Mathematically, this relationship is
+expressed as:
+1
+𝑃 ∝ 𝑉 or PV=k
+(at constant temperature)
+where P is the pressure, V is the volume, and k is a constant of proportionality.
+Department of Physics, University of Nairobi
+
+49
+
+Procedure
+1. Connect the mechanical pump to the pressure gauge. Ensure there are no leaks in the
+system.
+2. Pump air into the apparatus until the reading on the pressure gauge is 3 x 10-5 N/m2.
+3. Upon attaining the pressure is step 2 above, lock the needle valve/tap to keep the
+system air-tight.
+4. Record the value of volume of the fixed mass of air enclosed above the oil against
+the pressure reading on the pressure gauge.
+5. Open the needle valve slowly and carefully reduce the pressure in the system by 0.1
+x 10-5 N/m2.
+6. Repeat steps 4 and 5, until the pressure gauge reading of the system is at minimum.
+Results.
+Reading error from the volume =
+Reading error from the Pressure gauge =
+Room Temperature=
+Worksheet 12.
+Pressure
+(N/m2)
+
+Volume
+(cm3)
+
+1/V (m-3)
+
+Pressure
+(N/m2)(cont'd
+)
+
+Volume
+(cm3)
+(cont’d)
+
+1/V (m-3)
+
+Analysis.
+Boyle's law verifies the inverse proportionality of volume and pressure. Volume and
+pressure being proportional a graph from the two should satisfy the general relation y = mx +
+c.
+Department of Physics, University of Nairobi
+
+50
+
+Volume and Pressure being inversely proportional a general curve of the two should be a
+negative gradient slope and Pressure against volume reciprocal a positive gradient slope.
+●
+●
+●
+
+Plot a graph of P versus
+
+1
+
+.
+
+𝑉
+Comment on your graph.
+Determine the intercept on y-axis and hence the atmospheric pressure
+
+Discussions
+1. Based on your graph and calculations, does your data support Boyle's Law?
+2. Discuss any sources of error in the experiment and their potential impact on your
+results.
+3. How would changes in temperature affect the results of this experiment?
+4. Explain how Boyle's Law applies to real-world situations, such as in the behaviour of
+the human lungs or in industrial gas storage.
+Conclusion
+Write a suitable conclusion reflecting the objective of this experiment.
+
+Department of Physics, University of Nairobi
+
+51
+
+WAVE MOTION
+Experiment D-14: Standing Waves in a Taut String
+Introduction
+When a current carrying conductor is placed in a magnetic field (Fig. 14-1), it experiences a
+magnetic force (Lorentz force) and this force is such as to move the conductor from the
+region of stronger magnetic field to that of weaker magnetic field as shown in Fig. 13-1(b)
+according to The Left Hand Rule. If an ac current is used, the conductor (wire) will vibrate
+between the pole-pieces of a strong magnet setting up standing waves. Why is this so?
+
+Current (I)
+MIDDLE
+FINGER
+
+(B)
+FORE
+FINGER
+
+SS
+Strong
+field
+
+Motion of
+conductor (F)
+(THUMB)
+
+F
+
+Weak
+field
+
+conductor
+
+B
+
+(a) Magnetic force on a conductor
+
+NN
+
+(b) The field around the conductor
+
+Figure 14-1
+In this experiment, you will set up standing waves in a string carrying an ac current and
+study the harmonics of the string.
+
+Objectives
+To study the relationship between resonant frequency and the tension in a
+taut string.
+
+Apparatus
+A thin wire of mass per unit length m, set up as shown, with an electrically driven vibrator
+and a set of weights, horse-shoe magnet, balance, signal generator.
+
+Department of Physics, University of Nairobi
+
+52
+
+Signal
+Generator
+
+L
+
+wire
+
+pulley
+
+1
+2
+
+magnet
+
+T = Mg
+Wooden Table
+
+masses
+Mg
+
+Figure 14-2
+
+Theory
+For a string carrying an alternating current of variable frequency and located between the
+pole-pieces of a strong magnet, it can be maintained in vibration by bringing it into
+resonance with an external harmonic force (the Lorentz force).
+When the applied frequency of ac current is equal to a natural frequency of the string, then
+under constant tension, the string will resonate in one of its modes of vibration as shown
+below.
+
+λ1 = 2L;
+
+Fundamental
+(1st Harmonic)
+
+2nd Harmonic
+(1st Overtone)
+
+λ2 =
+
+3rd Harmonic
+
+λ3 =
+
+Nth Harmonic
+
+λn =
+
+L
+
+Figure 13: Modes of vibration in a fixed wire/string
+Department of Physics, University of Nairobi
+
+53
+
+where λ is the wavelength of the wave and L is the length of the string, T is the
+tension in the string and m is its mass per unit length.
+
+Since T = Mg (weight of the masses), then
+
+fn 
+
+n Mg
+2L m
+
+For the first harmonic,
+
+
+
+…………………………..…….(1)
+
+f1 
+
+1 Mg
+2L m
+
+Or
+
+ g 
+f12   2 .M
+ 4L m 
+
+f12 
+
+1 Mg
+.
+4 L2 m
+
+…………………………………(2)
+
+Hence, if a graph of f12 against M is plotted, a straight line should result of slope
+
+g
+4 L2 m
+
+from which m can be determined.
+
+Method
+1.
+
+Set up the apparatus as shown in Fig. 14-2. Length L should be between 1.0 and 1.5
+m. Note: that the position of the magnet is not very critical as long as it is not located
+at a node preferably it is to be located at an anti-node.
+
+2.
+3.
+
+Use a sample of wire to measure m.
+Attach a mass of 150 g at the end of the string (or on the pan)
+
+4.
+
+Switch on the signal generator and vary the frequency (f) slowly from zero Hz. When
+the string vibrates clearly, in its first harmonic, note the corresponding value of f i.e.,
+(f1).
+
+5.
+
+With the same mass, increase the frequency (f) to roughly twice this value and
+observe the second harmonic. Note the new value of f, (f2).
+
+6.
+
+Where possible, observe and record the frequencies of higher harmonics, fn.
+
+7.
+
+Increase the mass and repeat steps 4 – 6 for a range of values of M. Tabulate your
+data in worksheet 14.
+
+Take Note
+Unwanted resonances originating in the vibrator itself may be
+observed. Be careful that the frequency readings refer to a consistent
+set of harmonics.
+
+Department of Physics, University of Nairobi
+
+54
+
+Results
+Length of sample of wire =
+Mass of wire sample =
+Mass per unit length ,m, of the wire =
+N.B. Remember to give the error in each value.
+
+Worksheet 14
+M (kg)
+
+f1 (Hz)
+
+f2 (Hz)
+
+f3 (Hz)
+
+f12 (Hz2)
+
+Analysis
+1.
+
+Plot a graph of f12 against M, indicating error bars on f12.
+
+2.
+
+Note. Since the tension (T) is the sum of the weight of masses on the pan (Load = Mg)
+plus the weight of the pan (Mpg) i.e., T = Mg + Mpg the graph may not pass through
+the origin.
+Calculate the slope of the graph.
+
+3.
+
+From the slope of the graph, calculate the value for m and compare this with the
+measured value.
+
+Questions
+1. Are the two value of m within experiments error? Show by calculation.
+2.
+
+How are the frequencies of the overtones related to that of the
+fundamental frequency? Does your data confirms this?
+
+3. Give two examples of resonance which are of practical importance.
+
+Discussions
+Comment on the relationship between the resonant frequency and the tension in a taut string.
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+55
+
+OPTICS
+Experiment E-15: Laws of Reflection
+Introduction
+In this experiment, you are going to very the laws of refraction using a plane mirror and
+verify the general relationship for spherical mirrors.
+
+Objectives
+1.
+2.
+
+To verify the laws of the reflection
+To investigation some properties of spherical mirrors.
+
+PART A: PLANE MIRROR
+Apparatus
+Plane mirror, pins, drawing board and paper.
+B
+
+A
+
+C
+P1
+
+P3
+
+P2
+
+P4
+N
+Figure 15-1
+
+Theory
+Laws of Reflection
+The incident ray, the reflected ray and the normal, at the point of incidence, all lie in the
+same plane.
+The angle of incidence is equal to the angle of reflection.
+Method
+1. Place the mirror along a line BC which is drawn on a paper placed on the drawing
+board.
+2. Insert pins P1 and P2 into the drawing table. Look in the direction P3 and P4 until pins
+P1 and P2 are seen in the same line.
+3. Insert pins P3 and P4 into the drawing board in line with the images of P1 and P2 such
+that when looking into the mirror all the four pins appear to lie in line.
+4. Draw a line on the drawing board to mark the reflecting surface of the mirror.
+5. Remove the mirror and pins from the paper. Draw AN (the normal) perpendicular to
+BAC. Join points P3 and P4, and P1 and P2 and extend the lines to point A.
+Department of Physics, University of Nairobi
+
+56
+
+6. Join points P1 and P2 and points P3 and P4 respectively and extend the lines to point
+A.
+7. Measure the angles of incidence and reflection. Use worksheet 15-1 to record your
+data
+Results
+Worksheet 15-1: Plane Mirror
+Angle
+
+Error
+
+Angle of incidence, i
+Angle of reflection, r
+N.B. Hand in original ray diagrams
+Analysis
+1.
+Are the two laws of reflection verified? Justify
+2.
+
+What sort of image is seen in a plane mirror?
+
+PART B: SPHERICAL MIRRORS
+In this part, you are going to verify the general relationship for spherical mirrors given by
+Eqn 15.1
+Apparatus
+You are provided with an optical bench and fittings, pins, a lamp-house (illuminated object),
+concave and convex mirrors and a screen S.
+Theory
+The position and size of an image formed by spherical mirrors may be obtained either by
+geometrical construction (see Fig. 15-2) or by using the general relationship for lenses and
+mirrors which is given by
+
+1 1 1
+ 
+u v f
+
+……………………………..………..(15.1)
+
+where u = object distance
+v = image distance
+f = focal length
+1
+2
+
+C
+
+3
+
+F
+
+O
+I
+F
+
+C
+
+O
+
+v
+u
+
+Figure 15-2b. Principle rays for a convex mirror
+
+Figure 15-2a. principle rays of a converging mirror
+Department of Physics, University of Nairobi
+
+57
+
+In geometrical optics, the following rules apply
+
+A ray from the object (ray 1) which enters the mirror parallel to the principal axis will be
+reflected back through the focus
+A ray from object (ray 2) which enters the mirror through the centre of curvature (C) will be
+reflected back along the same path
+A ray from object (ray 3) which enters the mirror through the focal point emerges parallel to
+the principal axis
+Method
+(a) Concave Mirrors
+Set up the apparatus as shown in Fig 15-3 and switch on the illuminated object
+Move the concave mirror slowly away from the illuminated object until it projects an image
+of the illuminated object onto itself. Move the mirror such that a good clear focus is
+obtained.
+Measure the distance between the mirror and the object/image. Half the distance is the focal
+length.
+Set the mirror at a distance greater than 2f away from the object. Use the screen to locate the
+image and measure v (image distance) for u >2f, u =2 f, 2 f  u  f  , u = f and u  f. In
+each case, record the types of images observed.
+S
+
+Lamp
+house
+
+Optical bench
+
+u
+v
+Figure 15-3
+
+Department of Physics, University of Nairobi
+
+58
+
+(b) Convex Mirrors
+Now set the apparatus as shown in Figure 15-4. using the convex mirror and one of the pins
+as the object.
+Using the other pin as the search pin, locate the virtual images in the convex mirrors using
+the method of no parallax
+Convex
+Mirror
+Object
+Pin
+
+Optical bench
+u
+
+v
+
+Figure 15-4
+
+Results 2
+Worksheet 15-2: Spherical Mirrors
+Concave Mirror
+Object distance u = …. ……
+Image distance u = …. ……
+Focal length f = ½ u = …. ……
+
+u
+
+1/u 
+
+1/v 
+
+v
+
+Is image?
+real
+upright
+
+u > 2f
+u = 2f
+2f > u > f
+u=f
+u<f
+
+Analysis
+Plot a graph of 1/v Vs 1/u and from it, determine the value of f
+
+Department of Physics, University of Nairobi
+
+59
+
+Magnified
+
+Convex mirror
+U
+
+V
+
+F
+
+Average f
+1.
+
+Calculate the error in f for the convex mirror
+
+2.
+
+What sort of image does the convex mirror produce?
+
+Discussions
+Discuss your results in relation to the laws of reflection for plane mirrors and spherical
+mirrors
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+60
+
+Experiment E-16: Laws of Refraction and Properties of Lenses
+
+Introduction
+For a ray of light passing from one medium to another, its speed changes and as a result, its
+direction also changes as shown in Fig. 16-1. The change in direction when light enters a
+different medium is known as refraction and it obeys Snell’s law given by:
+Sin i
+ cons tan t  n
+Sin r
+
+where i is the angle of incidence, r is the angle of refraction and n is the refractive
+index
+
+Objectives
+1. To verify the laws of refraction and determine refractive index of glass
+1. To investigate properties of lenses.
+
+PART A:
+
+The Laws of Refraction.
+
+Experiment 1: Snell’s Law
+Apparatus
+A rectangular glass block. Set of 4 pins, a drawing board and paper
+Theory
+Laws of refraction
+(1) The incident ray, the refracted ray and the normal, at the point of incidence, all lie in the
+same planes.
+Sin i
+ cons tan t  n where n is the refractive index of
+(2) Snell’s law is obeyed i.e.
+Sin r
+medium 2 (if medium 1 is air).
+
+Method
+1.
+
+Place a rectangular glass block ABCD on a paper on the drawing board as in Fig. 16-1.
+
+2.
+
+Insert pins P1 and P2 into the drawing board and look in along the direction of pins P3
+and P4 until the pins P1 and P2 are seen in a line.
+
+Department of Physics, University of Nairobi
+
+61
+
+Incident ray
+
+P1
+P2
+i
+
+A
+
+MEDIUM 1
+
+E
+
+B
+
+MEDIUM 2
+r
+r
+F
+
+D
+
+i
+
+Fig. 16 -1
+
+P3
+
+C
+
+O
+P4
+Refracted ray
+
+Insert pins P3 and P4 in the drawing board in line with the images of P1 and P2 such that
+when looking in the glass block all the four pins appear in line. Draw the outline of the glass
+block on the drawing paper.
+Remove the glass block and pins from the paper and draw the normals at point E and F and
+join EF
+Measure the angles i and r with a protractor and calculate the refractive index. Record your
+data in worksheet 16-1.
+
+Results
+Worksheet 16-1: Laws of refraction
+Sin i
+i …
+r …
+
+Sin r
+
+Refractive index, n
+
+Average n
+N.B. Hand in original ray diagrams.
+Experiment 2: Real and apparent Depth
+In this experiment, you are going to determine the refractive index of glass, which is given
+by Eqn (16-1) by using a glass block and traveling microscope:
+Refractive index n =
+
+real depth
+apparent depth
+
+(16-1)
+
+Apparatus
+Traveling microscope with vernier scale, glass block, chalk powder or pen
+
+Department of Physics, University of Nairobi
+
+62
+
+Method
+1.
+
+Mark an ink spot P on a piece of paper placed on the bench
+
+Place the traveling microscope (that moves vertically) on the paper and adjust it so as to
+bring the spot P in focus. Note the reading on the vernier as reading A.
+Observer
+
+A
+
+C
+
+B
+
+Apparent Depth
+P”
+Real depth
+P
+Now place the glass block over the mark P and re-adust the microscope to bring P into focus
+again (at P”) and note the reading on the vernier as reading B.
+Finally, place the ink spot on top of the glass block and take the reading of the vernier
+(reading C) when the mark is in focus in the microscope.
+
+Results
+Worksheet 16-2: Real and apparent depth
+value
+1st vernier reading = A
+2nd vernier reading = C
+3rd vernier reading = B
+Real depth = A-C
+Apparent depth = B - C
+Refractive index
+
+Error (…)
+
+units
+
+Analysis
+1. Are the first and second laws of refraction have been verified ?
+2. Compare the values of n obtained in experiment 1 and in experiment 2.
+
+PART B: LENSES
+Experiment 1: Properties of lenses
+Apparatus
+Department of Physics, University of Nairobi
+
+63
+
+An illuminated object, pins, screen, concave and convex lenses
+S
+
+Lamp
+house
+Optical bench
+
+u
+
+v
+
+Object
+
+Lens
+
+Screen
+
+Figure 16-2
+Theory
+The location and type of image formed by lenses may be obtained either by geometrical
+construction (see Fig. 16-3) or by using the general relationship for lenses and mirrors which
+is given by
+
+1 1 1
+ 
+u v f
+
+……………………………..………..(15.1)
+
+where u = object distance
+v = image distance
+f = focal length
+1
+2
+F
+3
+
+O
+
+O
+
+I
+
+I
+u
+
+v
+(b)
+
+(a)
+Figure 16-3. Ray diagrams for (a) Convex and (b) Concave lenses
+
+In geometrical optics, the following rules apply
+
+A ray from the object (ray 1) which enters the lens parallel to the principal axis will be
+refracted through the focal point
+A ray from object (ray 2) which goes through the centre of the lens will emerge undeviated
+
+Method
+(a) Convex Lens
+Establish a rough value for the focal length of the convex lens by focussing on a distant
+object (e.g. window of laboratory) on the screen.
+Department of Physics, University of Nairobi
+
+64
+
+Arrange the apparatus as shown in Fig 16-2. Switch on the illuminated object and place it at
+a position greater than 2f from the lens. Move the screen S until a clear image is focused on
+it.
+Measure the distance (u) from the object to the lens and the distance (v) from the lens to the
+screen (v). Use worksheet 16-3 to record your data
+Repeat the above steps for positions of object;
+u > 2f, u = 2f, 2f  u  f , u = f and u < 2f
+In each case, record the type of image observed
+Calculate f using the above values of u and v
+
+(b) Concave Lens
+In the case of a concave lens, use the method of no parallax to locate virtual images using the
+tall search pins provided. Record data in worksheet 16-4.
+
+Results
+Worksheet 16-3: Convex lens
+u
+v
+Units
+
+f
+
+Type of image
+Real/
+Upright/
+virtual
+inverted
+
+Magnified/
+diminished
+
+u > 2f
+u = 2f
+2f > u >f
+u=f
+u<f
+Plot a graph of 1/u vs 1/v and from it, determine the value of f
+Worksheet 16-4: Concave lens
+U
+
+V
+
+F
+
+Average f
+
+Experiment 2: Combination of Lenses
+The focal length of the concave lens can be determined by combining the concave lens with
+a convex lens of shorter focal length than itself. The focal length of the combination (F) is
+given by:
+
+1 1
+1
+ 
+F f1 f 2
+where f1 = focal length of convex lens
+f2 = focal length of concave lens
+F is determined by using the combination lens to form a real image on a screen, whence:
+
+1 1 1
+ 
+F u v
+Department of Physics, University of Nairobi
+
+65
+
+If f1 is known then F can be calculated.
+
+Method
+Replace the lens in Fig. 16-2 with a combination of two lenses: a convex lens behind the
+concave lens
+Using the illuminated object, move the screen until a clear image is observed. Measure the
+object distance (u) and image distance (v). Repeat experiment for a set of object distances.
+Record your data in worksheet 16-5.
+
+Results
+Worksheet 16-5: Combination of lenses
+U
+
+V
+
+F
+
+Average f
+
+Analysis
+1. Focal length of convex lens, f1 (from worksheet 16-3) =
+2. Using the eqn
+
+1 1
+1
+  , Calculate f2 using values of f1 and F.
+F f1 f 2
+
+3. How does this value compare with that obtained from worksheet 16-4?
+
+Activity
+1. A certain glass has a refractive index of 1.50 when in contact with
+air. Calculate
+(i) the angle of refraction in glass when a light ray is incident at
+30o with the normal
+(ii) at what angle of incidence would one need to shine a beam
+of light so as to emerge in glass at 36o
+2. State any three applications of refraction.
+
+Discussions
+Discuss your results in relation to the laws of refraction and properties of lenses
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+Department of Physics, University of Nairobi
+
+66
+
+Experiment E-17: The Spectometer – Refractive Index
+Introduction
+In this experiment, you will use the spectrometer to measure the refractive index of a glass
+prism using monochromatic light from a sodium lamp. For basic introduction of the
+spectrometer, refer to Appendix C.
+
+Objectives
+
+To measure the refractive index of a glass prism using a spectrometer.
+
+Apparatus
+Spectrometer, glass prism, sodium lamp
+
+Theory
+When a ray of light passes through a prism, it undergoes refraction and the emergent ray
+bends towards the base BC of the prism as shown in Fig. 17-1.
+From
+collimator
+B
+
+A
+
+P
+D
+Q
+
+B
+
+A
+
+C
+
+C
+
+Figure 17-1
+
+D
+
+Figure 17-2
+
+The deviations D is the angle between the direction of the incident ray and the emergent ray.
+The angle of deviation depends on the angle of incidence and for a certain value of the angle
+of incidence, the angle of deviation is minimum. If D is the angle of minimum deviation for
+the prism of refracting angle, A, then the refractive index n of the material of the prism is
+given by
+ Sin A  D 
+
+2 
+n
+……………………..……….(17.1)
+
+ Sin A 
+2 
+
+Department of Physics, University of Nairobi
+
+67
+
+Method
+PART 1: To Determe the refracting angle of the prism
+The glass prism provided has two polished faces and the angle of the prism is the angle
+between these faces. Before the experiment, see that the polished faces are clean.
+Adjustments
+NB: The circular (main) scale is divided into degrees and half degrees. The vernier scale has
+30 equal divisions, so that each division on the vernier corresponds to 1/30th of the smallest
+division on the main scale, i.e. to 1/30th of ½ 0. So each division on the vernier scale is 1'
+(one minute of arch). Note that the 00 and 3600 marks coincide on the main scale.
+Procedure
+1.
+Mount the prism as indicated in Fig.17-3 below such that the parallel beam of light
+from the collimator falls on both the reflecting polished faces AB and AC. This will
+be the case when the image of the slit can be seen by the reflected light from both
+faces.
+Light from
+collimator
+
+A
+
+2A
+
+B
+Telescope
+rotated to the
+left
+
+C
+
+Figure 17-3
+
+Telescope
+rotated to the
+right
+
+2.
+
+Illuminate the slit with the sodium lamp.
+
+3.
+
+Now make the slit narrow and rotate the telescope to receive the reflected light from,
+say face AB and work at the tangent screw to bring the center of the image exactly on
+the vertical cross-wire. Note the reading on both verniers V1 and V2.
+
+4.
+
+Similarly, direct the telescope to receive the image of the slit caused by reflection from
+face AC and as before take the readings on both verniers V1 and V2. Enter your
+readings in Table 1 below.
+
+Take Note
+The angle of the prism is half the angle through which the telescope is
+rotated. Take care reading V1 and V2 at “zero” or 360).
+
+Results
+Department of Physics, University of Nairobi
+
+68
+
+Table 1
+Vernier
+Readings
+
+Telescope rotated Telescope rotated
+to the Left
+to the Right
+(……….)
+(……..…)
+
+Difference Angle of Prism
+θ = 2A
+A = θ/2
+
+V1
+V2
+Mean A = (with error  S); where  S is the error in the vernier reading
+Hint: Before taking the difference θo, particular attention must be paid to what
+happens when the telescope rotates through the 360o mark!
+
+PART 2: To determine the angle of Minimum Deviation (D)
+Procedure
+1.
+Mount the prism centrally on the table in such a way that one of its reflecting faces
+(say AB) is perpendicular to the line joining the two leveling screws P and Q as shown
+in fig.2. Rotate the table so that light from the collimator is incident on face AB and
+after refraction emerges out the face AC.
+2.
+
+Look through AC and locate the position of the refracted image with the naked eye.
+Bring the telescope in this position to receive the image of the slit in the center of view.
+
+3.
+
+Now rotate the prism table in such a direction that the telescope has to be moved
+towards the line of the collimator axis in order to keep the image in the center of the
+field of view. It is clear, that as the prism table is rotated in this direction, the
+deviation decreases. When the position of minimum deviation is reached, the image
+becomes stationary for very small rotation of the prism table either way. Further
+rotation of the table makes the image move backwards.
+
+4.
+
+The telescope is finally adjusted till the image is on the vertical wire in the stationary
+position from which it moves backwards in whichever direction the prism table is
+rotated. Now take the reading of both the verniers V1 and V2.
+
+5.
+
+Remove the prism, and bring the telescope in a line with the collimator to view the
+image of the slit directly. Read the vernier when the telescope is adjusted so that the
+image is on the vertical crosswire. Enter the readings in the Table 2 below.
+
+Results
+Table 2
+Vernier
+Readings
+
+Prism in minimum
+Deviation position
+(θ1) (….)
+
+Straight through reading Difference
+without Prism
+θ1 – θ2 = D
+(θ2) (……..…)
+
+V1
+V2
+Mean D =
+
+…………………
+
+Department of Physics, University of Nairobi
+
+Error in D =  …………….
+69
+
+Analysis
+(a)
+
+Calculate the refractive index n of the material of the prism using Equation (17.1)
+
+(b)
+
+Estimate error in n by substituting
+(i)
+A - S for A and D – 2S for D, and also
+(ii)
+A + S for A and D + 2S for D where  S is the error in the vernier readings.
+Note: The value of n should be quoted to 3 decimal places. This is the minimum
+accuracy expected with the spectrometer if the experiment is performed carefully.
+
+(c)
+
+(c)
+(d)
+
+ Sin A  D 
+
+2  . You can refer to
+Show how the following relation is derived; n  
+
+ Sin A 
+2 
+
+standard textbooks
+Why is the telescope adjusted for a distant object?
+When will the minimum deviation occur in this experiment.
+
+Discussions
+Discuss your findings appropriately
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+70
+
+ELECTRICITY
+Experiment F-18: Ohm’s Law
+Introduction
+In this experiment, you are going to verify Ohm’s law
+
+Objectives
+1. To verify Ohm’s law for a metallic conductor
+2. To show that R = R1 + R2 + R3 for resistances in series
+3. To show that 1/R = 1/R1 + 1/R2 +1/R3 for resistance in parallel
+4. To show that Ohm’s law is not obeyed by a semiconductor.
+
+Apparatus
+V
+
+Rheostat
+
+AA
+A
+A
+
+X
+
+R
+
+Y
+
+Switch
+Battery or
+Power
+source
+
+Fig. 18
+
+Theory
+Ohm’s law for a metal conductor states that V=RI at constant temperature, where V =
+voltage (volts), I = current (amps) R = resistance (ohms)
+
+Method A
+1. Connect the circuit as shown in Fig. 18. Use the rheostat to adjust the current flowing
+through the unknown resistance R1.
+2. Record the ammeter and voltmeter readings.
+3. By varying the rheostat, repeat steps 2 and 3 until six readings are recorded.
+4. Reverse the terminals of the resistance, i.e. X and Y, and record another set of
+reading.
+5. Repeat method A using resistors R2 and R3 respectively and hence evaluate the
+values of R2 and R3 from the graphs.
+Department of Physics, University of Nairobi
+
+71
+
+Analysis A
+Use your experiment values of V and I to plot a graph of V versus I. A straight line graph
+proves Ohm’s law. Find R from the slope of your graph.
+
+Method B: (Combination of Resistors)
+1.
+
+Repeat method A above but with the resistor R in Fig. 18 replaced with resistors
+R1, R2 and R3 arranged in series. Plot a graph of V versus I and from your graph,
+find the sum (RT) for the three resistors in series.
+
+2.
+
+Repeat method A above but with the resistor R in Fig. 18 replaced with resistors
+R1, R2 and R3 arranged in parallel. Plot a graph of V versus I and from your graph,
+find the sum (RT) for the three resistors in parallel.
+
+3.
+
+Determine the values of the resistors R1, R2 and R3 from their colour codes and
+hence evaluate their combined resistances in series and in parallel respectively
+
+4.
+
+Record all values on the worksheet and test to see if the relationships for resistors
+in series and in parallel hold.
+
+Method C : The semiconductor (Diode)
+1. Repeat the first part of the experiment using a semiconductor and draw the graph of
+V against I. Remember to take a few readings with forward bias and a few with
+reverse bias.
+2. A graph other than a straight line shows that Ohm’s law is not obeyed.
+
+Results
+Worksheet 18-1: To verify Ohm’s law
+Resistor
+
+Forward Current
+V (volts)
+I (Amps)
+
+R1
+
+R2
+
+R3
+
+Department of Physics, University of Nairobi
+
+72
+
+Reversed Connections
+V (volts) I (Amps)
+
+Analysis
+1.
+
+On the same graph, plot graphs of V versus I for resistos R1, R2 and R3 respectively.
+
+2.
+
+Determine the slopes of the graphs and hence the values of R1, R2 and R3.
+
+3.
+
+Read the actual values of the resistors using the colour code and compare with your
+experimental values. Tabulate your results below.
+
+From graph
+
+From colour codes
+
+Units
+
+R1
+R2
+R3
+
+Worksheet 18-2: Combination of resistors
+Combination
+
+Forward Current
+V (volts)
+I (Amps)
+
+Reversed Connections
+V (volts) I (Amps)
+
+Resistors in Series
+(R1, R2 & R3)
+
+Resistors in Parallel
+(R1, R2 & R3)
+
+4. On the same graph, plot graphs of V versus I for the total resistance for the series and
+parallel circuits.
+5. From your graphs, determine the values of R in series and R in parallel.
+6. Compare your experimental results with values obtained using the formulae.
+From graph
+
+From formula
+
+R (series)
+R (Parallel)
+
+Department of Physics, University of Nairobi
+
+73
+
+Units
+
+Worksheet 18-3: Semiconductor
+Forward Curreny
+V (volts)
+I (Amps)
+
+Reversed Connections
+V (volts) I (Amps)
+
+6.
+
+Plot a graph of V versus I for the semiconductor
+
+7.
+
+Comment on your graph. Is Ohm’s law verified/obeyed?
+
+Discussions
+Discuss the sources of error in the measurements of resistances. Is this the most accurate
+way of measuring resistance? If not, what would you use and why?
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+74
+
+Experiment F-19: The Thermistor
+Introduction
+In this experiment, you are going to determine the resistance characteristics of a thermistor.
+
+Course Objectives
+To determine the resistance characteristics of a thermistor.
+
+Apparatus
+Metre-bridge, cell, standard resistance box (R) sensitive galvanometer (G), switch (K)
+beaker of glycerine, Bunsen burner.
+
+Meter wire Brass Strip
+AC
+
+Fig. 20
+
+Theory
+The metre-bridge is a convenient form of the wheatstone bridge arrangement
+(Fig. 20). When the switch K is closed and the resistances are such that when no current
+flows through the galvanometer G, then the bridge is balanced. It can be shown that:
+
+R1 / R2  R3 / R4
+The metre-bridge consists of a meter length of uniform resistance wire AC alongside a metre
+rule and soldered at A and C using brass strips of negligible resistance. A third brass strip is
+arranged. Since the resistance of a uniform wire is proportional to its length then, if D is the
+balance point:
+
+R AD L1
+
+
+S DC L2
+
+Department of Physics, University of Nairobi
+
+75
+
+Method
+1. Connect the metre bridge with the thermistor S immersed in glycerine
+2. Check all connections with the laboratory demonstrator
+3. Heat the glycerine slowly and when a reading is taken, remove the burner otherwise a
+large error will occur.
+4. Close switch K. Move the slidding contact along the resistance wire until a point of
+balance is obtained where the galvanometer reads zero. The shunt X should be on.
+5. Turn the shunt off to find the balance point more accurately.
+6. Record the lengths L1 and L2, and the temperature of the glycerine.
+7. Repeat the measurements at five or six different temperatures of the glycerine taking
+a wide range of temperature. (Consult the laboratory demonstrator for the
+temperature range appropriate for the thermistor you are using.)
+
+Analysis
+The resistance of the wire is directly proportional to its length. The resistance of the
+Thermistor at each temperature may thus be calculated.
+
+S
+
+R.L2
+L1
+
+Plot a graph of the log of the resistance against the temperature.
+Plot a graph of log S gainst the temperature. Comment on your results
+Work sheet 20
+Temperature
+
+L1
+
+L2
+
+S
+
+Log S
+
+Questions
+1.
+2.
+3.
+4.
+
+Why do you use a shunt on the galvanometer.
+Why do you use a metre bridge for the measurements rather than a voltmeter and an
+ammeter.
+Why is it simpler to plot the log of the resistance of the thermistor against temperature
+State two practical applications of the thermistor.
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+76
+
+Experiment F- 20: The Pontentiometer
+The potentiometer is essentially a device for measuring or comparing potential differences.
+In this experiment, you are to compare the e.m.f’s of two cells using a potentiometer.
+
+Objectives
+To determine the Emf of a dry cells
+
+Course Objectives
+At the end of this course, you should be able to
+2. Explain and apply the laws of thermodynamics to solve problems related to
+energy conversions in thermodynamic systems.
+
+Apparatus
+You are provided with a potentiometer with sliding contact, accumulator (driving voltage),
+galvanometer, switch, a variable resistor and an ammeter.
+
+Theory
+The essential features of a potentiometer are
+(i)
+A steady source of potential known as a ‘driver cell’, D, and
+(ii)
+a resistor AB of uniform resistance of r  cm-1 through which the accumulator sends
+a steady current (I) as shown in Fig. 1
+Accumulator
+
+Key
+
+I
+J
+A
+
+B
+P
+G
+IE
+E1
+Figure 20.1. The
+potentiometer
+
+The potential difference (p.d.) between point A and any other point (J) along AB of the wire
+is therefore proportional to the length AJ and is given by:
+VAJ = I  (resistance of AJ) = I 
+
+L
+A
+
+………………….
+
+(20.1)
+
+where  = resistivity of the wire; A = cross sectional area of wire and L = length AJ
+Hence P.d. (V)  L since I,  and A are constant along the wire.
+
+Department of Physics, University of Nairobi
+
+77
+
+If a cell of e.m.f, E1 (E1less than p.d. between A and B) is now connected as shown in the
+figure above, a position for J can be found for which the sensitive galvanometer (G) shows
+no deflection (the potentiometer is balanced). Thus;
+E1 = p.d. across AJ = I.L1(r)
+Or
+
+E1  L1
+
+NB. Cell E1 drives a current (IE) in the opposite direction to that of current I.
+If now E1 is replaced by a cell of known e.m.f (E2), then and a new balance point, L2 can be
+found such that
+E2  L2
+Combining these equations we see that
+
+Or
+
+E1 
+
+L1
+E2
+L2
+
+E1 L1
+
+E 2 L2
+……………………… ………(20.2)
+
+This is the principle of a potentiometer and the e.m.f of an unknown cell (E1) can be found
+using Equation (20.2) if E2 is known.
+
+Procedure
+1. Connect the circuit as shown in Fig. 20.1 with the with the standard cell in place in place
+of E1.. Be sure that the positive poles of both the accumulator and the standard cell are
+both connected to A. Get the circuit checked by the lecturer in charge.
+2. Device P is a protective high resistor. Switch on the driver cell circuit and adjust J until a
+position of no deflection is found in the galvanometer. Switch out the protective resistor
+and make the final adjustments. Measure the balance length AJ.
+3. Reverse the connections of the driver cell and again obtain the balance length AJ.
+Calculate the mean balance length. Use the form of tabular column (Table 1) below to
+record your readings.
+4. Repeat this procedure for the Leclanche cell and then the Danielle cell, noting the
+lengths required to obtain the balance. You will need to assemble these cells and add the
+correct liquids to them.
+5. Repeat all the measurements at least once to obtain mean values for the lengths.
+
+Department of Physics, University of Nairobi
+
+78
+
+Results
+Worksheet 20
+Standard Cell
+
+Leclanche
+Cell
+
+Daniel cell
+
+Balance length = … .cm
+On reversing = … .cm
+Mean length
+
+= …..cm
+
+Setting error =  ….cm
+e.m.f of cell (V)
+Error in e.m.f =  ….V
+
+Data Analysis
+Since the E.M.F. of the standard cell is known, the E.M.F. of the Leclanche and Daniel cells
+may be calculated.
+Calculate the e.m.f’s of these cells assuming the e.m.f of the standard cell is ………….V.
+Questions
+1. Why must the E.M.F. of the driver cell be greater than that of the cell under test?
+2. A potentiometer can be considered as a voltmeter with an infinite resistance. Why?
+3. What factors limit the accuracy of a potentiometer?
+4. What was the objective of reversing the terminals of the cell?
+5. How would the accuracy of your result be affected if the protective resistor is not
+switched out of the circuit?
+
+Discussions
+Comment briefly on your findings
+
+Conclusions
+Write suitable conclusion reflecting the objectives
+
+Department of Physics, University of Nairobi
+
+79
+
+Experiment F-21: The Oscilloscope
+Introduction
+The oscilloscope can be used to determine the frequency and voltage of an alternating
+current among other applications. The signal to be studied is applied to the Y plates (vertical
+movement) as shown in Fig. 21-1 and the internally generated wave sweeps the electron
+beam (seen as a spot on the screen) horizontally at some pre-determined rate. This rate is set
+using the ‘time/div’ control.
+
+Cathod
+e
+
+Accelerating
+anode
+X plates
+plates
+
+Y
+
+Electron
+beam
+
+CRO
+screen
+
+Focusing
+anode
+
+Figure 21-1. Basic features of an oscilloscope
+In this experiment, you will learn how to use the oscilloscope and investigate some simple
+applications of the oscilloscope.
+
+Objectives
+1. To learn how to use the oscilloscope and measure the frequency and
+voltage of ac current
+2. To investigate some simple applications of the oscilloscope
+
+Apparatus
+Signal generator, dual beam oscilloscope, circuit boards containing RCL circuits with
+different values of R, and with variable capacitor and inductor.
+
+PART 1
+Procedure
+1. Connect the signal generator up to the oscilloscope as shown in Fig. 21-2. Set the
+generator to output sine wave at frequency of 500 Hz. You should see a steady sine wave
+on the screen. If not, press in the trigger level button. Adjust the intensity and focus
+controls to give a sharp, but not too bright, image.
+Department of Physics, University of Nairobi
+
+80
+
+Signal
+Generaor
++ E
+
+Fig. 21-2
+2. Calibrate the instrument by ensuring that the calculated frequency = input frequency of
+500Hz. The output frequency (f) is calculated from measurements of the wavelength
+(length) of the wave seen on the screen and the periodic time T where f = 1/T. Adjust the
+wavelength (using the fine adjustment knob on the length/div control knob) as necessary
+to achieve this. Once calibrated, do not adjust the fine adjustment knob for the rest of the
+experiment.
+3. Set the signal generator to generate frequency of 1000 Hz and measure the wavelength
+(length) of the wave seen on the screen and calculate the frequency. Use worksheet 21-1
+to tabulate your data.
+4. Repeat step 3 for frequency of 1500 Hz.
+5. Now set the voltage output of the generator to 1 and measure the voltage on the screen.
+Repeat for settings of 2 and 3 volts. In the same manner as in step 2, remember to
+calibrate the equipment before taking readings.
+6. Now set the generator to give out square waves at 500 Hz and voltage output setting 3.
+Measure the frequency and voltage of the wave. Tabulate your data in worksheet 21-1.
+Comment and compare your results from the sine and square waves.
+
+Results:
+Worksheet 21-1: Sine wave
+Generator
+frequency (Hz)
+500
+
+Length on screen/
+Wavelength (cm)
+
+Time/div
+(secs)
+
+Period/Total
+Time (s)
+
+Height on the
+screen (cm)
+
+Volt/div
+(volts)
+
+Voltage
+(volts)
+
+1000
+1500
+Generator
+Voltage setting
+1
+2
+3
+
+Department of Physics, University of Nairobi
+
+81
+
+Oscilloscope
+frequency (Hz)
+
+Worksheet 21-2: Square wave
+Generator
+frequency (Hz)
+
+Length on the
+screen (cm)
+
+Time/div
+(secs)
+
+Period/Total
+time (s)
+
+Height on
+the screen
+(cm)
+
+Volt/div
+(volts)
+
+Voltage
+(volts)
+
+Oscilloscope
+frequency (Hz)
+
+500
+1000
+
+Generator
+Voltage setting
+
+1
+2
+3
+
+Part II: Discharge of a capacitor in an RCL circuit
+THEORY
+A series circuit containing a resistor, capacitor and inductor will resonate with a frequency of
+ under certain conditions. The signal generator charges and discharges the capacitor twice
+during one period causing oscillations in the circuit. The nature of the capacitor’s discharge
+depends on the values of the circuit components according to the equation:
+
+R
+
+2L
+
+R
+
+2L
+
+1
+
+(a periodic or smoth disch arg e)
+
+LC
+
+1
+
+(oscillatory disch arg e)
+
+LC
+
+Since the capacitor is being discharged, the amplitude of the oscillations in the second case
+decreases with time, i.e. damped oscillations as shown below.
+L
+CRO screen
+
+R
+
+C
+
+Fig. 21-3
+
+Department of Physics, University of Nairobi
+
+82
+
+Procedure
+1. Some RCL circuits have already been prepared on circuit boards. Choose the one with R
+= 100  and connect the oscilloscope to the terminals as shown in Fig. 21-3.
+2. Draw the curve seen on the oscilloscope screen ( R = 100, C = 4700pF, L = 0.4 H).
+Repeat for R = 1000  and 10,000  (or 100, 000 ).
+3. Draw the curves obtained when C and L are varied. In either case, state whether the
+discharge is oscillatory or periodic. Is this borne out of theory? If not, why not?
+4. Investigate what happens to the curve on the oscilloscope screen when R and C are
+interchanged. In each case say whether the discharge is oscillatory or periodic. Is this
+borne out by theory? If not, why not.
+
+Discussions
+Discuss your findings appropriately
+
+Conclusions
+Write suitable conclusion reflecting the objectives.
+
+Department of Physics, University of Nairobi
+
+83
+
+RADIOACTIVITY
+Experiment N-1: Radioactivity Decay Analogue
+Introduction
+Radioactivity decay follows a statistical process, which may be simulated. In this
+experiment, you are going to simulate the process by throwing on the floor or table a known
+number of dice (or wooden cubes) with one of their faces marked. The dice with marked
+faces uppermost are removed after each throw. The process of removing the dice is
+analogous to the decaying of atoms of a radioactive element and follows the same statistical
+laws as decaying atoms.
+For the provided number of dice, you will determine the number of throws, which will be
+made for half the total number of the dice to be removed. The number of throws may be
+considered as analogous to the half-life. To understand the equations used in the theory,
+questions are given for you to work through.
+
+Objectives
+At the end of this experiment you should be able to simulate Radioactive
+decay using statistical process.
+
+Apparatus
+About 200 cubes with one face marked, a large and a small box
+
+Theory
+The Rutherfold and Soddy law states that at any instant of time t, the rate of decay of
+radioactive atoms (dN/dt) is proportional to the number of atoms N present at that instant. As
+an equation this can be expressed as
+
+
+
+Or
+
+dN
+N
+dt
+
+dN
+  N
+dt
+
+…………………………….(1)
+
+where  is the decay constant and the negative sign means that the number of atoms
+remaining is decreasing. Note that for a particular element, the decay constant is
+constant, but varies for different elements. The solution of equation (1) has the form
+
+N  N o e  t
+
+Department of Physics, University of Nairobi
+
+………………………...(2)
+
+84
+
+The time taken for half the number of atoms to decay is called the half-life (T) and it is given
+by
+
+T
+
+0.693
+
+……………..……………….….(3)
+
+
+
+Procedure
+1.
+
+Count the number of dice (or wooden cubes) No, you are provided with in the large box
+
+2.
+
+Throw all the dice on the table or floor
+
+3.
+
+Remove the dice whose marked faces are uppermost and record their number (dN =No
+- N) against the number of throws T and put them into the small box. Make your
+recordings in Table 1.
+
+4.
+
+Return the remaining dice back into the large box and note the number N. Repeat steps
+2 and 3. Repeat until the remaining dice is less than 1/16 of the original number No.
+
+Results
+Initial number of dice No = …………
+Table 1
+Number of
+throws T
+
+Number of dice
+removed dN
+
+Number of dice
+remaining N
+
+lnN
+
+Analysis
+(a)
+
+Plot a graph of number of dice remaining (N) against the number of throws T. From the
+graph, determine the number of throws required to have a number of dice decay to
+No/2, No/4, No/8, No/16, hence the mean number of throws for half-life T. Compare the
+value you obtain to the value computed in question (4). Give reasons for any
+difference.
+
+(b)
+
+Plot a graph of lnN versus T. Determine the slope of the graph and hence the decay
+constant of the dice. Compare the value you obtain with the value computed in
+question (4). Give reasons for any difference observed.
+
+(c)
+
+Answer the following questions
+
+Department of Physics, University of Nairobi
+
+85
+
+Questions
+1. Show that equation (2) satisfies equation (1)
+2. Derive equation (3) starting with equation (2)
+3. What is the shape of the graph of the natural logarithm of
+equation (2). Does the slope have any physical meaning?
+4. Suppose you are provided with 500 dice. Calculate the number of
+throws that is equivalent to one half-life and the decay constant
+for the process.
+
+Discussions
+Discuss your results in comparison to theory
+
+Conclusions
+Write a suitable conclusion
+
+Department of Physics, University of Nairobi
+
+86
+
+RENEWABLE ENERGY
+
+Experiment S-1: PV Panel Characteristics
+Introduction
+Power generation from solar photovoltaic (PV) panel has long been seen as a clean
+sustainable energy technology which draws upon the renewable energy source – the sun. The
+direct conversion of sunlight to electricity occurs without any moving parts or environmental
+emissions during operation. Solar PV is now, after hydro and wind power, the third most
+important renewable energy source in terms of globally installed capacity.
+
+A solar panel, or photovoltaic panel, is an electrical device that converts light energy into
+direct current (DC) electricity by the “Photovoltaic Effect”. The operation of a photovoltaic
+(PV) panel requires 3 basic attributes:
+ The absorption of light, generating electron-hole pairs
+ Separation of charge carriers of opposite types.
+ The separate extraction of carriers to an external circuit.
+Solar cells (Fig 1a) are the building blocks of photovoltaic modules, otherwise known as
+solar panels. When more power is required than a single cell can deliver, cells are connected
+together to form PV solar panels (Fig b). For example, Fig 1(b) shows a crystalline-silicon
+panel comprising of 4 solar cells. To power a bigger devive such as a house or a power plant,
+the panels are arranged in multiples as arrays as shown in Fig 1(c).
+
+(a) Solar cell
+
+(b) Solar Panel with 4 solar cells
+
+(c) Solar Array
+
+Figure1. Arrangement of solar panels to form PV modules
+
+Connecting Solar Panels
+For a consistent amount of incident light, there is a maximum amount of current a solar
+panel can produce. If a load demands more current, then one has to connect more solar
+panels in parallel to meet the additional current demand. In the same way DC batteries can
+be connected in series or in parallel.
+Connecting panels in series increases the energy for each charge (i.e., the voltage (which is
+energy per charge) and hence the power output. The current however remains constant. This
+Department of Physics, University of Nairobi
+87
+
+is one reason why solar panels are connected in series in solar panels, to be able to provide
+enough voltage to meet the rated requirements.
+In this experiment, you are going to investigate the power output of PV panels when solar
+panels are connected in series and in parallel.
+
+Objectives
+To investigate the power output of PV panels when solar panels are
+connected in series and in parallel.
+
+Apparatus
+
+
+
+
+
+
+Component board with PV modules and resistors
+A lamp
+Electric Leads
+Digital Ammeter and Voltmeter
+Miniature light bulb
+
+Method
+You are provided with solar panels from Tough Stuff Co. Ltd, Model: TSI-501 with the
+following specifications:
+Power Rating = DC 5.7V, 1W
+PMax
+
+= 1W
+
+IPMax
+
+= 174mA
+
+VPMax
+
+= 5.7V
+
+VOC
+
+= 7.5V
+
+ISC
+
+= 240mA
+
+Max Sys V
+
+= 5.7V
+
+PART 1
+1. Arrange the circuit as shown in Figure 2 below. Connect a digital ammeter in series
+with the load and a voltmeter directly across the PV panel terminals. Use a load
+resistor of 0.5 or as provided
+2. Illuminate one PV solar panel with an incandescent lamp and keep the amount of
+light incident on the panel constant by keeping the distance between the lamp and the
+panel constant for all measurements. (Use a distance of 30 cm)
+3. To keep the lamps from getting too hot, turn off the lamps between actual
+measurements.
+4. Switch on the circuit and simultaneously measure and record the voltage and current
+being delivered with the 0.5 resistor. Use Table 1 to record your measurements
+Department of Physics, University of Nairobi
+
+88
+
+A
+
+R
+
+V
+
++
+
+-
+
+Lamp
+
+Solar Panel
+
+Panel
+
+Fig 2. Circuit arrangement of PV solar panel
+
+5. Now connect the second 0.5 resistor in parallel with the first resistor. This will
+decrease the resistance by a factor of 2. Measure the voltage, and current, and
+determine the power.
+How does the power, current & voltage compare to the measurement with just one
+resistor? NB. One would expect the current to double when the resistance decreases
+by a factor of 2. Is this the case?
+PART II: CONNECTING SOLAR PANELS IN PARALLEL
+6. Using the set up in 5 above (with RT = 0.5 ), connect the second PV panel in
+PARALLEL with the first one and illuminate each panel with a lamp. Measure and
+record the voltage, current and calculate the power. How does the power compare with
+the two previous measurements ?
+7.
+
+Using the same setup now with RT = 0.25 , connect the PV panel in PARALLE
+and illuminate each panel with a lamp. Measure and record the voltage, current and
+calculate the power. How does the power compare with that in experiment 6 above ?
+
+PART III: CONNECTING PANELS IN SERIES
+8. Now connect the two panels in SERIES to a 0.5 resistor and illuminate each panel
+with a lamp. Measure and record the voltage, and current, and calculate the power.
+How does the Power compare with one 0.5 resistor connected to one panel measured
+in part 4 above ? How much did the voltage and current change?
+Department of Physics, University of Nairobi
+
+89
+
+9.
+
+Now connect the two panels in SERIES to a 0.25 resistor and illuminate each panel
+with a lamp. Measure and record the voltage, and current, and calculate the power.
+How does the Power compare with one 0.5 resistor connected to one panel measured
+in part 4 above ? How much did the voltage and current change?
+
+Results
+Table S-1: Power output from panel combinations
+Voltage(V)
+
+Current (I) Power(P) =
+
+….. (V)
+
+…(A)
+
+IV (W)
+
+One Panel, One resistor
+(RT = 0.5 )
+One Panel, Two resistors
+(RT = 0.25 )
+Two Panels in Parallel, Two
+resistors: (RT = 0.25 )
+Two Panels in Parallel, One
+resistor: (RT = 0.5 )
+Two Panels in Series, Two
+resistor: (RT = 0.25 )
+Two Panels in Series, One
+resistor: (RT = 0.5 )
+
+Analysis
+Explain why we have to connect PV panels in series and in parallel
+
+Discussions
+Write down your comments and what you have learned from this experiment
+
+Department of Physics, University of Nairobi
+
+90
+
+Remarks
+
+Experiment S-2: Rated Voltage and Power of a Device
+Introduction
+Devices are designed to operate at a specific Voltage and Power for optimal performance.
+For example, the miniature bulb you are provided with requires at least 2W and 12V to light
+properly. The PV panels provided are rated 5.7V and 1W. So there is need to connect the PV
+panels in series to obtain the required voltage needed for the bulb to light properly. If we
+need to light more bulbs we would need to increase the current capability. This will require
+adding more panels in series to obtain the proper voltage, and then connecting this set of
+connected series panels in parallel to increase the current being delivered to the bulbs.
+As you can see, it takes a combination of panels to construct a solar panel. Some panels
+must be connected in series to meet the desired voltage and these series connected
+panels must be connected in parallel to produce the needed current. In this experiment,
+you are going to establish the combination of PV panels for an electric circuit that can
+deliver the rated voltage and power to a device using a light bulb as a load.
+
+Objectives
+To obtain the rated voltage and power of a device through combination
+of solar panes.
+
+Apparatus
+
+
+
+
+
+
+
+Component board with PV modules and resistors
+A lamp
+Electric Leads
+DC meter and Voltmeter
+Miniature light bulb
+Switch
+
+Method
+You are provided with solar panels from Tough Stuff Co. Ltd, Model: TSI-501 with the
+following specifications:
+Power Rating = DC 5.7V, 1W
+PMax
+
+= 1W
+
+IPMax
+
+= 174mA
+
+VPMax
+
+= 5.7V
+
+VOC
+
+= 7.5V
+
+ISC
+
+= 240mA
+
+Max Sys V
+
+= 5.7V
+
+Department of Physics, University of Nairobi
+
+91
+
+1. Using one panel, connect the miniature light bulb as the load and measure and record
+the current and voltage by connecting an ammeter (1A ammeter) in series with the
+bulb and a voltmeter across the PV panel terminals as shown in Fig 1. below.
+Calculate the power being delivered to the bulb. Also note the brightness of the
+miniature bulb. (DIM, BRIGHT, BRIGHTEST).
+2. Now connect the second PV panel in PARALLEL with the first one and illuminate
+each panel with a lamp. Measure and record the voltage, current and power delivered
+to the miniature bulb. Is the bulb brighter than it was in step 1?
+
+A
+Bulb
+
+V
+
++
+
+-
+
+Lamp
+
+Solar Panel
+
+Panel
+Fig 1. Circuit arrangement of PV solar panel
+3. Connect the two PV panels in SERIES. Again, measure and record the voltage,
+current, and calculate the power. Is the bulb brighter than it was in step 1 and 2?
+
+Results
+Table 2: Power output with a light bulb
+Voltage(V)
+
+Current (I)
+
+Power(P) =
+
+….. (V)
+
+…(A)
+
+IV (W)
+
+One Panel
+Two Panels in Parallel
+Two Panels in Series
+
+Analysis
+Department of Physics, University of Nairobi
+
+92
+
+Bulb brightness
+
+Which produces the brightest light output, the panels connected in series or parallel?
+
+Exercise
+Assume each PV Panel is capable of delivering 0.5V and 1.5 Amps. How would you connect
+PV panels to obtain 3V with a power output of 9 Watts?
+
+Conclusions
+Write down your comments and what you have learned from this experiment
+
+Department of Physics, University of Nairobi
+
+93
+
+APPENDIX A
+Error Analysis
+What is an error?
+ An error is a way of indicating the range of uncertainty of a measurement and depends on
+(i) Experimental procedure
+(j) Instrument used e.g., metre rule has a reading error (sensitivity) of  1mm. A reading error is
+the () the smallest division on the measuring scale. Instrument errors are (a) zero error and
+(b) reading error
+TYPES OF ERRORS
+ The two fundamental types of errors that may occur when you make a measurement are namely;
+(a) Random errors: Occurs when repeated measurements of the same quantity gives rise to
+different values. They arise due to
+(i)
+Errors of judgement:- such as the interpretation of the actual position of the pointer on a
+measuring scale (parallax error).
+(ii)
+Fluctuating conditions e.g., temperature, pressure or voltage may vary during the
+measurement, affecting the results.
+(iii)
+Unexpected disturbances e.g., sudden stray mechanical vibrations caused on the
+benches affect the experimental set up and hence the results obtained. Similar stray
+electrical pulses and magnetic fields do affect readings.
+Random errors can be eliminated by repeating the measurement several times and taking an
+average (mean) reading.
+(b) Systematic errors:- This refers to an effect that influences all measurements of a particular
+quantity equally e.g., if a voltmeter has an undetected ‘zero error’ and reads 0.2V ‘too large’ when
+‘disconnected’, then an absolute systematic error of +0.2V will occur in all measurements. On the
+other hand, if the meter is incorrectly ‘calibrated’ then a systematic % error will occur in all
+measurements. For example, if a ‘full scale deflection' (fsd) of the meter is actually10V when the
+meter scale indicates 9V, then all readings taken with the meter on that range have a systematic
+error of {-(10-9/10)V} = -10% and will be 10% "too small".
+Systematic errors arise due to
+(i)
+Instrument used
+(ii)
+Personal contributions such as when to start and stop a timing or
+(iii)
+Assumptions made in theory
+Systematic errors are difficult to detect (since they affect all results equally) and can usually only
+be found by checking and properly calibrating the instrument in which the error is suspected
+against a known reliable instrument.
+The accuracy of reading of a single quantity is usually determined by the reading error. The reading
+error is the plus or minus () the smallest division on that measuring scale. However, if the division is
+large, then one may estimate to the nearest half-division or 1/10 of this, if the eye can estimate position
+between graduations. For example, for a metre rule subdivided into mm, the reading error is  1mm
+whereas for a commonly used laboratory thermometer whose smallest division is 1 oC, the reading
+error is 0.5oC. On the other hand, if an accurate instrument is used to measure the radius of an
+irregular wire, then, the instrument readings can be used to determine the accuracy.
+Department of Physics, University of Nairobi
+
+94
+
+
+
+A measurement is said to be accurate if the measured values cluster closely about the true value
+i.e., it has little or no systematic and/or random errors. A measurement is said to be precise if the
+spread of measured values is small. Precision and accuracy are both limited by the sensitivity of
+the measuring device e.g., the sensitivity of a metre rule subdivided in mm is 1 mm.
+
+
+
+Note: A precise measurement can be very precise but not accurate if the systematic error(s) are
+large. E.g., a cheap digital watch reading 10:35:17 AM is very precise (time is given to the sec),
+but if the watch runs several minutes slow, then this value isn't very accurate. On the other hand, a
+grandmother clock might be very accurate (i.e., display the correct time), but if the clock has no
+second hand, it isn't precise. A high-quality measurement, like those used to define standards, is
+both precise and accurate. Precision and accuracy are both limited by the sensitivity of the
+measuring devices.
+
+Error Presentation
+ There are two types of quoting errors in a value i.e. absolute error and percentage error e.g., if a
+voltmeter reads 5.0 V when the reading might reasonably represent a value between 4.9 V and 5.1
+V then the reading can be quoted as
+An absolute error ; x  dx i.e., (5.0  0.1)V
+ dx
+
+A percentage error; x    100%  i.e., 5.0V  2%
+ x
+
+
+How to reduce Errors
+(a) Measuring a multiple of the quantity
+Suppose, for example, that you can start and stop a stopwatch with an accuracy of about 0.2 sec. and
+that you are determining the period of a pendulum (1 sec. say). Then if you time just one swing, your
+result will be 1.0  0.2 sec. If you time one hundred swings, you will get a total time of 100.0  0.2
+sec. and the period will be 1.000  0.002 sec thereby reducing the error.
+(b) Taking the measurement several times
+On the average, the result you get will be sometimes greater, or smaller, than the ‘correct’ result. The
+average of your readings should then be close to the true value. The more readings you take, the
+better. The accuracy of your final answer can be roughly determined from the spread of your readings,
+i.e. if you get 1.22 cm., 1.26 cm., 1.24 cm., - you could quote your reading as 1.24  0.02 cm. This is
+the ‘worst’ error – it exactly covers the range of your results. In fact, it is likely that your mean value is
+more accurate than this and you can quote what is known as the “probable error” which is defined as
+
+
+
+2
+
+ xi  x
+P.E = 0.7 x .
+nn  1
+
+where x is the average of your readings, n is the number of readings taken, and the
+xi are the actual readings.
+Obviously it takes longer to work this out, than to just look at the spread. Anyway the equation is not
+valid unless you have at least about 10 readings. We will be satisfied with the simpler method, while
+hoping that occasionally you might calculate the probable error.
+Department of Physics, University of Nairobi
+
+95
+
+Calculations of Propagated Errors
+In most experiments, the measured quantities are used to determine a derived quantity. As such, the
+errors in the initially measured quantities (which are introduced when reading the scale) are
+propagated to the derived quantity. The total error in any calculated (derived) quantity is evaluated by
+taking into consideration the errors in all the measured values involved in calculating that quantity. The
+following rules apply
+(a) Addition or Subtraction
+Suppose you want to determine a quantity q, which depends on two measured quantities x and y i.e.,
+q=x–y
+
+………………………………………………(1)
+
+Suppose x and y have errors dx and dy. Then the biggest and smallest values of q you get
+are
+q1 = (x + x) – (y - y) = (x – y) + (x + y) = q + q
+q2 = ( x - x) – (y + y) = (x – y) – (x + dy) = q - q
+So, in either case
+
+q = x + y
+
+……………………………………………..(1a)
+
+or the percentage error is
+
+q  x
+  y
+   100     100 
+q
+ x
+  y
+
+
+…………………….……………..(1b)
+
+In other words, you have added the errors. This gives the worst possible values of q i.e., when
+the errors in x and y both act in the same direction. Generally it can be shown that the likely
+estimated error in q is given by
+
+q  (x) 2  (y ) 2
+The same equation holds if q = x + y.
+Example:
+If q = a + b where a = 4.5  0.1cm, b = 3.6  0.2 cm then;
+
+
+dq = 0.1 + 0.2 = 0.3 cm.
+q = 8.1  0.3 cm.
+
+OR
+
+
+ 0 .3 
+q = 8.1  
+  100% = 8.1  3.7% cm.
+ 8.1 
+
+Department of Physics, University of Nairobi
+
+96
+
+General rule (Addition & Subtraction)
+The total absolute or percentage error is the sum of the individual
+absolute errors or percentage errors i.e.,
+
+
+
+If q = a + b + c; then dq = da + db + dc
+If q = a - b - c; then dq = da + db + dc
+
+(b) Multiplication and Division
+Let us take three simple examples,
+(i)
+
+q = xy
+
+………………………………………………………………….(2)
+
+Then (q + q) = (x + x) (y + y) gives the largest error in q. Hence
+(q + dq) = xy + xdy + ydx + dxdy
+
+
+ dq 
+ dx dy dxdy 
+
+q1    xy1 
+
+
+q 
+x
+y
+xy 
+
+
+
+
+
+ dq   dx dy dxdy 
+1    1 
+
+
+
+q  
+x
+y
+xy 
+
+
+ dxdy 
+ is very small (we hope:). Therefore
+Now x and y are small errors, so 
+xy
+
+
+q x y
+
+
+q
+x
+y
+Thus the absolute and percentage errors can be given by
+  x y 
+……………………………………(2a)
+dq  q   
+y
+ x
+and
+ q
+  x y 
+% error
+= 
+…………..……(2b)
+x 100%     100%
+y
+ q
+  x
+(ii)
+
+q = x2 = xx
+
+…….…………………………………………………….…….(3)
+
+In this case we can easily see from above that the largest error in q is
+
+x
+ x x 
+ q  2 .q  2dx.x
+x
+x
+ x
+
+q  
+
+…………………………(3a)
+
+Department of Physics, University of Nairobi
+
+……………………………………………………………..….(4)
+97
+
+(iii)
+
+q = x/y
+
+Likewise, in this case, we can easily see that the largest error in q is
+
+x  x
+y  y
+
+q + q =
+
+
+
+
+
+x  x x yx  xy
+ 
+y  y y y  y  y 
+
+q 
+q
+q
+
+
+
+yx
+y
+
+x  y  y  y  y
+
+If we neglect y in the denominator (it is much smaller than y), then
+
+q
+q
+
+
+
+x
+x
+
+
+
+y
+y
+
+Hence the absolute error becomes
+
+  x y 
+  q
+y
+ x
+
+q  
+
+………………………………..…(4a)
+
+Example:
+If a = 5.6  0.1g and b = 50.0  0.1 cm
+then the error in x = (a + b ) is 
+Final error is hence
+
+0.1 0.1
+
+ 0.0175.....  0.002  0.0198
+5.6 50.0
+
+dx  11.20.0198  0.2 g / m
+
+NB. The error has the same number of decimal places as the actual value
+
+General rule (Multiplication and subtraction)
+
+`
+
+The total fractional error is the sum of the individual fractional
+errors OR The total percentage (%) error is the sum of the individual
+% errors i.e.,
+dx da db
+ If x = ab or x = a/b then
+
+
+x
+a
+b
+da
+db
+
+
+ dx     x
+b 
+ a
+
+ da db 
+ 100%
+b 
+ a
+
+OR % Error = 
+
+Quantities with Powers:Consider an equation of the form
+Department of Physics, University of Nairobi
+
+98
+
+q
+
+xa
+
+…………………………………………..….(5)
+
+yb
+
+Then the worst error is given by
+(q + q) = (x + x)a (y - y)-b
+or
+
+q(1 +
+
+q
+q
+
+)x y
+a
+
+b
+
+ x 
+1  
+x
+
+
+a
+
+ y 
+1  
+y
+
+
+b
+
+Using equation (5) we can cancel q and xay-b
+
+q
+
+x 
+
+1
+ 1  
+q 
+x
+
+a
+
+
+y 
+1  
+y
+
+
+b
+
+Expanding by the binomial theorem, we get
+
+1
+
+q
+
+y 
+x  
+x  
+y
+x
+
+ 1  a  1  a  1  b   1  a  b
+x
+y
+q 
+x 
+x 
+y
+
+Hence the absolute and percentage errors can be given by
+
+q
+q
+
+a
+
+x
+x
+
+b
+
+y
+
+……………….………………..(5a)
+
+y
+
+ y
+
+ x
+
+and % error in q is  a x 100%   b x 100% 
+ x
+
+ y
+
+Note:
+1. The quantities,
+
+q x
+q
+
+,
+
+etc are known as relative errors. Once again, the likely error can be
+
+x
+
+q
+
+……………………….(5b)
+
+2
+
+ y 
+ x 
+ a    b  
+shown to be
+q
+ x
+ y
+
+2
+
+2
+
+2. The effect of each quantity on the final error depends on its power in the equation (a or b), but
+there is no difference between quantities in the numerator or denominator. This agrees with
+the three simple results already obtained.
+3. The percentage error is always rounded up to whole number.
+Example
+If q = T² where T = (1.2  0.2)sec, then dq = 2
+ q = (1.44  0.33)s
+Department of Physics, University of Nairobi
+
+dT
+ 0.33s .
+T
+
+99
+
+General rule (Powers)
+For a quantity raised to power n, the total percentage error is n times
+the % error i.e., the % error adds i.e.,
+
+
+
+If q  a n then
+If q 
+
+xn
+ym
+
+
+
+dq
+da
+n
+q
+a
+
+dq
+dx
+dy
+n m
+q
+x
+y
+
+Error in logarithmic functions.
+If q  e
+
+Z
+
+then
+
+dq
+ dz .
+q
+
+If q  log e z , then dq 
+
+Department of Physics, University of Nairobi
+
+dz
+.
+z
+
+Or
+
+dq = q.dz
+
+Or
+
+dq = dz/z
+
+100
+
+APPENDIX B
+Resistor Colour Codes
+The value of most carbon resistors are given by manufactures using colour codes. Normally,
+a resistor is labeled with three of four colour bans, where the first three bands and the fourth
+band represent the value of resistance and the tolerance in percentage respectively as shown
+in the figure below
+
+1st colour band
+4th colour band
+
+2nd colour band
+3rd colour band
+
+1st colour band =
+2nd colour band =
+3rd colour band =
+4th colour band
+
+=
+
+1st digit
+2nd digit
+Multiplier, i.e., an index of ten (10x), where x represents
+the value indicated by colour
+Tolerance in %
+
+Note: The first three colours bands are always grouped slightly away from the fourth
+band for identification purposes.
+
+TABLE 1: Value of colour codes in the bands
+Colour
+Silver
+Gold
+Black
+Brown
+Red
+Orange
+Yellow
+Green
+Blue
+Violet
+Grey
+White
+
+1st digit
+
+2nd digit
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+Department of Physics, University of Nairobi
+
+101
+
+3rd digit
+10-2
+10-1
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+
+TOLERANCE
+Gold
+Silver
+Salmon
+No band
+
+ 5%
+ 10 %
+ 20 %
+ 20 %
+
+Examples
+TABLE 2: If a resistor has the following colour codes, then their values are as follows:
+1st colour
+Brawn
+Orange
+Red
+Green
+Red
+Brown
+
+2nd colour
+Black
+White
+Black
+Black
+Red
+Black
+
+3rd colour
+black
+Black
+Brown
+Brown
+Red
+green
+
+Tolerance
+No band
+Gold
+Gold
+Silver
+Silver
+Salmon
+
+SOME CIRCUIT SYMBOLS
+
+Cell or accumulator
+Battery or Accumulators
+
+Fixed resistor
+
+Or
+
+Inductor
+
+Variable resistor
+
+Or
+
+Potential divider
+
+Or
+
+Capacitor
+
+Diode
+
+Department of Physics, University of Nairobi
+
+102
+
+VALUE
+10  20 %
+39  5 %
+200  5 %
+510  10 %
+2.2K  20 %
+1M  20 %
+
+APPENDIX C
+A General Introduction to the Spectrometer
+A spectrometer is an optical instrument for producing and analyzing spectra (A spectrum is
+what you see when you white light is split into colours using a dispersing element (a prism
+or a diffraction grating). The importance of the spectrometer as a scientific instrument is
+based on a simple but crucial fact. Light is emitted or absorbed when an electron changes its
+orbit within an individual atom. Because of this, the spectrometer is a powerful tool for
+investigating the structure of atoms. It's also a powerful tool for determining which atoms are
+present in a substance. Chemists use it to determine the constituents of molecules, and
+astronomers use it to determine the constituents of stars that are millions of light years away.
+It can also be used to measure refractive index of a prism. A spectrometer consists of three
+basic components: a collimator, a dispersion element and a telescope. The light to be
+analyzed enters the collimator through a narrow slit positioned in front of the collimator.
+When the collimator is focused, the light leaving the collimator is a thin, parallel beam,
+which ensures that all the light from the slit strikes the dispersing element at the same angle
+of incidence. This is necessary if a sharp image is to be formed. The dispersing element
+bends the beam of light. If the beam is composed of many different colors, each color is
+dispersed to a different angle. The telescope can be rotated to collect the dispersed light at
+very precisely measured angles. With the telescope focused at infinity and positioned at an
+angle to collect the light of a particular color, a precise image of the collimator slit can be
+seen.
+
+Department of Physics, University of Nairobi
+
+103
+
+
