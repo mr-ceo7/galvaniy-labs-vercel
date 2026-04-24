@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run engine:build && vite build",
     "preview": "vite preview",
     "start": "vite preview --port 10000",
     "engine:cli": "node scripts/run-ts-entry.mjs engine/cli-entry.ts",
     "engine:test": "node scripts/run-ts-entry.mjs tests/comprehensive.ts",
-    "postinstall": "vite build"
+    "engine:build": "esbuild engine/index.ts --bundle --minify --outfile=public/engine.min.js --format=iife --global-name=GalvaniyEngine",
+    "postinstall": "npm run engine:build && vite build"
   },
   "dependencies": {
     "@google/genai": "^1.32.0",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "esbuild": "^0.28.0",
     "typescript": "~5.8.2",
     "vite": "^6.4.1",
     "vite-plugin-pwa": "^1.2.0",

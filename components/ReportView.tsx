@@ -42,11 +42,26 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme, 
         }
         
         setParsedReport(data);
-        const html = generateInteractiveHTML(data, report.experimentCode);
-        const blob = new Blob([html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        setIframeSrc(url);
-        return () => URL.revokeObjectURL(url);
+        const initPreview = async () => {
+          let engineCode = '';
+          try {
+            const res = await fetch('/engine.min.js');
+            if (res.ok) engineCode = await res.text();
+          } catch (e) {
+            console.warn('Failed to load local engine bundle for preview');
+          }
+
+          const html = generateInteractiveHTML(data, report.experimentCode, engineCode);
+          const blob = new Blob([html], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          setIframeSrc(url);
+          return () => URL.revokeObjectURL(url);
+        };
+        
+        const cleanupPromise = initPreview();
+        return () => {
+          cleanupPromise.then(cleanup => cleanup && cleanup());
+        };
       } catch (e) {
         logService.error("Failed to parse report JSON", e);
       }
@@ -158,9 +173,18 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme, 
 
   };
 
-  const handleDownloadHTML = () => {
+  const handleDownloadHTML = async () => {
     if (!parsedReport) return;
-    const html = generateInteractiveHTML(parsedReport, report.experimentCode);
+    
+    let engineCode = '';
+    try {
+      const res = await fetch('/engine.min.js');
+      if (res.ok) engineCode = await res.text();
+    } catch (e) {
+      console.warn('Failed to load local engine bundle for export');
+    }
+
+    const html = generateInteractiveHTML(parsedReport, report.experimentCode, engineCode);
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -235,7 +259,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ report, onClose, theme, 
 };
 
 // This function generates the standalone HTML file string
-function generateInteractiveHTML(data: any, code: string) {
+function generateInteractiveHTML(data: any, code: string, engineCode: string = '') {
   // CRITICAL: Escape script closing tags AND Unicode line separators to prevent JS SyntaxErrors
   const jsonString = JSON.stringify(data)
     .replace(/<\/script>/g, '<\\/script>')
@@ -1883,404 +1907,78 @@ function generateInteractiveHTML(data: any, code: string) {
             simulation.params[id] = parseFloat(val);
         }
 
-        function getSimulationText() {
-            return [
-                reportData.title || '',
-                ...(reportData.apparatus || []),
-                ...(reportData.objectives || []),
-                ...(reportData.procedure || [])
-            ].join(' ').toLowerCase();
-        }
-
-        function resolveSimulationMode() {
-            const text = getSimulationText();
-            if (/pendulum|oscillation|bob|string/.test(text)) return 'pendulum';
-            if (/ohm|resistor|ammeter|voltmeter|circuit|current|voltage/.test(text)) return 'circuit';
-            if (/boyle|gas|pressure|piston|volume|syringe/.test(text)) return 'gas';
-            if (/lens|mirror|refraction|reflection|prism|optics|ray/.test(text)) return 'optics';
-            if (/heat|cool|temperature|calor|thermal|expansion/.test(text)) return 'thermal';
-            if (/wave|sound|string|frequency|resonan|harmonic/.test(text)) return 'wave';
-            return 'generic';
-        }
-
-        function drawPanelFrame(ctx, w, h, title, subtitle) {
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(0, 0, w, h);
-
-            const bg = ctx.createLinearGradient(0, 0, w, h);
-            bg.addColorStop(0, 'rgba(34, 211, 238, 0.08)');
-            bg.addColorStop(1, 'rgba(168, 85, 247, 0.08)');
-            ctx.fillStyle = bg;
-            ctx.fillRect(0, 0, w, h);
-
-            ctx.strokeStyle = 'rgba(148,163,184,0.18)';
-            ctx.lineWidth = 1;
-            for (let x = 30; x < w; x += 40) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, h);
-                ctx.stroke();
-            }
-            for (let y = 30; y < h; y += 40) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(w, y);
-                ctx.stroke();
-            }
-
-            ctx.fillStyle = 'rgba(15,23,42,0.88)';
-            ctx.beginPath();
-            ctx.roundRect(16, 16, 250, 58, 14);
-            ctx.fill();
-
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '700 16px Inter';
-            ctx.fillText(title, 28, 40);
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '12px Inter';
-            ctx.fillText(subtitle, 28, 60);
-        }
-
-        function getParamNumber(keys, fallback) {
-            for (const key of keys) {
-                const value = simulation.params[key];
-                const parsed = typeof value === 'number' ? value : parseFloat(value);
-                if (Number.isFinite(parsed)) return parsed;
-            }
-            return fallback;
-        }
-
-        function drawControlBadges(ctx, w, h) {
-            const entries = Object.entries(simulation.params).slice(0, 3);
-            entries.forEach(([key, value], index) => {
-                const x = 18 + index * 155;
-                const y = h - 54;
-                ctx.fillStyle = 'rgba(15,23,42,0.8)';
-                ctx.beginPath();
-                ctx.roundRect(x, y, 140, 34, 10);
-                ctx.fill();
-                ctx.fillStyle = '#94a3b8';
-                ctx.font = '11px Inter';
-                ctx.fillText(key, x + 12, y + 14);
-                ctx.fillStyle = '#22d3ee';
-                ctx.font = '700 12px Inter';
-                ctx.fillText(String(Number.isFinite(Number(value)) ? Number(value).toFixed(2) : value), x + 12, y + 27);
-            });
-        }
-
-        function drawDataTrend(ctx, w, h) {
-            const series = resolveEngineSeries();
-            if (!series || series.points.length < 2) return;
-
-            const chartX = w - 250;
-            const chartY = 24;
-            const chartW = 220;
-            const chartH = 110;
-
-            ctx.fillStyle = 'rgba(15,23,42,0.75)';
-            ctx.beginPath();
-            ctx.roundRect(chartX, chartY, chartW, chartH, 14);
-            ctx.fill();
-
-            const xs = series.points.map(point => point.x);
-            const ys = series.points.map(point => point.y);
-            const minX = Math.min(...xs);
-            const maxX = Math.max(...xs);
-            const minY = Math.min(...ys);
-            const maxY = Math.max(...ys);
-            const toX = (value) => chartX + 18 + ((value - minX) / (maxX - minX || 1)) * (chartW - 36);
-            const toY = (value) => chartY + chartH - 18 - ((value - minY) / (maxY - minY || 1)) * (chartH - 36);
-
-            ctx.strokeStyle = 'rgba(148,163,184,0.18)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(chartX + 18, chartY + 12);
-            ctx.lineTo(chartX + 18, chartY + chartH - 18);
-            ctx.lineTo(chartX + chartW - 12, chartY + chartH - 18);
-            ctx.stroke();
-
-            ctx.strokeStyle = '#22d3ee';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(toX(series.points[0].x), toY(series.points[0].y));
-            for (let i = 1; i < series.points.length; i++) {
-                ctx.lineTo(toX(series.points[i].x), toY(series.points[i].y));
-            }
-            ctx.stroke();
-
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '11px Inter';
-            ctx.fillText('Data Preview', chartX + 18, chartY + 18);
-        }
-
-        function drawPendulumPreview(ctx, w, h, frame) {
-            drawPanelFrame(ctx, w, h, 'Pendulum Preview', 'Safe built-in apparatus renderer');
-            const length = getParamNumber(['length'], 0.8);
-            const amplitudeDeg = getParamNumber(['amplitude', 'angle'], 8);
-            const anchorX = w * 0.32;
-            const anchorY = 82;
-            const swing = Math.sin(frame / 25) * (amplitudeDeg * Math.PI / 180);
-            const bobX = anchorX + Math.sin(swing) * (90 + length * 65);
-            const bobY = anchorY + Math.cos(swing) * (90 + length * 65);
-
-            ctx.strokeStyle = '#64748b';
-            ctx.lineWidth = 8;
-            ctx.beginPath();
-            ctx.moveTo(anchorX, 38);
-            ctx.lineTo(anchorX, anchorY);
-            ctx.stroke();
-
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(anchorX, anchorY);
-            ctx.lineTo(bobX, bobY);
-            ctx.stroke();
-
-            ctx.fillStyle = '#22d3ee';
-            ctx.beginPath();
-            ctx.arc(bobX, bobY, 16, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '12px Inter';
-            ctx.fillText('Small-angle oscillation based on report controls', 28, h - 76);
-            drawControlBadges(ctx, w, h);
-            drawDataTrend(ctx, w, h);
-        }
-
-        function drawCircuitPreview(ctx, w, h, frame) {
-            drawPanelFrame(ctx, w, h, 'Circuit Preview', 'Voltage-current visualization');
-            const voltage = getParamNumber(['voltage', 'potential'], 5);
-            const resistance = getParamNumber(['resistance'], 100);
-            const current = resistance > 0 ? voltage / resistance : 0;
-            const left = 80, top = 95, right = 430, bottom = 215;
-
-            ctx.strokeStyle = '#60a5fa';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(left, top);
-            ctx.lineTo(right, top);
-            ctx.lineTo(right, bottom);
-            ctx.lineTo(left, bottom);
-            ctx.closePath();
-            ctx.stroke();
-
-            ctx.fillStyle = '#f59e0b';
-            ctx.fillRect(left - 8, 128, 10, 54);
-            ctx.fillRect(left - 22, 138, 6, 34);
-
-            ctx.fillStyle = '#854d0e';
-            ctx.fillRect(225, bottom - 10, 70, 20);
-
-            const phase = (frame / 16) % 1;
-            for (let i = 0; i < 6; i++) {
-                const t = ((phase + i / 6) % 1);
-                const px = left + t * (right - left);
-                ctx.fillStyle = '#22d3ee';
-                ctx.beginPath();
-                ctx.arc(px, top, 4, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '12px Inter';
-            ctx.fillText('Estimated current: ' + current.toFixed(4) + ' A', 28, h - 76);
-            drawControlBadges(ctx, w, h);
-            drawDataTrend(ctx, w, h);
-        }
-
-        function drawGasPreview(ctx, w, h, frame) {
-            drawPanelFrame(ctx, w, h, 'Gas Law Preview', 'Pressure-volume chamber');
-            const volume = getParamNumber(['volume'], 50);
-            const pressure = getParamNumber(['pressure'], 100);
-            const chamberX = 105, chamberY = 90, chamberW = 300, chamberH = 120;
-            const pistonX = chamberX + 40 + (volume / 100) * 210;
-
-            ctx.strokeStyle = '#94a3b8';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(chamberX, chamberY, chamberW, chamberH);
-
-            ctx.fillStyle = 'rgba(59,130,246,0.35)';
-            ctx.fillRect(chamberX + 2, chamberY + 2, pistonX - chamberX - 2, chamberH - 4);
-
-            ctx.fillStyle = '#cbd5e1';
-            ctx.fillRect(pistonX, chamberY - 8, 10, chamberH + 16);
-
-            for (let i = 0; i < 12; i++) {
-                const px = chamberX + 18 + ((i * 37 + frame * 1.4) % Math.max(40, pistonX - chamberX - 30));
-                const py = chamberY + 18 + ((i * 23 + frame * 1.1) % (chamberH - 36));
-                ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                ctx.beginPath();
-                ctx.arc(px, py, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '12px Inter';
-            ctx.fillText('Volume: ' + volume.toFixed(1) + ' | Pressure: ' + pressure.toFixed(1), 28, h - 76);
-            drawControlBadges(ctx, w, h);
-            drawDataTrend(ctx, w, h);
-        }
-
-        function drawOpticsPreview(ctx, w, h, frame) {
-            drawPanelFrame(ctx, w, h, 'Optics Preview', 'Ray-path approximation');
-            const angle = getParamNumber(['angle', 'incidence', 'theta'], 25) * Math.PI / 180;
-            const centerX = 300;
-
-            ctx.strokeStyle = '#94a3b8';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(centerX, 70);
-            ctx.lineTo(centerX, 230);
-            ctx.stroke();
-
-            ctx.strokeStyle = '#22d3ee';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(80, 180);
-            ctx.lineTo(centerX, 180 - Math.tan(angle) * 120);
-            ctx.stroke();
-
-            ctx.strokeStyle = '#f59e0b';
-            ctx.beginPath();
-            ctx.moveTo(centerX, 180 - Math.tan(angle) * 120);
-            ctx.lineTo(520, 180 - Math.tan(angle * 0.65) * 80 + Math.sin(frame / 30) * 4);
-            ctx.stroke();
-
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '12px Inter';
-            ctx.fillText('Rays respond to the inferred incidence control', 28, h - 76);
-            drawControlBadges(ctx, w, h);
-            drawDataTrend(ctx, w, h);
-        }
-
-        function drawThermalPreview(ctx, w, h, frame) {
-            drawPanelFrame(ctx, w, h, 'Thermal Preview', 'Temperature response view');
-            const temperature = getParamNumber(['temperature', 'temp'], 35);
-            const fillHeight = Math.max(20, Math.min(140, (temperature / 100) * 140));
-
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(140, 70, 70, 150);
-            ctx.fillStyle = 'rgba(239,68,68,0.75)';
-            ctx.fillRect(146, 214 - fillHeight, 58, fillHeight);
-
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(140, 70, 70, 150);
-
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '12px Inter';
-            ctx.fillText('Temperature: ' + temperature.toFixed(1), 28, h - 76);
-
-            ctx.strokeStyle = '#fb7185';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (let i = 0; i < 160; i++) {
-                const x = 260 + i * 2;
-                const y = 150 + Math.sin((i / 18) + frame / 18) * (12 + temperature / 10);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-
-            drawControlBadges(ctx, w, h);
-            drawDataTrend(ctx, w, h);
-        }
-
-        function drawWavePreview(ctx, w, h, frame) {
-            drawPanelFrame(ctx, w, h, 'Wave Preview', 'Standing-wave style motion');
-            const frequency = getParamNumber(['frequency', 'freq'], 2);
-            const amplitude = getParamNumber(['amplitude'], 20);
-            ctx.strokeStyle = '#22d3ee';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            for (let i = 0; i <= 480; i++) {
-                const x = 70 + i;
-                const y = 150 + Math.sin((i / 38) + frame / 18 * frequency) * (18 + amplitude);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-
-            ctx.fillStyle = '#e2e8f0';
-            ctx.font = '12px Inter';
-            ctx.fillText('Frequency-driven preview derived from report controls', 28, h - 76);
-            drawControlBadges(ctx, w, h);
-            drawDataTrend(ctx, w, h);
-        }
-
-        function drawGenericPreview(ctx, w, h, frame) {
-            drawPanelFrame(ctx, w, h, 'Lab Preview', 'Safe fallback apparatus visualization');
-
-            ctx.fillStyle = 'rgba(15,23,42,0.65)';
-            ctx.beginPath();
-            ctx.roundRect(80, 86, 360, 124, 18);
-            ctx.fill();
-
-            const bars = Object.entries(simulation.params).slice(0, 4);
-            bars.forEach(([key, raw], index) => {
-                const value = Number(raw);
-                const normalized = Number.isFinite(value) ? Math.max(0.08, Math.min(1, value / (Math.abs(value) + 10))) : 0.45;
-                const barX = 112 + index * 72;
-                const barH = 86 * normalized;
-                ctx.fillStyle = 'rgba(34,211,238,0.18)';
-                ctx.fillRect(barX, 180 - barH, 40, barH);
-                ctx.strokeStyle = '#22d3ee';
-                ctx.strokeRect(barX, 94, 40, 86);
-                ctx.fillStyle = '#cbd5e1';
-                ctx.font = '11px Inter';
-                ctx.fillText(key.slice(0, 8), barX - 6, 198);
-            });
-
-            ctx.strokeStyle = '#a855f7';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(480, 90);
-            for (let i = 0; i < 100; i++) {
-                const x = 480 + i * 2.2;
-                const y = 155 + Math.sin((i / 8) + frame / 20) * 24;
-                ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-
-            drawControlBadges(ctx, w, h);
-            drawDataTrend(ctx, w, h);
-        }
-
-        function drawSafeSimulation(ctx, w, h, frame) {
-            const mode = resolveSimulationMode();
-            if (mode === 'pendulum') return drawPendulumPreview(ctx, w, h, frame);
-            if (mode === 'circuit') return drawCircuitPreview(ctx, w, h, frame);
-            if (mode === 'gas') return drawGasPreview(ctx, w, h, frame);
-            if (mode === 'optics') return drawOpticsPreview(ctx, w, h, frame);
-            if (mode === 'thermal') return drawThermalPreview(ctx, w, h, frame);
-            if (mode === 'wave') return drawWavePreview(ctx, w, h, frame);
-            return drawGenericPreview(ctx, w, h, frame);
-        }
-
         const simulation = {
-            active: false, frame: 0, params: initialParams,
-            toggle: function() { this.active = !this.active; document.getElementById('simOverlay').style.opacity = this.active ? 0 : 1; if(this.active) this.loop(); },
-            init: function() { this.draw(); },
-            loop: function() { if(!this.active) return; this.frame++; this.draw(); requestAnimationFrame(() => this.loop()); },
+            active: false, 
+            kitInstance: null,
+            params: initialParams,
+            toggle: function() { 
+                this.active = !this.active; 
+                document.getElementById('simOverlay').style.opacity = this.active ? 0 : 1; 
+                if(this.active) this.loop(); 
+            },
+            init: function() { 
+                if (typeof GalvaniyEngine !== 'undefined') {
+                    try {
+                        this.kitInstance = GalvaniyEngine.KitRegistry.resolve('${code}');
+                        if (!this.kitInstance) {
+                            // Try resolving by name if code fails
+                            const allKits = GalvaniyEngine.KitRegistry.getAllKits();
+                            this.kitInstance = allKits.find(k => k.experimentCode === '${code}') || null;
+                        }
+                        
+                        if (this.kitInstance) {
+                            const canvas = document.getElementById('simCanvas');
+                            const container = canvas.parentElement;
+                            canvas.width = Math.min(800, container.clientWidth);
+                            canvas.height = Math.min(400, canvas.width * 0.55);
+                            this.kitInstance.setup(canvas);
+                            
+                            // Map initial parameters
+                            for (const [key, value] of Object.entries(this.params)) {
+                                if (this.kitInstance.controlValues.has(key)) {
+                                    this.kitInstance.onControlChange(key, parseFloat(value));
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Failed to initialize engine kit', e);
+                    }
+                }
+                this.draw(); 
+            },
+            loop: function() { 
+                if(!this.active) return; 
+                if (this.kitInstance) {
+                    // Update controls
+                    for (const [key, value] of Object.entries(this.params)) {
+                        if (this.kitInstance.controlValues.has(key)) {
+                            const val = parseFloat(value);
+                            if (this.kitInstance.controlValues.get(key) !== val) {
+                                this.kitInstance.onControlChange(key, val);
+                                this.kitInstance.controlValues.set(key, val);
+                            }
+                        }
+                    }
+                    this.kitInstance.world.step();
+                }
+                this.draw(); 
+                requestAnimationFrame(() => this.loop()); 
+            },
             draw: function() {
-                const w = 800; const h = 300;
-                simCtx.clearRect(0,0,w,h);
-                simCtx.fillStyle = '#1e293b'; simCtx.fillRect(0,0,w,h);
-                
-                if (reportData.enginePowered) {
-                    simCtx.fillStyle = '#e2e8f0';
-                    simCtx.font = "700 22px Inter";
-                    simCtx.fillText("Physics engine data attached to this report.", 165, 132);
-                    simCtx.fillStyle = '#94a3b8';
-                    simCtx.font = "15px Inter";
-                    simCtx.fillText("Open Virtual Lab to interact with the full built-in apparatus.", 145, 162);
+                if (this.kitInstance) {
+                    this.kitInstance.renderFrame();
                 } else {
-                    drawSafeSimulation(simCtx, w, h, this.frame);
+                    // Fallback generic drawing if engine is missing
+                    const w = 800; const h = 300;
+                    simCtx.clearRect(0,0,w,h);
+                    simCtx.fillStyle = '#1e293b'; simCtx.fillRect(0,0,w,h);
+                    simCtx.fillStyle = '#e2e8f0';
+                    simCtx.font = "700 18px Inter";
+                    simCtx.fillText("No physics engine kit found for " + '${code}', 220, 150);
                 }
             }
         };
+
 
         // Splash screen control
         function initSplashScreen() {
@@ -2431,6 +2129,7 @@ function generateInteractiveHTML(data: any, code: string) {
         setTimeout(init, 100);
     </script>
     </div> <!-- Close report-content -->
+    ${engineCode ? `\n    <script id="galvaniy-engine-bundle">\n      ${engineCode}\n    </script>` : ''}
 </body>
 </html>`;
 }
