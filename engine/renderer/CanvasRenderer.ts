@@ -52,6 +52,14 @@ export class CanvasRenderer {
     this.world = world;
   }
 
+  /** Rebind a new canvas element (e.g. after tab switch) while preserving state. */
+  setCanvas(canvas: HTMLCanvasElement): void {
+    this.canvas = canvas;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas 2D context not available');
+    this.ctx = ctx;
+  }
+
   /** Set additional drawable components (apparatus-specific visuals). */
   setDrawables(drawables: DrawableComponent[]): void {
     this.drawables = drawables;

@@ -231,21 +231,31 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     };
   }, [experimentCode]);
 
-  // Ensure kit is set up when canvas mounts (after loadingLabSetup becomes false)
-  useEffect(() => {
-    if (!loadingLabSetup && activeTab === 'simulation' && canvasRef.current && kitRef.current) {
+  // Ensure kit is set up when canvas mounts (after AnimatePresence delays)
+  const handleCanvasRef = useCallback((node: HTMLCanvasElement | null) => {
+    canvasRef.current = node;
+    
+    if (node && kitRef.current && activeTab === 'simulation') {
       const kit = kitRef.current;
+      const canvas = node;
+      const container = canvas.parentElement!;
+      
+      // We must check if the container has width yet. If it's animating in, it might be 0.
+      // But typically it has width if it's block display.
+      canvas.width = Math.min(800, container.clientWidth || 800);
+      canvas.height = Math.min(400, canvas.width * 0.55);
+
       if (setupKitIdRef.current !== kit.kitId) {
-        const canvas = canvasRef.current;
-        const container = canvas.parentElement!;
-        canvas.width = Math.min(800, container.clientWidth);
-        canvas.height = Math.min(400, canvas.width * 0.55);
+        // Initial setup for this kit
         kit.setup(canvas);
         kit.renderFrame();
         setupKitIdRef.current = kit.kitId;
+      } else {
+        // Kit is already running, just rebind the new canvas DOM element!
+        kit.rebindCanvas(canvas);
       }
     }
-  }, [loadingLabSetup, activeTab]);
+  }, [activeTab]);
 
   useEffect(() => {
     loadSavedSessions();
@@ -728,7 +738,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
             >
               <div className="vlab-canvas-wrapper">
                 <canvas
-                  ref={canvasRef}
+                  ref={handleCanvasRef}
                   className="vlab-canvas"
                   onMouseDown={handleCanvasPointerDown}
                   onMouseMove={handleCanvasPointerMove}

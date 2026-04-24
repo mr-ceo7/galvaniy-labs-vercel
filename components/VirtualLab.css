@@ -623,32 +623,64 @@
 .vlab-kit-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px;
-  background: rgba(30, 41, 59, 0.3);
-  border: 1px solid rgba(148, 163, 184, 0.06);
-  border-radius: 12px;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.25s ease;
-  margin-bottom: 6px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.vlab-kit-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+.vlab-kit-card:hover::before {
+  background: #22d3ee;
+  box-shadow: 0 0 16px #22d3ee;
 }
 
 .vlab-kit-card:hover {
-  background: rgba(30, 41, 59, 0.6);
-  border-color: rgba(34, 211, 238, 0.15);
-  transform: translateX(4px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(34, 211, 238, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(34, 211, 238, 0.05);
 }
 
 .vlab-kit-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  font-size: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.vlab-kit-icon::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 18px;
+  background: inherit;
+  filter: blur(12px);
+  opacity: 0.3;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.vlab-kit-card:hover .vlab-kit-icon::after {
+  opacity: 0.6;
 }
 
 .vlab-kit-icon.mechanics { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
@@ -659,13 +691,27 @@
 .vlab-kit-icon.nuclear { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
 .vlab-kit-icon.measurement { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
 
-.vlab-kit-info { flex: 1; min-width: 0; }
+.vlab-kit-info { 
+  flex: 1; 
+  min-width: 0; 
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
 .vlab-kit-code {
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 6px;
+  font-size: 10px;
   font-weight: 700;
-  color: #64748b;
-  letter-spacing: 0.05em;
+  color: #22d3ee;
+  letter-spacing: 0.08em;
+  width: max-content;
 }
 
 .vlab-kit-name {
@@ -676,12 +722,12 @@
 }
 
 .vlab-kit-arrow {
-  color: #475569;
-  transition: all 0.2s ease;
+  color: inherit;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
 }
 
-.vlab-kit-card:hover .vlab-kit-arrow { color: #22d3ee; transform: translateX(3px); }
+.vlab-kit-card:hover .vlab-kit-arrow { transform: translateX(3px); }
 
 /* ── Responsive ── */
 @media (max-width: 640px) {

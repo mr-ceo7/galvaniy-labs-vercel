@@ -69,6 +69,18 @@ export abstract class ApparatusKit {
     this.renderer.render();
   }
 
+  /**
+   * Rebind a new canvas element without resetting the physics world.
+   * Used when switching tabs to reconnect the renderer to the new DOM node.
+   */
+  rebindCanvas(canvas: HTMLCanvasElement): void {
+    if (this.renderer) {
+      this.renderer.setCanvas(canvas);
+      // We don't re-init the world, we just re-render the current state
+      this.renderer.render();
+    }
+  }
+
   // ==================== Abstract Methods (Kit-specific) ====================
 
   /** Initialize the physics world with bodies, constraints, etc. */
