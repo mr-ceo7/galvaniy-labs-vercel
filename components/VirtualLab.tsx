@@ -125,6 +125,8 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     }
   }, [isRunning, stopReplay]);
 
+  const setupKitIdRef = useRef<string | null>(null);
+
   // Initialize kit
   useEffect(() => {
     let cancelled = false;
@@ -148,6 +150,9 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
       setCollectedData([]);
       setCurrentStep(0);
       setActiveTab('simulation');
+      
+      // Reset setup tracking so it runs again when canvas mounts
+      setupKitIdRef.current = null;
 
       const vals: Record<string, number> = {};
       for (const control of kit.getControls()) {
@@ -162,6 +167,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
         canvas.height = Math.min(400, canvas.width * 0.55);
         kit.setup(canvas);
         kit.renderFrame();
+        setupKitIdRef.current = kit.kitId;
       }
     };
 
@@ -224,6 +230,22 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
       window.removeEventListener('resize', handleResize);
     };
   }, [experimentCode]);
+
+  // Ensure kit is set up when canvas mounts (after loadingLabSetup becomes false)
+  useEffect(() => {
+    if (!loadingLabSetup && activeTab === 'simulation' && canvasRef.current && kitRef.current) {
+      const kit = kitRef.current;
+      if (setupKitIdRef.current !== kit.kitId) {
+        const canvas = canvasRef.current;
+        const container = canvas.parentElement!;
+        canvas.width = Math.min(800, container.clientWidth);
+        canvas.height = Math.min(400, canvas.width * 0.55);
+        kit.setup(canvas);
+        kit.renderFrame();
+        setupKitIdRef.current = kit.kitId;
+      }
+    }
+  }, [loadingLabSetup, activeTab]);
 
   useEffect(() => {
     loadSavedSessions();
