@@ -47,7 +47,7 @@ export class SimplePendulumKit extends ApparatusKit {
   private ruler: Ruler;
 
   // Renderer
-  private renderer: CanvasRenderer | null = null;
+
 
   constructor() {
     super();

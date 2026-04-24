@@ -14,7 +14,7 @@ export class MomentOfInertiaKit extends ApparatusKit {
   readonly experimentCode = 'B-8'; readonly category = 'mechanics' as const;
   private hangingMass = 0.2; private fallHeight = 1.0; private axleRadius = 0.02;
   private I = 0.05; private frictionTorque = 0.01; private numWindings = 5;
-  private stopwatch: Stopwatch; private ruler: Ruler; private renderer: CanvasRenderer | null = null;
+  private stopwatch: Stopwatch; private ruler: Ruler;
   private wheelAngle = 0;
 
   constructor() {

@@ -17,7 +17,7 @@ export class FocalLengthKit extends ApparatusKit {
   private imageDist = 0; // m
   private magnification = 0;
   private imageReal = true; private imageInverted = true;
-  private ruler: Ruler; private renderer: CanvasRenderer | null = null;
+  private ruler: Ruler;
 
   constructor() {
     super();

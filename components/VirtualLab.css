@@ -285,6 +285,22 @@
 .vlab-btn-danger { color: #f87171; border-color: rgba(248, 113, 113, 0.2); }
 .vlab-btn-danger:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
 
+/* Select dropdown (graph axis picker) */
+.vlab-select {
+  background: rgba(15, 23, 42, 0.8);
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.vlab-select:focus { border-color: rgba(34, 211, 238, 0.4); }
+.vlab-select option { background: #0f172a; color: #e2e8f0; }
+
 /* ── Section Title ── */
 .vlab-section-title {
   display: flex;

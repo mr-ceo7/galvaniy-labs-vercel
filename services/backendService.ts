@@ -275,6 +275,27 @@ const checkHealth = async (): Promise<boolean> => {
   }
 };
 
+// ==================== Lab Sessions ====================
+
+interface LabSessionPayload {
+  experiment_code: string;
+  mode: string;
+  started_at: string;
+  completed_at: string;
+  data_points: Record<string, unknown>[];
+  control_values: Record<string, number>;
+}
+
+/**
+ * Save a Virtual Lab session to Firestore via the backend.
+ */
+const saveLabSession = async (session: LabSessionPayload): Promise<void> => {
+  await apiFetch('/api/reports/lab-session', {
+    method: 'POST',
+    body: JSON.stringify(session),
+  });
+};
+
 // ==================== Exports ====================
 
 export const backendService = {
@@ -285,6 +306,9 @@ export const backendService = {
   // Reports
   generateReport,
   listReports,
+
+  // Lab Sessions
+  saveLabSession,
 
   // Admin
   getUsers,

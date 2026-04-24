@@ -21,7 +21,7 @@ export class BoylesLawKit extends ApparatusKit {
   private pressure: number = 101325;    // Pa (1 atm)
   private initialPV: number = 50 * 101325; // PV product
   private temperature: number = 293;    // K (20°C)
-  private renderer: CanvasRenderer | null = null;
+
   private pressureGauge: PressureGauge;
 
   constructor() {

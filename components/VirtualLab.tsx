@@ -7,10 +7,11 @@ import { KitRegistry } from '../engine/apparatus/KitRegistry';
 import type { ApparatusKit, DataPoint } from '../engine/apparatus/ApparatusKit';
 import type { LabControl, ProcedureStep, DataTableConfig } from '../engine/core/types';
 import {
-  Play, Pause, RotateCcw, Zap, ChevronRight, Download,
-  FlaskConical, Ruler, Timer, Table, BookOpen, ArrowLeft
+  Play, Pause, RotateCcw, Zap, ChevronRight, Download, Save,
+  FlaskConical, Ruler, Timer, Table, BookOpen, ArrowLeft, BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { logService } from '../services/logService';
 import './VirtualLab.css';
 
 // Import all kits so they self-register
@@ -21,14 +22,17 @@ interface VirtualLabProps {
   onBack: () => void;
 }
 
-type LabTab = 'simulation' | 'data' | 'procedure';
+type LabTab = 'simulation' | 'data' | 'procedure' | 'graph';
 
 export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartCanvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>(0);
   const kitRef = useRef<ApparatusKit | null>(null);
+  const sessionStartRef = useRef<string>(new Date().toISOString());
 
   const [isRunning, setIsRunning] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [controls, setControls] = useState<LabControl[]>([]);
   const [controlValues, setControlValues] = useState<Record<string, number>>({});
   const [dataTable, setDataTable] = useState<DataTableConfig | null>(null);
@@ -40,6 +44,10 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack }
   const [kitCode, setKitCode] = useState('');
   const [autoRunning, setAutoRunning] = useState(false);
   const [error, setError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [graphXKey, setGraphXKey] = useState('');
+  const [graphYKey, setGraphYKey] = useState('');
 
   // Initialize kit
   useEffect(() => {
@@ -66,13 +74,28 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack }
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const container = canvas.parentElement!;
-      canvas.width = container.clientWidth;
-      canvas.height = Math.min(400, container.clientWidth * 0.6);
+      canvas.width = Math.min(800, container.clientWidth);
+      canvas.height = Math.min(400, canvas.width * 0.55);
       kit.setup(canvas);
+      // Draw initial frame so canvas isn't blank
+      kit.renderFrame();
     }
+
+    // Handle resize
+    const handleResize = () => {
+      if (canvasRef.current && kitRef.current) {
+        const canvas = canvasRef.current;
+        const container = canvas.parentElement!;
+        canvas.width = Math.min(800, container.clientWidth);
+        canvas.height = Math.min(400, canvas.width * 0.55);
+        kitRef.current.renderFrame();
+      }
+    };
+    window.addEventListener('resize', handleResize);
 
     return () => {
       cancelAnimationFrame(animFrameRef.current);
+      window.removeEventListener('resize', handleResize);
     };
   }, [experimentCode]);
 
@@ -98,6 +121,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack }
       stopLoop();
     } else {
       startLoop();
+      if (!hasStarted) setHasStarted(true);
     }
     setIsRunning(!isRunning);
   };
@@ -158,6 +182,194 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack }
     URL.revokeObjectURL(url);
   };
 
+  // ========== Canvas Touch/Drag Interaction ==========
+  const getCanvasPos = (e: React.MouseEvent | React.TouchEvent): { x: number; y: number } => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    return {
+      x: ((clientX - rect.left) / rect.width) * canvas.width,
+      y: ((clientY - rect.top) / rect.height) * canvas.height,
+    };
+  };
+
+  const handleCanvasPointerDown = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDragging(true);
+    if (!hasStarted) {
+      handlePlayPause();
+      return;
+    }
+    const pos = getCanvasPos(e);
+    const kit = kitRef.current;
+    if (kit && (kit as any).onPointerDown) {
+      (kit as any).onPointerDown(pos.x, pos.y);
+    }
+  };
+
+  const handleCanvasPointerMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging) return;
+    const pos = getCanvasPos(e);
+    const kit = kitRef.current;
+    if (kit && (kit as any).onPointerMove) {
+      (kit as any).onPointerMove(pos.x, pos.y);
+      if (!isRunning) kit.renderFrame();
+    }
+  };
+
+  const handleCanvasPointerUp = () => {
+    setIsDragging(false);
+    const kit = kitRef.current;
+    if (kit && (kit as any).onPointerUp) {
+      (kit as any).onPointerUp();
+    }
+  };
+
+  // ========== Session Save ==========
+  const handleSaveSession = async () => {
+    if (collectedData.length === 0) return;
+    setSaving(true);
+    try {
+      const { backendService } = await import('../services/backendService');
+      await backendService.saveLabSession({
+        experiment_code: kitCode,
+        mode: autoRunning ? 'auto' : 'manual',
+        started_at: sessionStartRef.current,
+        completed_at: new Date().toISOString(),
+        data_points: collectedData,
+        control_values: controlValues,
+      });
+      logService.log('[VirtualLab] Session saved successfully');
+    } catch (err) {
+      logService.error('[VirtualLab] Failed to save session:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ========== Graph Rendering ==========
+  useEffect(() => {
+    if (activeTab !== 'graph' || collectedData.length === 0) return;
+    const canvas = chartCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const keys = Object.keys(collectedData[0]).filter(
+      k => typeof collectedData[0][k] === 'number'
+    );
+    const xKey = graphXKey || keys[0] || '';
+    const yKey = graphYKey || keys[1] || keys[0] || '';
+    if (!graphXKey && xKey) setGraphXKey(xKey);
+    if (!graphYKey && yKey) setGraphYKey(yKey);
+
+    const xVals = collectedData.map(d => Number(d[xKey]) || 0);
+    const yVals = collectedData.map(d => Number(d[yKey]) || 0);
+
+    const w = canvas.width;
+    const h = canvas.height;
+    const pad = { top: 30, right: 20, bottom: 45, left: 55 };
+    const plotW = w - pad.left - pad.right;
+    const plotH = h - pad.top - pad.bottom;
+
+    const xMin = Math.min(...xVals);
+    const xMax = Math.max(...xVals);
+    const yMin = Math.min(...yVals, 0);
+    const yMax = Math.max(...yVals) * 1.1 || 1;
+
+    const toX = (v: number) => pad.left + ((v - xMin) / (xMax - xMin || 1)) * plotW;
+    const toY = (v: number) => pad.top + plotH - ((v - yMin) / (yMax - yMin || 1)) * plotH;
+
+    // Clear
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, w, h);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const y = pad.top + (plotH / 5) * i;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, h - pad.bottom);
+    ctx.lineTo(w - pad.right, h - pad.bottom);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(xKey, pad.left + plotW / 2, h - 8);
+    ctx.save();
+    ctx.translate(14, pad.top + plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(yKey, 0, 0);
+    ctx.restore();
+
+    // Tick labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    for (let i = 0; i <= 5; i++) {
+      const v = xMin + ((xMax - xMin) / 5) * i;
+      ctx.fillText(v.toPrecision(3), toX(v), h - pad.bottom + 15);
+    }
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 5; i++) {
+      const v = yMin + ((yMax - yMin) / 5) * i;
+      ctx.fillText(v.toPrecision(3), pad.left - 8, toY(v) + 3);
+    }
+
+    // Data points + line
+    if (xVals.length > 1) {
+      // Line
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(toX(xVals[0]), toY(yVals[0]));
+      for (let i = 1; i < xVals.length; i++) {
+        ctx.lineTo(toX(xVals[i]), toY(yVals[i]));
+      }
+      ctx.stroke();
+
+      // Area fill
+      ctx.fillStyle = 'rgba(34, 211, 238, 0.08)';
+      ctx.beginPath();
+      ctx.moveTo(toX(xVals[0]), toY(yMin));
+      for (let i = 0; i < xVals.length; i++) {
+        ctx.lineTo(toX(xVals[i]), toY(yVals[i]));
+      }
+      ctx.lineTo(toX(xVals[xVals.length - 1]), toY(yMin));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Points
+    for (let i = 0; i < xVals.length; i++) {
+      const px = toX(xVals[i]);
+      const py = toY(yVals[i]);
+      // Glow
+      const grad = ctx.createRadialGradient(px, py, 0, px, py, 8);
+      grad.addColorStop(0, 'rgba(34, 211, 238, 0.4)');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(px, py, 8, 0, Math.PI * 2); ctx.fill();
+      // Dot
+      ctx.fillStyle = '#22d3ee';
+      ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }, [activeTab, collectedData, graphXKey, graphYKey]);
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
@@ -188,6 +400,16 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack }
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={handleSaveSession}
+            disabled={saving || collectedData.length === 0}
+            className="vlab-btn-auto"
+            title="Save session to cloud"
+            style={{ opacity: collectedData.length === 0 ? 0.4 : 1 }}
+          >
+            <Save size={14} />
+            <span className="hidden md:inline">{saving ? 'Saving...' : 'Save'}</span>
+          </button>
+          <button
             onClick={handleAutoRun}
             disabled={autoRunning}
             className="vlab-btn-auto"
@@ -204,6 +426,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack }
         {([
           { id: 'simulation' as LabTab, icon: FlaskConical, label: 'Lab' },
           { id: 'data' as LabTab, icon: Table, label: 'Data' },
+          { id: 'graph' as LabTab, icon: BarChart3, label: 'Graph' },
           { id: 'procedure' as LabTab, icon: BookOpen, label: 'Steps' },
         ]).map(tab => (
           <button
@@ -233,8 +456,19 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack }
             >
               {/* Canvas */}
               <div className="vlab-canvas-wrapper">
-                <canvas ref={canvasRef} className="vlab-canvas" />
-                {!isRunning && (
+                <canvas
+                  ref={canvasRef}
+                  className="vlab-canvas"
+                  onMouseDown={handleCanvasPointerDown}
+                  onMouseMove={handleCanvasPointerMove}
+                  onMouseUp={handleCanvasPointerUp}
+                  onMouseLeave={handleCanvasPointerUp}
+                  onTouchStart={handleCanvasPointerDown}
+                  onTouchMove={handleCanvasPointerMove}
+                  onTouchEnd={handleCanvasPointerUp}
+                  style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+                />
+                {!isRunning && !hasStarted && (
                   <div className="vlab-canvas-overlay" onClick={handlePlayPause}>
                     <Play size={40} className="text-white/80" />
                     <span className="text-white/60 text-sm mt-2">Click to start</span>
@@ -399,6 +633,66 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack }
                   Next Step
                 </button>
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'graph' && (
+            <motion.div
+              key="graph"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="vlab-data-panel"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="vlab-section-title">
+                  <BarChart3 size={14} /> Live Graph
+                </h3>
+                {collectedData.length > 0 && (() => {
+                  const numKeys = Object.keys(collectedData[0]).filter(
+                    k => typeof collectedData[0][k] === 'number'
+                  );
+                  return (
+                    <div className="flex gap-2 items-center">
+                      <select
+                        value={graphXKey}
+                        onChange={e => setGraphXKey(e.target.value)}
+                        className="vlab-select"
+                      >
+                        {numKeys.map(k => <option key={k} value={k}>{k}</option>)}
+                      </select>
+                      <span className="text-slate-500 text-xs">vs</span>
+                      <select
+                        value={graphYKey}
+                        onChange={e => setGraphYKey(e.target.value)}
+                        className="vlab-select"
+                      >
+                        {numKeys.map(k => <option key={k} value={k}>{k}</option>)}
+                      </select>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {collectedData.length === 0 ? (
+                <div className="vlab-empty-state">
+                  <BarChart3 size={32} className="text-slate-600 mb-2" />
+                  <p className="text-slate-500 text-sm">No data to plot.</p>
+                  <p className="text-slate-600 text-xs mt-1">
+                    Collect data first using <strong>Measure</strong> or <strong>Auto</strong>.
+                  </p>
+                </div>
+              ) : (
+                <div className="vlab-canvas-wrapper" style={{ aspectRatio: '16/9' }}>
+                  <canvas
+                    ref={chartCanvasRef}
+                    width={600}
+                    height={340}
+                    className="vlab-canvas"
+                    style={{ cursor: 'default' }}
+                  />
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

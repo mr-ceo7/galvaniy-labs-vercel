@@ -16,7 +16,7 @@ export class SpecificHeatKit extends ApparatusKit {
   private solidMass = 0.1; private solidTemp = 100; private solidC = 900; // aluminum J/(kg·K)
   private waterMass = 0.15; private waterTemp = 25; private waterC = 4186;
   private finalTemp = 0; private mixed = false;
-  private thermometer: Thermometer; private renderer: CanvasRenderer | null = null;
+  private thermometer: Thermometer;
 
   constructor() {
     super();

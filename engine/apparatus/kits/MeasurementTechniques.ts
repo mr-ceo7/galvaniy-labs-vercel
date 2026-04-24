@@ -26,7 +26,7 @@ export class MeasurementTechniquesKit extends ApparatusKit {
   // Instruments
   private vernier: Ruler;
   private micrometer: Ruler;
-  private renderer: CanvasRenderer | null = null;
+
 
   // Vernier state
   private vernierReading: number = 0;

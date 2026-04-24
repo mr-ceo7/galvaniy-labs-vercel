@@ -25,7 +25,7 @@ export class EquilibriumOfForcesKit extends ApparatusKit {
     { magnitude: 0, angle: 0, color: '#a855f7' }, // equilibrant — auto-calculated
   ];
   private protractor: Protractor;
-  private renderer: CanvasRenderer | null = null;
+
 
   constructor() {
     super();

@@ -151,3 +151,30 @@ async def list_reports(
         )
         for r in reports
     ]
+
+
+@router.post("/lab-session")
+async def save_lab_session(
+    session: dict,
+    user: AuthenticatedUser = Depends(get_current_user),
+):
+    """Save a Virtual Lab experiment session to Firestore."""
+    try:
+        session_data = {
+            "user_uid": user.uid,
+            "experiment_code": session.get("experiment_code", ""),
+            "mode": session.get("mode", "manual"),
+            "started_at": session.get("started_at", ""),
+            "completed_at": session.get("completed_at", ""),
+            "data_points": session.get("data_points", []),
+            "control_values": session.get("control_values", {}),
+            "saved_at": datetime.utcnow().isoformat(),
+        }
+        await firestore_service.save_lab_session(user.uid, session_data)
+        return {"status": "ok", "message": "Session saved successfully"}
+    except Exception as e:
+        logger.error(f"[Reports] Failed to save lab session: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save session: {str(e)}",
+        )

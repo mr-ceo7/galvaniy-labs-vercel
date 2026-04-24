@@ -51,8 +51,22 @@ export abstract class ApparatusKit {
   /** Current control values. */
   protected controlValues: Map<string, number> = new Map();
 
+  /** Renderer instance (created during setup by subclasses). */
+  protected renderer: CanvasRenderer | null = null;
+
   constructor() {
     this.world = new World();
+  }
+
+  /**
+   * Render the current frame to the canvas.
+   * Delegates to the CanvasRenderer which calls the kit's draw()
+   * via the customDraw callback set during setup().
+   * Safe to call before/after simulation for static previews.
+   */
+  renderFrame(): void {
+    if (!this.renderer) return;
+    this.renderer.render();
   }
 
   // ==================== Abstract Methods (Kit-specific) ====================

@@ -21,7 +21,7 @@ export class CoolingCurveKit extends ApparatusKit {
   private ambientTemp: number = 25;    // °C
   private currentTemp: number = 80;
   private coolingConstant: number = 0.02; // k in s⁻¹
-  private renderer: CanvasRenderer | null = null;
+
   private thermometer: Thermometer;
   private stopwatch: Stopwatch;
   private tempHistory: Array<{ time: number; temp: number }> = [];

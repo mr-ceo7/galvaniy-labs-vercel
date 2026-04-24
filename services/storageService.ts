@@ -138,6 +138,20 @@ export const storageService = {
     return db.reports[email] || [];
   },
 
+  deleteReport: (email: string, reportId: string) => {
+    const db = getDb();
+    if (db.reports[email]) {
+      db.reports[email] = db.reports[email].filter((r: Report) => r.id !== reportId);
+      saveDb(db);
+    }
+  },
+
+  clearAllReports: (email: string) => {
+    const db = getDb();
+    db.reports[email] = [];
+    saveDb(db);
+  },
+
   checkDailyLimit: (email: string): boolean => {
     if (email.includes('admin')) return true;
     const db = getDb();

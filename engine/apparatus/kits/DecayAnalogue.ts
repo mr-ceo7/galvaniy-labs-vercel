@@ -21,7 +21,7 @@ export class DecayAnalogueKit extends ApparatusKit {
   private throwNumber: number = 0;
   private decayHistory: Array<{ throw: number; remaining: number }> = [];
   private cubeStates: boolean[] = []; // true = active (unmarked face up)
-  private renderer: CanvasRenderer | null = null;
+
   private isAnimating: boolean = false;
   private animationProgress: number = 1;
   private lastDecayed: Set<number> = new Set();

@@ -18,7 +18,7 @@ export class SonometerKit extends ApparatusKit {
   private resonantLength = 0; // m
   private forkFrequency = 256; // Hz
   private wireLength = 0.5; // current adjustable length
-  private ruler: Ruler; private renderer: CanvasRenderer | null = null;
+  private ruler: Ruler;
   private animPhase = 0; private atResonance = false;
 
   constructor() {

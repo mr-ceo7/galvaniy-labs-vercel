@@ -21,7 +21,7 @@ export class OhmsLawKit extends ApparatusKit {
   private current: number = 0;
   private ammeter: Ammeter;
   private voltmeter: Voltmeter;
-  private renderer: CanvasRenderer | null = null;
+
 
   constructor() {
     super();

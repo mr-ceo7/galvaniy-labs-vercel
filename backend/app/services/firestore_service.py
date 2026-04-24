@@ -384,6 +384,20 @@ class FirestoreService:
             logger.error(f"Error getting user reports: {e}")
             return []
 
+    # ==================== LAB SESSIONS ====================
+
+    async def save_lab_session(self, user_uid: str, session_data: Dict[str, Any]) -> None:
+        """Save a Virtual Lab experiment session."""
+        try:
+            session_id = f"{user_uid}_{int(datetime.utcnow().timestamp() * 1000)}"
+            doc_ref = self.db.collection("lab_sessions").document(session_id)
+            session_data["createdAt"] = SERVER_TIMESTAMP
+            doc_ref.set(session_data)
+            logger.info(f"[Firestore] Lab session saved: {session_id}")
+        except Exception as e:
+            logger.error(f"Error saving lab session: {e}")
+            raise
+
     # ==================== ADMIN STATS ====================
 
     async def get_admin_stats(self) -> AdminStats:

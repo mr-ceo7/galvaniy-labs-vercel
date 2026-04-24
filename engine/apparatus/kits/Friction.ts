@@ -27,7 +27,7 @@ export class FrictionKit extends ApparatusKit {
   private blockVelocity: number = 0;
   private surfaceMaterial: string = 'wood';
   private ruler: Ruler;
-  private renderer: CanvasRenderer | null = null;
+
 
   constructor() {
     super();

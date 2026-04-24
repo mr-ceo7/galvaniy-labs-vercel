@@ -17,7 +17,7 @@ export class CentripetalForceKit extends ApparatusKit {
 
   private mass: number = 0.1; private radius: number = 0.3; private angularSpeed: number = 6;
   private angle: number = 0; private hangingMass: number = 0.1;
-  private stopwatch: Stopwatch; private ruler: Ruler; private renderer: CanvasRenderer | null = null;
+  private stopwatch: Stopwatch; private ruler: Ruler;
 
   constructor() {
     super();

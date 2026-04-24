@@ -17,7 +17,7 @@ export class ConservationOfMomentumKit extends ApparatusKit {
   private v1f = 0; private v2f = 0; private e = 1.0; // coefficient of restitution
   private glider1X = 0; private glider2X = 0; private simTime = 0;
   private hasCollided = false; private collisionTime = 0;
-  private stopwatch: Stopwatch; private renderer: CanvasRenderer | null = null;
+  private stopwatch: Stopwatch;
 
   constructor() {
     super();

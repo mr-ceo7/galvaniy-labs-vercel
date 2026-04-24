@@ -17,7 +17,7 @@ export class ViscosityKit extends ApparatusKit {
   private fluidDensity = 1260; private viscosity = 1.5; // Pa·s (glycerine)
   private g = 9.81; private ballY = 0; private ballVelocity = 0;
   private terminalVelocity = 0; private tubeHeight = 0.5; // m
-  private stopwatch: Stopwatch; private ruler: Ruler; private renderer: CanvasRenderer | null = null;
+  private stopwatch: Stopwatch; private ruler: Ruler;
   private fallComplete = false; private fallTime = 0;
 
   constructor() {

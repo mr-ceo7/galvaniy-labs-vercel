@@ -28,7 +28,7 @@ export class ProjectileMotionKit extends ApparatusKit {
   private maxHeight: number = 0;
   private ruler: Ruler;
   private stopwatch: Stopwatch;
-  private renderer: CanvasRenderer | null = null;
+
 
   constructor() {
     super();

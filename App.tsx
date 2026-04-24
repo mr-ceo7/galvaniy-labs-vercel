@@ -90,6 +90,20 @@ const App: React.FC = () => {
     }
   };
 
+  const handleDeleteReport = (reportId: string) => {
+    if (user) {
+      storageService.deleteReport(user.email, reportId);
+      setReports(prev => prev.filter(r => r.id !== reportId));
+    }
+  };
+
+  const handleClearAllReports = () => {
+    if (user) {
+      storageService.clearAllReports(user.email);
+      setReports([]);
+    }
+  };
+
   useEffect(() => {
     // Safety fallback: force complete splash after 5 seconds
     if (loading) {
@@ -193,7 +207,12 @@ const App: React.FC = () => {
 
               {/* Sidebar / History */}
               <div className="md:col-span-1">
-                <History reports={reports} onSelect={setSelectedReport} />
+                <History 
+                  reports={reports} 
+                  onSelect={setSelectedReport} 
+                  onDelete={handleDeleteReport}
+                  onClearAll={handleClearAllReports}
+                />
               </div>
             </div>
           )}
@@ -201,7 +220,12 @@ const App: React.FC = () => {
           {/* Modal for viewing report */}
           <ReportView 
             report={selectedReport} 
-            onClose={() => setSelectedReport(null)} 
+            onClose={() => setSelectedReport(null)}
+            onOpenLab={(code) => {
+              setSelectedReport(null);
+              setLabExperiment(code);
+              setView('labs');
+            }}
           />
         </div>
       )}

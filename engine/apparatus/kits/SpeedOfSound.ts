@@ -18,7 +18,7 @@ export class SpeedOfSoundKit extends ApparatusKit {
   private airColumnLength = 0; // m
   private resonanceN = 1; // nth harmonic found
   private speed = 343; // actual speed of sound
-  private ruler: Ruler; private renderer: CanvasRenderer | null = null;
+  private ruler: Ruler;
   private animPhase = 0; private atResonance = false;
 
   constructor() {

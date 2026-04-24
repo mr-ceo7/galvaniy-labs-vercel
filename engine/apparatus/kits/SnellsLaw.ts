@@ -15,7 +15,7 @@ export class SnellsLawKit extends ApparatusKit {
   private n1 = 1.0; private n2 = 1.5; // glass
   private incidentAngle = 30; // degrees
   private refractedAngle = 0;
-  private protractor: Protractor; private renderer: CanvasRenderer | null = null;
+  private protractor: Protractor;
 
   constructor() {
     super();

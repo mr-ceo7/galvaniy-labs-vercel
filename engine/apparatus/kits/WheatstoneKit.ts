@@ -18,7 +18,7 @@ export class WheatstoneKit extends ApparatusKit {
   private L1 = 50; // cm, jockey position on meter bridge
   private galvDeflection = 0;
   private galvammeter: Ammeter; private ruler: Ruler;
-  private renderer: CanvasRenderer | null = null;
+
 
   constructor() {
     super();

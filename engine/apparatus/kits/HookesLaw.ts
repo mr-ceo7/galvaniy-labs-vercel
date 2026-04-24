@@ -25,7 +25,7 @@ export class HookesLawKit extends ApparatusKit {
   private springOscillating: boolean = false;
   private oscPhase: number = 0;
   private ruler: Ruler;
-  private renderer: CanvasRenderer | null = null;
+
 
   constructor() {
     super();
