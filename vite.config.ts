@@ -1,6 +1,7 @@
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
@@ -11,6 +12,7 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
       },
       plugins: [
+        tailwindcss(),
         react(),
         VitePWA({
           registerType: 'autoUpdate',
@@ -35,20 +37,6 @@ export default defineConfig(({ mode }) => {
             maximumFileSizeToCacheInBytes: 4000000, // Increased limit to 4MB
             globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
             runtimeCaching: [
-              {
-                urlPattern: /^https:\/\/cdn\.tailwindcss\.com\/.*/i,
-                handler: 'CacheFirst',
-                options: {
-                  cacheName: 'cdn-cache',
-                  expiration: {
-                    maxEntries: 10,
-                    maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-                  },
-                  cacheableResponse: {
-                    statuses: [0, 200]
-                  }
-                }
-              },
               {
                 urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*/i,
                 handler: 'CacheFirst',

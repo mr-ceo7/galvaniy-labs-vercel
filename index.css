@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #0f172a;
+  color: white;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Report Preview Specific Styles */
+.report-content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.report-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #60a5fa;
+  border-left: 4px solid #60a5fa;
+  padding-left: 1rem;
+  background: rgba(96, 165, 250, 0.1);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: 0 8px 8px 0;
+}
+
+.report-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #e2e8f0;
+}
+
+.report-content p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+  color: #cbd5e1;
+}
+
+.report-content ul,
+.report-content ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  color: #cbd5e1;
+}
+
+.report-content ul {
+  list-style-type: disc;
+}
+
+.report-content ol {
+  list-style-type: decimal;
+}
+
+.report-content li {
+  margin-bottom: 0.5rem;
+}
+
+.report-content strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Table Styling for Preview */
+.report-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.report-content th {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #60a5fa;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.report-content td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+}
+
+.report-content tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
