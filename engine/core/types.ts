@@ -163,6 +163,77 @@ export interface LabConfig {
   legacyControls?: LabControl[];
 }
 
+// ============================================================
+// Kit Definition Types (Virtual Labs 2.0 — Scalable Content)
+// ============================================================
+
+/** Physics domain categories. */
+export type KitCategory = 'mechanics' | 'heat' | 'optics' | 'electricity' | 'waves' | 'nuclear' | 'renewable' | 'measurement';
+
+/** Difficulty rating for experiments. */
+export type KitDifficulty = 'beginner' | 'intermediate' | 'advanced';
+
+/** Apparatus item category. */
+export type ApparatusCategory = 'measurement' | 'support' | 'material' | 'electrical' | 'optical' | 'thermal' | 'general';
+
+/** A single piece of lab apparatus shown in the briefing. */
+export interface ApparatusItem {
+  id: string;
+  name: string;
+  icon: string;               // Emoji fallback
+  image?: string;             // Path to apparatus photo (e.g., '/assets/lab/pendulum/bob.png')
+  description: string;        // Short: what it's used for
+  learnMore: string;          // Detailed: how to use it
+  precision?: string;         // e.g., "±0.01s"
+  category: ApparatusCategory;
+}
+
+/** A setup step for guided apparatus assembly. */
+export interface SetupStep {
+  index: number;
+  instruction: string;
+  why?: string;               // "We clamp it here because..."
+  action: 'tap' | 'drag' | 'slide' | 'observe' | 'confirm';
+  targetComponent?: string;   // Which apparatus to interact with
+  canvasState?: string;       // Description of what canvas shows after this step
+  hint?: string;              // Help text if student is stuck
+}
+
+/**
+ * KitDefinition — Data-driven kit content.
+ * Separates educational metadata from physics simulation code.
+ * Everything here is JSON-serializable — no executable code.
+ */
+export interface KitDefinition {
+  // Identity
+  experimentCode: string;
+  experimentTitle: string;
+  category: KitCategory;
+  difficulty: KitDifficulty;
+
+  // Hero image for the briefing header
+  heroImage?: string;         // Path to hero banner (e.g., '/assets/lab/pendulum/hero.png')
+
+  // Lab Briefing (Phase 1)
+  objective: string;
+  theory: string;             // Markdown-formatted theory
+  safetyNotes: string[];
+
+  // Apparatus cards (Phase 1)
+  apparatus: ApparatusItem[];
+
+  // Setup (Phase 2)
+  setupSteps: SetupStep[];
+
+  // Analysis hints (Phase 4)
+  expectedRelationship: string;   // "T² ∝ L (linear)"
+  acceptedValues?: Record<string, number>;  // { "g": 9.81 }
+
+  // AI Assistant context
+  assistantContext: string;       // Extra context for the AI
+  commonQuestions: string[];      // Suggested questions for students
+}
+
 /** Kit resolution result. */
 export type KitTier = 'builtin' | 'composable' | 'legacy';
 

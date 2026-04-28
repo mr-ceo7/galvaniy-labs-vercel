@@ -1,0 +1,268 @@
+/* ═══════════════════════════════════════════════════════════
+ * Quantum Precision — HUD Design System
+ * Galvaniy Labs "Heads-Up Display" visual language
+ * ═══════════════════════════════════════════════════════════ */
+
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Design Tokens ── */
+:root {
+  /* Colors */
+  --hud-bg: #111317;
+  --hud-bg-deep: #0c0e12;
+  --hud-surface: #1a1c20;
+  --hud-surface-high: #282a2e;
+  --hud-surface-highest: #333539;
+  --hud-primary: #00ffff;
+  --hud-primary-dim: #00dddd;
+  --hud-primary-glow: rgba(0, 255, 255, 0.15);
+  --hud-primary-subtle: rgba(0, 255, 255, 0.06);
+  --hud-text: #e2e2e7;
+  --hud-text-dim: #94a3b8;
+  --hud-text-muted: #64748b;
+  --hud-text-ghost: #475569;
+  --hud-border: rgba(255, 255, 255, 0.1);
+  --hud-border-dim: rgba(255, 255, 255, 0.05);
+  --hud-error: #ffb4ab;
+  --hud-warn: #fbbf24;
+  --hud-success: #4ade80;
+
+  /* Typography */
+  --hud-font-display: 'Space Grotesk', system-ui, sans-serif;
+  --hud-font-body: 'Inter', system-ui, sans-serif;
+
+  /* Spacing */
+  --hud-unit: 4px;
+  --hud-xs: 4px;
+  --hud-sm: 8px;
+  --hud-md: 16px;
+  --hud-lg: 24px;
+  --hud-xl: 40px;
+  --hud-panel-padding: 24px;
+
+  /* Radius */
+  --hud-radius-sm: 0.125rem;
+  --hud-radius: 0.25rem;
+  --hud-radius-md: 0.375rem;
+  --hud-radius-lg: 0.5rem;
+  --hud-radius-xl: 0.75rem;
+}
+
+/* ── Glass Panel ── */
+.glass-panel {
+  background: rgba(12, 14, 18, 0.85);
+  border: 1px solid var(--hud-border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.glass-panel-light {
+  background: rgba(12, 14, 18, 0.7);
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 0 15px var(--hud-primary-glow);
+}
+
+/* ── Glow effects ── */
+.glow-cyan {
+  box-shadow: 0 0 15px var(--hud-primary-glow);
+}
+
+.glow-cyan-strong {
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), 0 0 40px rgba(0, 255, 255, 0.08);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+}
+
+/* ── HUD Corner Brackets ── */
+.hud-brackets {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.hud-brackets::before,
+.hud-brackets::after,
+.hud-bracket-bl,
+.hud-bracket-br {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 40px;
+}
+
+.hud-brackets::before {
+  top: 16px;
+  left: 16px;
+  border-top: 1px solid rgba(0, 255, 255, 0.25);
+  border-left: 1px solid rgba(0, 255, 255, 0.25);
+}
+
+.hud-brackets::after {
+  top: 16px;
+  right: 16px;
+  border-top: 1px solid rgba(0, 255, 255, 0.25);
+  border-right: 1px solid rgba(0, 255, 255, 0.25);
+}
+
+.hud-bracket-bl {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  width: 40px;
+  height: 40px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.25);
+  border-left: 1px solid rgba(0, 255, 255, 0.25);
+}
+
+.hud-bracket-br {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.25);
+  border-right: 1px solid rgba(0, 255, 255, 0.25);
+}
+
+/* ── HUD Label ── */
+.hud-label {
+  font-family: var(--hud-font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hud-primary);
+  line-height: 1;
+}
+
+/* ── HUD Data Display ── */
+.hud-data {
+  font-family: var(--hud-font-display);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--hud-text);
+  line-height: 1;
+}
+
+/* ── Leader Line ── */
+.leader-line {
+  height: 1px;
+  background: linear-gradient(90deg, var(--hud-primary) 0%, rgba(0, 255, 255, 0) 100%);
+}
+
+/* ── Status Chip ── */
+.hud-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-family: var(--hud-font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: var(--hud-radius-sm);
+}
+
+.hud-chip-stable {
+  color: var(--hud-primary);
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+}
+
+.hud-chip-active {
+  color: var(--hud-success);
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.15);
+}
+
+.hud-chip-warn {
+  color: var(--hud-warn);
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+}
+
+/* ── HUD Button ── */
+.hud-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-family: var(--hud-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--hud-bg-deep);
+  background: var(--hud-primary);
+  border: none;
+  border-radius: var(--hud-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 20px var(--hud-primary-glow);
+}
+
+.hud-btn-primary:hover {
+  background: #00dddd;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.hud-btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.hud-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: var(--hud-font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--hud-text);
+  background: transparent;
+  border: 1px solid var(--hud-border);
+  border-radius: var(--hud-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hud-btn-ghost:hover {
+  border-color: rgba(0, 255, 255, 0.2);
+  background: rgba(0, 255, 255, 0.05);
+  color: var(--hud-primary);
+}
+
+/* ── HUD Progress Gauge ── */
+.hud-gauge {
+  width: 100%;
+  height: 6px;
+  background: var(--hud-surface-high);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.hud-gauge-fill {
+  height: 100%;
+  background: var(--hud-primary);
+  border-radius: 99px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+  transition: width 0.3s ease;
+}
+
+/* ── Utility ── */
+.font-display { font-family: var(--hud-font-display); }
+.font-body { font-family: var(--hud-font-body); }
+.text-primary { color: var(--hud-primary); }
+.text-dim { color: var(--hud-text-dim); }
+.text-muted { color: var(--hud-text-muted); }

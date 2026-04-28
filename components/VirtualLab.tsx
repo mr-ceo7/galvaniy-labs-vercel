@@ -2,10 +2,10 @@
  * VirtualLab - Interactive lab workspace component.
  * Renders the physics engine canvas with controls, data table, and procedure steps.
  */
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { KitRegistry } from '../engine/apparatus/KitRegistry';
 import type { ApparatusKit, DataPoint } from '../engine/apparatus/ApparatusKit';
-import type { LabControl, ProcedureStep, DataTableConfig, LabConfig } from '../engine/core/types';
+import type { LabControl, ProcedureStep, DataTableConfig, LabConfig, KitDefinition } from '../engine/core/types';
 import {
   Play, Pause, RotateCcw, Zap, ChevronRight, Download, Save,
   FlaskConical, Ruler, Table, BookOpen, ArrowLeft, BarChart3,
@@ -17,6 +17,11 @@ import { labSessionService } from '../services/labSessionService';
 import { backendService } from '../services/backendService';
 import type { LabSession, Report } from '../types';
 import { InstrumentPanel } from './InstrumentPanel';
+import { LabBriefing } from './LabBriefing';
+import './LabBriefing.css';
+import { PhaseNavigator } from './PhaseNavigator';
+import type { LabPhase } from './PhaseNavigator';
+import { getKitDefinition } from '../engine/apparatus/definitions';
 import './VirtualLab.css';
 
 // Import all kits so they self-register
@@ -65,6 +70,25 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
   const [lastSavedSessionId, setLastSavedSessionId] = useState<string | null>(null);
   const [sessionMessage, setSessionMessage] = useState('');
   const [loadingLabSetup, setLoadingLabSetup] = useState(true);
+
+  // Phase navigation state
+  const kitDefinition = useMemo(() => getKitDefinition(experimentCode), [experimentCode]);
+  const [currentPhase, setCurrentPhase] = useState<LabPhase>(
+    () => kitDefinition ? 'briefing' : 'experiment'
+  );
+  const [completedPhases, setCompletedPhases] = useState<Set<LabPhase>>(new Set());
+
+  /** Transition to a new phase and mark the previous as completed. */
+  const goToPhase = useCallback((phase: LabPhase) => {
+    setCurrentPhase((prev) => {
+      setCompletedPhases((completed) => {
+        const next = new Set(completed);
+        next.add(prev);
+        return next;
+      });
+      return phase;
+    });
+  }, []);
 
   const stopLoop = useCallback(() => {
     cancelAnimationFrame(animFrameRef.current);
@@ -666,6 +690,15 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
 
   return (
     <div className="vlab-container">
+      {/* Briefing Phase — full-viewport overlay, rendered outside normal flow */}
+      {currentPhase === 'briefing' && kitDefinition && (
+        <LabBriefing
+          definition={kitDefinition}
+          onEnterLab={() => goToPhase('experiment')}
+        />
+      )}
+
+      {currentPhase !== 'briefing' && (
       <div className="vlab-header">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="vlab-btn-icon" title="Back">
@@ -700,7 +733,21 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
           </button>
         </div>
       </div>
+      )}
 
+      {/* Phase Navigator — hidden during briefing */}
+      {currentPhase !== 'briefing' && (
+        <PhaseNavigator
+          currentPhase={currentPhase}
+          onPhaseChange={(phase) => setCurrentPhase(phase)}
+          completedPhases={completedPhases}
+          hasBriefing={!!kitDefinition}
+        />
+      )}
+
+      {/* Experiment Phase (existing tabs + content) */}
+      {currentPhase !== 'briefing' && (
+      <>
       <div className="vlab-tabs">
         {([
           { id: 'simulation' as LabTab, icon: FlaskConical, label: 'Lab' },
@@ -1046,6 +1093,8 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
           )}
         </AnimatePresence>
       </div>
+      </>
+      )}
     </div>
   );
 };

@@ -1,0 +1,484 @@
+/* ═══════════════════════════════════════════════════════════
+ * Mission Briefing — Pixel-matched to Stitch HUD mockup
+ * Full-viewport 3-column frosted-glass overlay
+ * ═══════════════════════════════════════════════════════════ */
+
+/* ── Root: full viewport overlay ── */
+.mb-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  font-family: var(--hud-font-body, 'Inter', system-ui, sans-serif);
+  color: #fff;
+}
+
+/* ── Background: blurred lab photo ── */
+.mb-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.mb-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(6px) brightness(0.55) saturate(1.1);
+  transform: scale(1.04); /* prevent blur edge artifacts */
+}
+
+.mb-bg-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.45) 100%),
+    linear-gradient(180deg, rgba(0,0,0,0.2) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.35) 100%);
+}
+
+/* ── Title: directly on background ── */
+.mb-title {
+  position: relative;
+  z-index: 10;
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #fff;
+  margin: 0;
+  padding: 28px 32px 16px;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+}
+
+/* ── 3-Column Grid ── */
+.mb-grid {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  gap: 16px;
+  padding: 0 24px 24px;
+  height: calc(100vh - 100px);
+  min-height: 0;
+}
+
+/* ── Glass Panels ── */
+.mb-panel {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  overflow-y: auto;
+  padding: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+
+.mb-panel::-webkit-scrollbar { width: 4px; }
+.mb-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+.mb-panel::-webkit-scrollbar-track { background: transparent; }
+
+.mb-panel-left  { flex: 1; min-width: 0; }
+.mb-panel-center { flex: 1.4; min-width: 0; display: flex; flex-direction: column; position: relative; }
+.mb-panel-right { flex: 0.7; min-width: 0; display: flex; flex-direction: column; }
+
+/* ── Panel Headings ── */
+.mb-panel-heading {
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 20px;
+  letter-spacing: 0.02em;
+}
+
+.mb-panel-heading--center {
+  text-align: center;
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Section Headings ── */
+.mb-section-heading {
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 20px 0 10px;
+}
+
+.mb-section-heading:first-of-type {
+  margin-top: 0;
+}
+
+.mb-section-heading--warn {
+  color: #fbbf24;
+}
+
+/* ── Objectives List ── */
+.mb-obj-list {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mb-obj-list li {
+  font-size: 14px;
+  color: rgba(255,255,255,0.82);
+  line-height: 1.6;
+}
+
+/* ── Theory ── */
+.mb-theory {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mb-theory p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.78);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.mb-eq {
+  display: inline-block;
+  padding: 4px 12px;
+  margin: 3px 2px;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-weight: 600;
+  font-size: 13px;
+  color: #00ffff;
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 6px;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+}
+
+/* ── Safety ── */
+.mb-safety-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mb-safety-list li {
+  font-size: 13px;
+  color: rgba(255,255,255,0.72);
+  line-height: 1.55;
+  padding-left: 18px;
+  position: relative;
+}
+
+.mb-safety-list li::before {
+  content: '⚠';
+  position: absolute;
+  left: 0;
+  font-size: 12px;
+}
+
+/* ═══════════════════════════════════════
+ * APPARATUS CATALOG (Center Panel)
+ * Large image cards, like Stitch mockup
+ * ═══════════════════════════════════════ */
+.mb-apparatus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  flex: 1;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.mb-apparatus-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  overflow: hidden;
+  /* reset button */
+  color: inherit;
+  font: inherit;
+}
+
+.mb-apparatus-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.mb-apparatus-card--active {
+  border-color: rgba(0, 255, 255, 0.4) !important;
+  background: rgba(0, 255, 255, 0.08) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.12);
+}
+
+.mb-apparatus-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.15);
+}
+
+.mb-apparatus-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.mb-apparatus-card:hover .mb-apparatus-thumb img {
+  transform: scale(1.08);
+}
+
+.mb-apparatus-emoji {
+  font-size: 42px;
+  opacity: 0.6;
+}
+
+.mb-apparatus-label {
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: rgba(255,255,255,0.9);
+  padding: 0 8px 12px;
+  line-height: 1.3;
+}
+
+/* ── Popover: white card (like Stitch mockup) ── */
+.mb-popover {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+.mb-popover-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(0,0,0,0.06);
+  border-radius: 6px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.mb-popover-close:hover {
+  background: rgba(0,0,0,0.12);
+  color: #333;
+}
+
+.mb-popover-name {
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 14px;
+}
+
+.mb-popover-field {
+  margin-bottom: 10px;
+}
+
+.mb-popover-field:last-child {
+  margin-bottom: 0;
+}
+
+.mb-popover-label {
+  font-weight: 700;
+  font-size: 13px;
+  color: #333;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.mb-popover-field p {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════
+ * PROCEED (Right Panel)
+ * Big blue/cyan button like Stitch mockup
+ * ═══════════════════════════════════════ */
+.mb-proceed-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.mb-proceed-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 220px;
+  padding: 28px 24px;
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+  color: #fff;
+  background: rgba(59, 130, 246, 0.65);
+  border: 2px solid rgba(59, 130, 246, 0.8);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(8px);
+}
+
+.mb-proceed-btn:hover {
+  background: rgba(59, 130, 246, 0.85);
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.25);
+  transform: scale(1.03);
+}
+
+.mb-proceed-btn:active {
+  transform: scale(0.98);
+}
+
+.mb-proceed-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mb-proceed-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255,255,255,0.3);
+}
+
+/* ── Think About ── */
+.mb-think {
+  width: 100%;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.mb-think-heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  margin: 0 0 10px;
+}
+
+.mb-think-list {
+  list-style: disc;
+  padding-left: 18px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mb-think-list li {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════
+ * RESPONSIVE — Mobile
+ * ═══════════════════════════════════════ */
+@media (max-width: 900px) {
+  .mb-title {
+    padding: 20px 16px 12px;
+  }
+
+  .mb-grid {
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+    min-height: calc(100vh - 80px);
+    padding: 0 12px 32px;
+    gap: 12px;
+    scrollbar-width: none;
+  }
+  .mb-grid::-webkit-scrollbar { display: none; }
+
+  .mb-panel {
+    flex: none !important;
+  }
+
+  .mb-panel-center {
+    min-height: 350px;
+  }
+
+  .mb-apparatus-grid {
+    grid-template-columns: repeat(3, 1fr);
+    overflow: visible;
+  }
+
+  .mb-popover {
+    position: relative;
+    margin-top: 12px;
+  }
+
+  .mb-proceed-body {
+    padding: 16px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .mb-apparatus-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .mb-proceed-btn {
+    font-size: 18px;
+    padding: 22px 18px;
+  }
+}
