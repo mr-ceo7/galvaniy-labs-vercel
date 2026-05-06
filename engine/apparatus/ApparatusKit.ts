@@ -51,6 +51,9 @@ export abstract class ApparatusKit {
   /** Current control values. */
   protected controlValues: Map<string, number> = new Map();
 
+  /** Components currently highlighted by the AI agent. */
+  protected highlightedComponents: Set<string> = new Set();
+
   /** Renderer instance (created during setup by subclasses). */
   protected renderer: CanvasRenderer | null = null;
 
@@ -156,6 +159,25 @@ export abstract class ApparatusKit {
 
   /** Called on canvas pointer up. */
   onPointerUp(): void {}
+
+  /** Highlight a component (for AI agent guidance). */
+  setHighlight(componentId: string, on: boolean): void {
+    if (on) {
+      this.highlightedComponents.add(componentId);
+    } else {
+      this.highlightedComponents.delete(componentId);
+    }
+  }
+
+  /** Clear all highlights. */
+  clearHighlights(): void {
+    this.highlightedComponents.clear();
+  }
+
+  /** Check if a component is highlighted. */
+  isHighlighted(componentId: string): boolean {
+    return this.highlightedComponents.has(componentId);
+  }
 
   /** Add a data point to the collection. */
   recordDataPoint(point: DataPoint): void {

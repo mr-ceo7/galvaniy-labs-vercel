@@ -265,27 +265,111 @@ async def chat_with_assistant(
     experiment_code: str,
     message: str,
     chat_history: list[dict],
-) -> str:
-    """Chat with the AI lab assistant using rotational keys + custom URL fallback."""
-    from app.services.ai_core import chat_with_fallback
+    lab_state: dict | None = None,
+) -> dict:
+    """Chat with the AI lab assistant. Returns structured JSON with reply + actions."""
+    from app.services.ai_core import generate_with_fallback
 
-    system_instruction = f"""
-You are Dr. E. Vance, a highly intelligent and helpful virtual lab assistant at Galvaniy Labs.
-You are currently helping a student with the physics experiment {experiment_code}.
-CRITICAL INSTRUCTION: You MUST focus ONLY on the {experiment_code} experiment. 
-Do not answer general questions outside the scope of physics or this specific lab.
-Keep your answers concise, encouraging, and easy to understand for high school or early college students.
-If the student asks something unrelated, politely steer them back to the experiment.
+    state_desc = ""
+    if lab_state:
+        placed = lab_state.get("placedComponents", [])
+        controls = lab_state.get("controlValues", {})
+        data_count = lab_state.get("dataCount", 0)
+        is_running = lab_state.get("isRunning", False)
+        state_desc = f"""
+CURRENT LAB STATE:
+- Placed on bench: {', '.join(placed) if placed else 'Nothing yet'}
+- Control values: {controls}
+- Data points collected: {data_count}
+- Simulation running: {is_running}
 """
 
+    system_instruction = f"""You are Dr. E. Vance, a highly intelligent virtual lab instructor at Galvaniy Labs.
+You are guiding a student through the physics experiment {experiment_code} (Simple Pendulum).
+
+{state_desc}
+
+AVAILABLE APPARATUS IDs: retort_stand, meter_ruler, stopwatch, bob, string
+AVAILABLE CONTROL IDs: length (0.2-1.2 m), amplitude (2-15 degrees), numOscillations (5-20)
+
+You MUST respond with VALID JSON only. No markdown, no code fences, no extra text.
+Your response must be a JSON object with these fields:
+
+{{
+  "reply": "Your conversational message to the student (string)",
+  "actions": [
+    // Array of action objects. Can be empty []. Available types:
+    // {{"type": "highlight_tray", "target": "<apparatus_id>"}} - Pulse-glow an item in the equipment tray
+    // {{"type": "highlight_canvas", "target": "<apparatus_id>"}} - Glow an item on the canvas
+    // {{"type": "set_control", "target": "<control_id>", "value": <number>}} - Adjust a slider
+    // {{"type": "place_apparatus", "target": "<apparatus_id>"}} - Auto-place an apparatus on the bench
+    // {{"type": "start_simulation"}} - Press Play
+    // {{"type": "stop_simulation"}} - Press Pause
+    // {{"type": "record_data"}} - Record current measurement
+    // {{"type": "open_drawer", "target": "data|graph|procedure|sessions"}} - Open a drawer tab
+  ],
+  "awaitAction": true/false  // true = show "Next Step" button, wait for user before continuing
+}}
+
+RULES:
+1. Focus ONLY on {experiment_code}. Politely redirect off-topic questions.
+2. Be concise, encouraging, and clear. Students are high school / early college level.
+3. When the student says "guide me" or "help me set up", walk them through step-by-step, one action at a time with awaitAction=true.
+4. When the student says "show me" or "demonstrate", perform the actions yourself using place_apparatus, set_control, start_simulation, record_data etc. with awaitAction=false for automated steps.
+5. Use highlights to draw attention to the relevant apparatus.
+6. If the student seems stuck, look at the lab state and suggest the next logical step.
+7. For "show me" mode, demonstrate the FULL experiment: place all apparatus, set length to 0.30m, start simulation, record data, then repeat for 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00m.
+8. When demonstrating, emit actions in batches that make sense together (e.g. set_control + start_simulation + record_data for each length).
+9. ALWAYS return valid JSON. Never wrap in markdown code blocks.
+"""
+
+    # Build conversation context
+    context_parts = []
+    for msg in chat_history:
+        role_label = "Student" if msg["role"] == "user" else "Dr. Vance"
+        context_parts.append(f"{role_label}: {msg['content']}")
+    context_parts.append(f"Student: {message}")
+    context_parts.append("Dr. Vance (respond with JSON only):")
+    full_prompt = "\n".join(context_parts)
+
     try:
-        return await chat_with_fallback(
-            message=message,
-            chat_history=chat_history,
+        raw_text = await generate_with_fallback(
+            prompt=full_prompt,
             system_instruction=system_instruction,
+            response_mime_type="application/json",
         )
+
+        # Parse JSON response
+        import json
+        # Strip markdown code fences if the AI adds them anyway
+        cleaned = raw_text.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[1] if "\n" in cleaned else cleaned[3:]
+            if cleaned.endswith("```"):
+                cleaned = cleaned[:-3]
+            cleaned = cleaned.strip()
+
+        parsed = json.loads(cleaned)
+
+        # Validate structure
+        result = {
+            "reply": parsed.get("reply", "I'm not sure how to help with that."),
+            "actions": parsed.get("actions", []),
+            "awaitAction": parsed.get("awaitAction", False),
+        }
+
+        return result
+
+    except json.JSONDecodeError as e:
+        logger.warning(f"[Assistant] Failed to parse AI JSON: {e}. Raw: {raw_text[:200]}")
+        return {
+            "reply": raw_text if raw_text else "Sorry, I had trouble forming a response.",
+            "actions": [],
+            "awaitAction": False,
+        }
     except Exception as e:
         logger.error(f"[Assistant] All providers failed: {e}")
         raise ValueError("Dr. Vance is temporarily unavailable. Please try again in a moment.")
+
 
 

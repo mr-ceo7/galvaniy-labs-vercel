@@ -1,4 +1,4 @@
-/* LabAssistant.css - "Quantum Precision" Vision */
+/* LabAssistant.css - "Quantum Precision" Vision + AI Agent UI */
 
 .wb-assistant-container {
   position: absolute;
@@ -89,31 +89,94 @@
   transform: translateX(0);
 }
 
-.wb-avatar-container {
-  height: 200px;
+.wb-chat-header {
+  padding: 15px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wb-chat-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  color: #00ffff;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.wb-mute-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  position: relative;
+  transition: all 0.2s;
+  border-radius: 4px;
 }
 
-.wb-avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 20%;
-  animation: breathing 4s ease-in-out infinite;
+.wb-mute-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
-/* Micro-animation: subtle breathing scale */
-@keyframes breathing {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
+/* ── Quick Action Buttons (Guide Me / Show Me) ── */
+.wb-agent-quick-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.wb-agent-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1px solid;
+}
+
+.wb-agent-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.wb-agent-btn--guide {
+  background: rgba(0, 255, 255, 0.08);
+  border-color: rgba(0, 255, 255, 0.3);
+  color: #00ffff;
+}
+
+.wb-agent-btn--guide:hover:not(:disabled) {
+  background: rgba(0, 255, 255, 0.18);
+  border-color: #00ffff;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+}
+
+.wb-agent-btn--show {
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #a855f7;
+}
+
+.wb-agent-btn--show:hover:not(:disabled) {
+  background: rgba(168, 85, 247, 0.18);
+  border-color: #a855f7;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+/* ── Chat History ── */
 .wb-chat-history {
   flex: 1;
   padding: 15px;
@@ -127,8 +190,8 @@
   padding: 10px 14px;
   border-radius: 8px;
   font-size: 13px;
-  line-height: 1.4;
-  max-width: 85%;
+  line-height: 1.5;
+  max-width: 90%;
 }
 
 .wb-chat-bubble.assistant {
@@ -144,6 +207,60 @@
   color: #fff;
 }
 
+/* ── Action Indicators (badges inside chat bubbles) ── */
+.wb-action-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 255, 255, 0.15);
+}
+
+.wb-action-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  color: rgba(0, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+/* ── Next Step Button ── */
+.wb-next-step-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 15px 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 200, 255, 0.1));
+  border: 1px solid rgba(0, 255, 255, 0.5);
+  border-radius: 6px;
+  color: #00ffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  animation: next-step-glow 2s ease-in-out infinite;
+}
+
+.wb-next-step-btn:hover {
+  background: rgba(0, 255, 255, 0.25);
+  border-color: #00ffff;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+@keyframes next-step-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 255, 255, 0.2); }
+  50% { box-shadow: 0 0 16px rgba(0, 255, 255, 0.5); }
+}
+
+/* ── Chat Input ── */
 .wb-chat-input-area {
   padding: 15px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -178,6 +295,11 @@
 .wb-chat-input-area button:hover {
   background: #00ffff;
   color: #000;
+}
+
+.wb-chat-input-area button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* Floating Summon Button */
@@ -218,4 +340,10 @@
   padding: 10px;
   font-style: italic;
   align-self: flex-start;
+  animation: typing-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes typing-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }

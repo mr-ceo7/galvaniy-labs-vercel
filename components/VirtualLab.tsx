@@ -24,6 +24,7 @@ import type { LabPhase } from './PhaseNavigator';
 import { getKitDefinition } from '../engine/apparatus/definitions';
 import { Vector2 } from '../engine/core/Vector2';
 import { LabAssistant, LabAssistantHandle } from './LabAssistant';
+import { DrVanceAvatar, AvatarState } from './DrVanceAvatar';
 import './VirtualLab.css';
 import './Workbench.css';
 
@@ -75,6 +76,12 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
   const [lastSavedSessionId, setLastSavedSessionId] = useState<string | null>(null);
   const [sessionMessage, setSessionMessage] = useState('');
   const [loadingLabSetup, setLoadingLabSetup] = useState(true);
+
+  // AI Agent state
+  const [highlightedTrayItems, setHighlightedTrayItems] = useState<Set<string>>(new Set());
+  const [placedComponentIds, setPlacedComponentIds] = useState<Set<string>>(new Set());
+  const [avatarState, setAvatarState] = useState<AvatarState>('idle');
+  const [avatarPosition, setAvatarPosition] = useState({ x: 85, y: 100 }); // Bottom right default
 
   // Phase navigation state
   const kitDefinition = useMemo(() => getKitDefinition(experimentCode), [experimentCode]);
@@ -769,6 +776,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
               
               const success = kitRef.current.addApparatusComponent(componentId, new Vector2(worldX, worldY));
               if (success) {
+                setPlacedComponentIds(prev => new Set([...prev, componentId]));
                 // Force a re-render
                 kitRef.current.renderFrame();
               }
@@ -812,6 +820,13 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
 
           {/* Layer 4: Floating HUD panels */}
           <div className="wb-hud-layer">
+            {/* Dr. Vance Mobile Avatar */}
+            <DrVanceAvatar 
+              state={avatarState} 
+              position={avatarPosition} 
+              visible={currentPhase !== 'briefing'} 
+            />
+
             {/* ── Controls Panel (top-left) ── */}
             <div className="wb-hud-controls">
               <h4 className="wb-hud-title">Simulation Controls</h4>
@@ -888,7 +903,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
                 {kitDefinition.apparatus.map((item: any) => (
                   <div 
                     key={item.id} 
-                    className="wb-tray-item" 
+                    className={`wb-tray-item ${highlightedTrayItems.has(item.id) ? 'wb-tray-item--highlighted' : ''}`}
                     title={`Drag to bench · Click to ask Dr. Vance about ${item.name}`}
                     draggable={true}
                     onDragStart={(e) => {
@@ -1063,7 +1078,77 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
         </div>
       )}
       {currentPhase !== 'briefing' && (
-        <LabAssistant ref={assistantRef} experimentCode={kitCode} procedure={procedure} />
+        <LabAssistant
+          ref={assistantRef}
+          experimentCode={kitCode}
+          procedure={procedure}
+          labState={{
+            placedComponents: Array.from(placedComponentIds),
+            controlValues,
+            dataCount: collectedData.length,
+            isRunning,
+          }}
+          onExecuteAction={(action) => {
+            const kit = kitRef.current;
+            if (!kit) return;
+            switch (action.type) {
+              case 'highlight_tray':
+                setHighlightedTrayItems(prev => new Set([...prev, action.target!]));
+                setAvatarState('explain');
+                setAvatarPosition({ x: 20, y: 90 }); // Move near tray (bottom left)
+                setTimeout(() => {
+                  setHighlightedTrayItems(prev => {
+                    const next = new Set(prev); next.delete(action.target!); return next;
+                  });
+                  setAvatarState('idle');
+                  setAvatarPosition({ x: 85, y: 100 }); // Return to bottom right
+                }, 5000);
+                break;
+              case 'highlight_canvas':
+                kit.setHighlight(action.target!, true);
+                setAvatarState('point_left');
+                // Calculate approximate center of canvas for pointing
+                setAvatarPosition({ x: 70, y: 80 }); 
+                setTimeout(() => {
+                  kit.setHighlight(action.target!, false);
+                  setAvatarState('idle');
+                  setAvatarPosition({ x: 85, y: 100 });
+                }, 5000);
+                break;
+              case 'set_control':
+                if (action.target && action.value !== undefined) {
+                  handleControlChange(action.target, action.value);
+                }
+                break;
+              case 'place_apparatus':
+                if (action.target && canvasRef.current) {
+                  const world = kit.getWorld();
+                  const ppm = world.pixelsPerMeter;
+                  const bounds = world.bounds;
+                  const cx = (bounds?.width ?? 400) / 2 / ppm;
+                  const cy = (bounds?.height ?? 400) / 2 / ppm;
+                  const success = kit.addApparatusComponent(action.target, new Vector2(cx, cy));
+                  if (success) {
+                    setPlacedComponentIds(prev => new Set([...prev, action.target!]));
+                    kit.renderFrame();
+                  }
+                }
+                break;
+              case 'start_simulation':
+                if (!isRunning) handlePlayPause();
+                break;
+              case 'stop_simulation':
+                if (isRunning) handlePlayPause();
+                break;
+              case 'record_data':
+                handleMeasure();
+                break;
+              case 'open_drawer':
+                if (action.target) setDrawerTab(action.target as LabTab);
+                break;
+            }
+          }}
+        />
       )}
     </div>
   );

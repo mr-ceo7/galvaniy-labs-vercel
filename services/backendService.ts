@@ -404,7 +404,7 @@ const getAdminLabSessions = async (limit = 50): Promise<AdminLabSession[]> => {
 
 // ==================== Lab Assistant ====================
 
-const chatWithAssistant = async (experimentCode: string, message: string, chatHistory: any[]): Promise<string> => {
+const chatWithAssistant = async (experimentCode: string, message: string, chatHistory: any[], labState?: any): Promise<any> => {
   const res = await apiFetch('/api/assistant/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -412,6 +412,7 @@ const chatWithAssistant = async (experimentCode: string, message: string, chatHi
       experiment_code: experimentCode,
       message,
       chat_history: chatHistory,
+      lab_state: labState || null,
     }),
   });
   
@@ -421,7 +422,8 @@ const chatWithAssistant = async (experimentCode: string, message: string, chatHi
   }
   
   const data = await res.json();
-  return data.reply;
+  // Return full structured response: { reply, actions, awaitAction }
+  return data;
 };
 // ==================== Exports ====================
 

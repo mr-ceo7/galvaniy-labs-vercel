@@ -373,11 +373,17 @@ export class SimplePendulumKit extends ApparatusKit {
     const pivotPx = renderer.worldToCanvas(pivot);
     const bobPx = renderer.worldToCanvas(bob);
 
+    // Pulsing highlight intensity (0.3 → 0.8 → 0.3 over ~1.5s)
+    const highlightAlpha = 0.3 + 0.5 * Math.abs(Math.sin(Date.now() / 750 * Math.PI));
+
     // ── Retort stand sprite (static, at pivot) ──
     if (this.placedComponents.has('retort_stand')) {
       if (this.sprites.isLoaded('retort_stand')) {
         const standPos = renderer.worldToCanvas(new Vector2(pivot.x, 0.05));
         this.sprites.drawSpriteWithShadow(ctx, 'retort_stand', standPos.x, standPos.y, ppm, 0, 1, 6);
+        if (this.highlightedComponents.has('retort_stand')) {
+          this.drawHighlightGlow(ctx, standPos.x, standPos.y - 80, 90, 200, highlightAlpha);
+        }
       } else {
         // Fallback: geometric stand
         ctx.strokeStyle = '#64748b';
@@ -401,8 +407,11 @@ export class SimplePendulumKit extends ApparatusKit {
 
     // ── String (thin line from pivot to bob) ──
     if (this.placedComponents.has('string') && !this.isBobFalling) {
-      ctx.strokeStyle = 'rgba(180, 180, 180, 0.6)';
-      ctx.lineWidth = 1.2;
+      const stringHighlighted = this.highlightedComponents.has('string');
+      ctx.strokeStyle = stringHighlighted
+        ? `rgba(0, 255, 255, ${highlightAlpha})`
+        : 'rgba(180, 180, 180, 0.6)';
+      ctx.lineWidth = stringHighlighted ? 3 : 1.2;
       ctx.beginPath();
       ctx.moveTo(pivotPx.x, pivotPx.y);
       ctx.lineTo(bobPx.x, bobPx.y);
@@ -413,6 +422,9 @@ export class SimplePendulumKit extends ApparatusKit {
     if (this.placedComponents.has('bob')) {
       if (this.sprites.isLoaded('brass_bob')) {
         this.sprites.drawSpriteWithShadow(ctx, 'brass_bob', bobPx.x, bobPx.y, ppm, 0, 1, 5);
+        if (this.highlightedComponents.has('bob')) {
+          this.drawHighlightGlow(ctx, bobPx.x, bobPx.y, 30, 30, highlightAlpha);
+        }
       } else {
         // Fallback: geometric bob
         const bobR = this.bobRadius * ppm;
@@ -434,6 +446,9 @@ export class SimplePendulumKit extends ApparatusKit {
       if (this.sprites.isLoaded('meter_ruler')) {
         const rulerPx = renderer.worldToCanvas(this.rulerPos);
         this.sprites.drawSpriteWithShadow(ctx, 'meter_ruler', rulerPx.x, rulerPx.y, ppm, 0, 1, 4);
+        if (this.highlightedComponents.has('meter_ruler')) {
+          this.drawHighlightGlow(ctx, rulerPx.x, rulerPx.y + 70, 25, 150, highlightAlpha);
+        }
       }
     }
 
@@ -442,6 +457,9 @@ export class SimplePendulumKit extends ApparatusKit {
       if (this.sprites.isLoaded('stopwatch')) {
         const swPx = renderer.worldToCanvas(this.stopwatchPos);
         this.sprites.drawSpriteWithShadow(ctx, 'stopwatch', swPx.x, swPx.y, ppm, 0, 1, 5);
+        if (this.highlightedComponents.has('stopwatch')) {
+          this.drawHighlightGlow(ctx, swPx.x, swPx.y, 35, 35, highlightAlpha);
+        }
       }
     }
 
@@ -467,6 +485,19 @@ export class SimplePendulumKit extends ApparatusKit {
       midPoint.add(labelOffset),
       { color: 'rgba(0, 255, 255, 0.7)', fontSize: 12, bold: true }
     );
+  }
+
+  /** Draw a pulsing cyan highlight glow around a component. */
+  private drawHighlightGlow(ctx: CanvasRenderingContext2D, cx: number, cy: number, hw: number, hh: number, alpha: number): void {
+    ctx.save();
+    ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    ctx.roundRect(cx - hw, cy - hh, hw * 2, hh * 2, 8);
+    ctx.stroke();
+    ctx.restore();
   }
 
   measure(): DataPoint {

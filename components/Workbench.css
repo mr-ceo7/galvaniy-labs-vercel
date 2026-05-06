@@ -464,6 +464,33 @@
   white-space: nowrap;
 }
 
+/* ── AI Agent Highlight (pulsing cyan glow) ── */
+.wb-tray-item--highlighted {
+  border-color: rgba(0, 255, 255, 0.6) !important;
+  background: rgba(0, 255, 255, 0.08) !important;
+  animation: agent-pulse 1.5s ease-in-out infinite;
+  position: relative;
+}
+
+.wb-tray-item--highlighted::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 10px;
+  border: 2px solid rgba(0, 255, 255, 0.4);
+  animation: agent-pulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.wb-tray-item--highlighted .wb-tray-label {
+  color: rgba(0, 255, 255, 0.9);
+}
+
+@keyframes agent-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 255, 255, 0.3); }
+  50% { box-shadow: 0 0 24px rgba(0, 255, 255, 0.7), 0 0 48px rgba(0, 255, 255, 0.3); }
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .wb-hud-layer {
