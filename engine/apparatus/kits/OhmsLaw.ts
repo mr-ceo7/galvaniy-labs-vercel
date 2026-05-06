@@ -57,6 +57,10 @@ export class OhmsLawKit extends ApparatusKit {
     this.calculateCurrent();
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [
       { id: 'voltage', label: 'Applied Voltage', min: 0, max: 10, value: 0, step: 0.5, unit: 'V' },

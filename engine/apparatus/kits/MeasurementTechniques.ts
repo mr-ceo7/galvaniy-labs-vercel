@@ -63,6 +63,10 @@ export class MeasurementTechniquesKit extends ApparatusKit {
     }
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [
       { id: 'objectType', label: 'Object', min: 0, max: 2, value: 0, step: 1, unit: '' },

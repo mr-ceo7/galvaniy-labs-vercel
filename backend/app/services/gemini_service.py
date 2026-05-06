@@ -259,3 +259,33 @@ async def generate_lab_config(
         get_lab_config_instructions(experiment_code),
     )
     return normalize_lab_config(raw, experiment_code)
+
+async def chat_with_assistant(
+    client: genai.Client,
+    experiment_code: str,
+    message: str,
+    chat_history: list[dict],
+) -> str:
+    """Chat with the AI lab assistant using rotational keys + custom URL fallback."""
+    from app.services.ai_core import chat_with_fallback
+
+    system_instruction = f"""
+You are Dr. E. Vance, a highly intelligent and helpful virtual lab assistant at Galvaniy Labs.
+You are currently helping a student with the physics experiment {experiment_code}.
+CRITICAL INSTRUCTION: You MUST focus ONLY on the {experiment_code} experiment. 
+Do not answer general questions outside the scope of physics or this specific lab.
+Keep your answers concise, encouraging, and easy to understand for high school or early college students.
+If the student asks something unrelated, politely steer them back to the experiment.
+"""
+
+    try:
+        return await chat_with_fallback(
+            message=message,
+            chat_history=chat_history,
+            system_instruction=system_instruction,
+        )
+    except Exception as e:
+        logger.error(f"[Assistant] All providers failed: {e}")
+        raise ValueError("Dr. Vance is temporarily unavailable. Please try again in a moment.")
+
+

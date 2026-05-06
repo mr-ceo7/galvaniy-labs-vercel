@@ -1,3 +1,4 @@
+import { Vector2 } from '../../core/Vector2.ts';
 /**
  * GalvaniyPhysics - Resonance / Sonometer Kit (Experiment D-14)
  * UoN Manual: Verify f = (1/2L)√(T/μ) using a sonometer.
@@ -46,6 +47,10 @@ export class SonometerKit extends ApparatusKit {
     if (id === 'tension') this.tension = val;
     if (id === 'frequency') this.forkFrequency = val;
     this.calculateResonance();
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   getControls(): LabControl[] {

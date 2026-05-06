@@ -95,7 +95,7 @@ export const LabBrowser: React.FC<LabBrowserProps> = ({ onSelectExperiment }) =>
           />
           {search && (
              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 bg-slate-800 px-2 py-1 rounded-md">
-               {Array.from(filtered.values()).reduce((a, b) => a + b.length, 0)} results
+               {Array.from(filtered.values()).reduce((a, b: any) => a + (b?.length || 0), 0)} results
              </div>
           )}
         </div>

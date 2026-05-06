@@ -1,0 +1,524 @@
+/* ═══════════════════════════════════════════════════════════
+ * Immersive Workbench Scene
+ * Full-viewport first-person lab environment with floating HUD
+ * ═══════════════════════════════════════════════════════════ */
+
+/* ── Scene Root: fills entire viewport ── */
+.wb-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  font-family: var(--hud-font-body, 'Inter', system-ui, sans-serif);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Single Full-Viewport Background ── */
+.wb-bg-env {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.wb-bg-env img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+/* Subtle vignette over entire scene */
+.wb-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.3) 100%);
+}
+
+/* ── Physics Canvas: covers the bench area ── */
+.wb-canvas {
+  position: absolute;
+  top: 25%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.wb-canvas canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
+}
+
+/* ── Top Navigation Bar (glass, minimal) ── */
+.wb-topbar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.wb-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wb-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wb-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wb-back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.wb-title {
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: -0.01em;
+}
+
+.wb-title-code {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #00ffff;
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 4px;
+  margin-right: 10px;
+  letter-spacing: 0.04em;
+}
+
+.wb-icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wb-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.wb-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Floating HUD Panels ── */
+.wb-hud-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.wb-hud-layer > * {
+  pointer-events: auto;
+}
+
+/* Live Data Panel (top-right) */
+.wb-hud-data {
+  position: absolute;
+  top: 56px;
+  right: 16px;
+  min-width: 200px;
+  padding: 16px 20px;
+  background: rgba(12, 14, 18, 0.82);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.wb-hud-title {
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  color: #00ffff;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 12px;
+}
+
+.wb-hud-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.wb-hud-row:last-child {
+  margin-bottom: 0;
+}
+
+.wb-hud-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 500;
+}
+
+.wb-hud-value {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.wb-hud-unit {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.45);
+  margin-left: 3px;
+}
+
+.wb-hud-value--large {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+}
+
+/* Controls Panel (top-left, below topbar) */
+.wb-hud-controls {
+  position: absolute;
+  top: 56px;
+  left: 16px;
+  min-width: 260px;
+  padding: 16px 20px;
+  background: rgba(12, 14, 18, 0.82);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Transport buttons */
+.wb-transport {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.wb-transport-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wb-transport-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.wb-transport-btn--primary {
+  background: rgba(0, 255, 255, 0.1);
+  border-color: rgba(0, 255, 255, 0.2);
+  color: #00ffff;
+}
+
+.wb-transport-btn--primary:hover {
+  background: rgba(0, 255, 255, 0.18);
+}
+
+.wb-transport-btn--record {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #10b981;
+}
+
+.wb-transport-btn--record:hover {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+/* Sliders */
+.wb-slider-group {
+  margin-bottom: 12px;
+}
+
+.wb-slider-group:last-child {
+  margin-bottom: 0;
+}
+
+.wb-slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.wb-slider-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.wb-slider-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #00ffff;
+}
+
+.wb-slider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  outline: none;
+}
+
+.wb-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00ffff;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+/* ── Drawer Tabs (right edge) ── */
+.wb-drawer-tabs {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wb-drawer-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 40px;
+  height: 44px;
+  background: rgba(12, 14, 18, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  writing-mode: vertical-lr;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wb-drawer-tab:hover {
+  background: rgba(12, 14, 18, 0.9);
+  color: rgba(255, 255, 255, 0.8);
+  width: 46px;
+}
+
+.wb-drawer-tab--active {
+  background: rgba(0, 255, 255, 0.08);
+  border-color: rgba(0, 255, 255, 0.15);
+  color: #00ffff;
+}
+
+/* ── Slide-out Drawer ── */
+.wb-drawer {
+  position: absolute;
+  top: 48px;
+  right: 46px;
+  bottom: 0;
+  width: 420px;
+  max-width: calc(100vw - 60px);
+  background: rgba(12, 14, 18, 0.92);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 17;
+  overflow-y: auto;
+  padding: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+.wb-drawer::-webkit-scrollbar { width: 4px; }
+.wb-drawer::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+
+.wb-drawer-title {
+  font-family: var(--hud-font-display, 'Space Grotesk', system-ui, sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 16px;
+}
+
+/* ── Component Tray (Equipment Inventory) ── */
+.wb-hud-tray {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(12, 14, 18, 0.82);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 15;
+}
+
+.wb-tray-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.wb-tray-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(0, 255, 255, 0.2);
+}
+
+.wb-tray-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.wb-tray-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .wb-hud-layer {
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+  }
+  
+  .wb-hud-controls,
+  .wb-hud-data {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    margin: 12px;
+    width: auto;
+    min-width: 0;
+  }
+
+  .wb-hud-tray {
+    bottom: 80px; /* Above the drawer tabs */
+    width: calc(100% - 24px);
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .wb-drawer {
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: none;
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .wb-drawer-tabs {
+    right: auto;
+    left: 0;
+    top: auto;
+    bottom: 0;
+    transform: none;
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    background: rgba(12, 14, 18, 0.9);
+    padding: 4px;
+  }
+
+  .wb-drawer-tab {
+    writing-mode: horizontal-tb;
+    flex: 1;
+    height: 48px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+  }
+}
+

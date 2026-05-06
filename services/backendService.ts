@@ -402,6 +402,27 @@ const getAdminLabSessions = async (limit = 50): Promise<AdminLabSession[]> => {
   return data.map(mapAdminLabSession);
 };
 
+// ==================== Lab Assistant ====================
+
+const chatWithAssistant = async (experimentCode: string, message: string, chatHistory: any[]): Promise<string> => {
+  const res = await apiFetch('/api/assistant/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      experiment_code: experimentCode,
+      message,
+      chat_history: chatHistory,
+    }),
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Chat failed: ${res.status}`);
+  }
+  
+  const data = await res.json();
+  return data.reply;
+};
 // ==================== Exports ====================
 
 export const backendService = {
@@ -435,4 +456,7 @@ export const backendService = {
 
   // Health
   checkHealth,
+
+  // Lab Assistant
+  chatWithAssistant,
 };

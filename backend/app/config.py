@@ -15,8 +15,18 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
-    # Gemini API
+    # Gemini API — rotational keys (Smartify pattern)
     gemini_api_key: str = ""
+    gemini_api_key1: str = ""
+    gemini_api_key2: str = ""
+    gemini_api_key3: str = ""
+    gemini_api_key4: str = ""
+    gemini_api_key5: str = ""
+    gemini_api_key6: str = ""
+
+    # Custom API fallback
+    custom_api_url: str = ""
+    ai_priority: str = "gemini"  # "gemini" or "custom"
 
     # Firebase
     google_application_credentials: str = ""
@@ -43,6 +53,20 @@ class Settings(BaseSettings):
     def admin_emails_list(self) -> List[str]:
         """Parse comma-separated admin emails into a list."""
         return [email.strip().lower() for email in self.admin_emails.split(",") if email.strip()]
+
+    @property
+    def all_api_keys(self) -> List[str]:
+        """Return all valid Gemini API keys for rotational use."""
+        candidates = [
+            self.gemini_api_key,
+            self.gemini_api_key1,
+            self.gemini_api_key2,
+            self.gemini_api_key3,
+            self.gemini_api_key4,
+            self.gemini_api_key5,
+            self.gemini_api_key6,
+        ]
+        return [k.strip() for k in candidates if k and len(k.strip()) > 10]
 
     def is_admin_email(self, email: str) -> bool:
         """Check if an email is in the admin whitelist or contains 'admin'."""

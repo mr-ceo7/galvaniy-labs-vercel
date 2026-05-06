@@ -1,3 +1,4 @@
+import { Vector2 } from '../../core/Vector2.ts';
 /**
  * GalvaniyPhysics - Specific Heat Capacity Kit (Experiment C-13)
  * UoN Manual: Method of mixtures to determine specific heat capacity.
@@ -43,6 +44,10 @@ export class SpecificHeatKit extends ApparatusKit {
     if (id === 'waterMass') this.waterMass = val / 1000;
     if (id === 'waterTemp') this.waterTemp = val;
     this.calculateFinalTemp();
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   getControls(): LabControl[] {

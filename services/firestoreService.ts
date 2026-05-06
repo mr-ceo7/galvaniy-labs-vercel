@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebaseConfig';
 import { errorService } from './errorService';
+import { logService } from './logService';
 import { ManualPage } from '../types';
 
 // Initialize Firestore

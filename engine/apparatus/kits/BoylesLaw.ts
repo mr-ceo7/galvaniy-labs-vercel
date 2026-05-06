@@ -50,6 +50,10 @@ export class BoylesLawKit extends ApparatusKit {
     }
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [{ id: 'volume', label: 'Volume (V)', min: 15, max: 80, value: 50, step: 1, unit: 'cm³' }];
   }

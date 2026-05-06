@@ -2,17 +2,12 @@ Traceback (most recent call last):
   File "/home/qassim/Documents/GALVANIY LABS 🧠/Galvaniy-Labs/backend/app/routers/reports.py", line 77, in _generate_report_content
     return await generate_custom_report(
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        settings.custom_api_url, manual_text, experiment_code, parallel=False
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    )
-    ^
-  File "/home/qassim/Documents/GALVANIY LABS 🧠/Galvaniy-Labs/backend/app/services/custom_api_service.py", line 170, in generate_lab_report
-    text_json = await text_coro
-                ^^^^^^^^^^^^^^^
-  File "/home/qassim/Documents/GALVANIY LABS 🧠/Galvaniy-Labs/backend/app/services/custom_api_service.py", line 86, in _generate_section
+  File "/home/qassim/Documents/GALVANIY LABS 🧠/Galvaniy-Labs/backend/app/services/custom_api_service.py", line 137, in generate_lab_report
+    uploaded_filename = await _upload_manual(api_url, manual_text)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/qassim/Documents/GALVANIY LABS 🧠/Galvaniy-Labs/backend/app/services/custom_api_service.py", line 56, in _upload_manual
     response.raise_for_status()
-    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "/home/qassim/.local/share/virtualenvs/backend-mKnX532r/lib/python3.13/site-packages/httpx/_models.py", line 829, in raise_for_status
+  File "/home/qassim/Documents/GALVANIY LABS 🧠/Galvaniy-Labs/backend/venv/lib/python3.11/site-packages/httpx/_models.py", line 829, in raise_for_status
     raise HTTPStatusError(message, request=request, response=self)
-httpx.HTTPStatusError: Server error '500 INTERNAL SERVER ERROR' for url 'http://127.0.0.1:5000/api/generate'
-For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+httpx.HTTPStatusError: Client error '404 NOT FOUND' for url 'http://127.0.0.1:5000/api/upload'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404

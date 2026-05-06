@@ -67,6 +67,10 @@ export class EquilibriumOfForcesKit extends ApparatusKit {
     this.calculateEquilibrant();
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [
       { id: 'f1_mag', label: 'Force 1 (N)', min: 0.5, max: 5, value: 1.5, step: 0.1, unit: 'N' },

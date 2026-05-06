@@ -47,6 +47,10 @@ export class CentripetalForceKit extends ApparatusKit {
     this.angularSpeed = Math.sqrt(this.hangingMass * 9.81 / (this.mass * this.radius));
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [
       { id: 'radius', label: 'Radius', min: 10, max: 50, value: 30, step: 2, unit: 'cm' },

@@ -1,3 +1,4 @@
+import { Vector2 } from '../../core/Vector2.ts';
 /**
  * GalvaniyPhysics - Wheatstone Bridge Kit (Experiment F-19/20)
  * UoN Manual: Determine unknown resistance using Wheatstone bridge.
@@ -47,6 +48,10 @@ export class WheatstoneKit extends ApparatusKit {
     if (id === 'jockeyPos') this.L1 = val;
     if (id === 'R') this.R = val;
     this.updateBridge();
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   getControls(): LabControl[] {

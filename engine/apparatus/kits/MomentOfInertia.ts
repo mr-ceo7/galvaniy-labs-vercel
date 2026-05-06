@@ -1,3 +1,4 @@
+import { Vector2 } from '../../core/Vector2.ts';
 /**
  * GalvaniyPhysics - Moment of Inertia Kit (Experiment B-8)
  * UoN Manual: Determine moment of inertia of a flywheel.
@@ -34,6 +35,10 @@ export class MomentOfInertiaKit extends ApparatusKit {
   protected onControlChange(id: string, val: number): void {
     if (id === 'hangingMass') this.hangingMass = val / 1000;
     if (id === 'fallHeight') this.fallHeight = val / 100;
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   getControls(): LabControl[] {

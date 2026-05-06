@@ -1,3 +1,4 @@
+import { Vector2 } from '../../core/Vector2.ts';
 /**
  * GalvaniyPhysics - Snell's Law Kit (Experiment E-16)
  * UoN Manual: Verify n₁sinθ₁ = n₂sinθ₂, find refractive index.
@@ -39,6 +40,10 @@ export class SnellsLawKit extends ApparatusKit {
     if (id === 'incidentAngle') this.incidentAngle = val;
     if (id === 'n2') this.n2 = val;
     this.calculateRefraction();
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   getControls(): LabControl[] {

@@ -66,6 +66,10 @@ export class CoolingCurveKit extends ApparatusKit {
     if (id === 'ambientTemp') this.ambientTemp = val;
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [
       { id: 'initialTemp', label: 'Initial Temperature', min: 40, max: 100, value: 80, step: 5, unit: '°C' },

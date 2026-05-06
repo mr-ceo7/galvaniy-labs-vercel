@@ -64,6 +64,10 @@ export class DecayAnalogueKit extends ApparatusKit {
     if (id === 'totalCubes') { this.totalCubes = val; this.resetCubes(); }
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [{ id: 'totalCubes', label: 'Number of Cubes', min: 50, max: 500, value: 200, step: 10, unit: '' }];
   }

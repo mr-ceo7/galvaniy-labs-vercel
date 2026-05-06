@@ -83,8 +83,11 @@ export abstract class ApparatusKit {
 
   // ==================== Abstract Methods (Kit-specific) ====================
 
-  /** Initialize the physics world with bodies, constraints, etc. */
+  /** Initialize the physics world with boundaries (do not spawn apparatus automatically). */
   abstract setup(canvas: HTMLCanvasElement): void;
+
+  /** Spawn an apparatus component at the specified world position. Returns true if successful. */
+  abstract addApparatusComponent(id: string, position: Vector2): boolean;
 
   /** Get the controls (sliders, inputs) for this experiment. */
   abstract getControls(): LabControl[];
@@ -144,6 +147,15 @@ export abstract class ApparatusKit {
   protected onControlChange(_controlId: string, _value: number): void {
     // Default: no-op. Kits override this.
   }
+
+  /** Called on canvas pointer down (in canvas logical pixels). */
+  onPointerDown(x: number, y: number): void {}
+
+  /** Called on canvas pointer move (in canvas logical pixels). */
+  onPointerMove(x: number, y: number): void {}
+
+  /** Called on canvas pointer up. */
+  onPointerUp(): void {}
 
   /** Add a data point to the collection. */
   recordDataPoint(point: DataPoint): void {

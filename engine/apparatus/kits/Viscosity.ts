@@ -1,3 +1,4 @@
+import { Vector2 } from '../../core/Vector2.ts';
 /**
  * GalvaniyPhysics - Viscosity Kit (Experiment B-10)
  * UoN Manual: Stokes' Law - determine viscosity of glycerine.
@@ -58,6 +59,10 @@ export class ViscosityKit extends ApparatusKit {
   private resetFall(): void {
     this.ballY = 0; this.ballVelocity = 0; this.fallComplete = false;
     this.calculateTerminalVelocity();
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   getControls(): LabControl[] {

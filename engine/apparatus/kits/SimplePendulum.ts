@@ -16,6 +16,7 @@
 import { ApparatusKit, DataPoint } from '../ApparatusKit.ts';
 import { Vector2 } from '../../core/Vector2.ts';
 import { CanvasRenderer } from '../../renderer/CanvasRenderer.ts';
+import { SpriteRenderer } from '../../renderer/SpriteRenderer.ts';
 import { Stopwatch, Ruler } from '../../measurement/Instrument.ts';
 import { KitRegistry } from '../KitRegistry.ts';
 import type { LabControl, ProcedureStep, DataTableConfig } from '../../core/types.ts';
@@ -46,6 +47,9 @@ export class SimplePendulumKit extends ApparatusKit {
   private stopwatch: Stopwatch;
   private ruler: Ruler;
 
+  // Sprite renderer for photorealistic apparatus
+  private sprites: SpriteRenderer = new SpriteRenderer();
+
   // Renderer
 
 
@@ -58,47 +62,89 @@ export class SimplePendulumKit extends ApparatusKit {
     this.addInstrument(this.ruler);
   }
 
-  setup(canvas: HTMLCanvasElement): void {
-    // Configure world
-    this.world.gravity = new Vector2(0, this.g);
-    this.world.pixelsPerMeter = 100;
-    this.world.bounds = { width: canvas.width, height: canvas.height };
+  private placedComponents = new Set<string>();
+  private isBobFalling = false;
+  private fallingBobPosition = new Vector2(0, 0);
+  private fallingBobVelocity = new Vector2(0, 0);
 
-    // Initial control values
+  // Dragging state
+  private rulerPos = new Vector2(0, 0);
+  private stopwatchPos = new Vector2(0, 0);
+  private draggedComponent: string | null = null;
+  private dragOffset = new Vector2(0, 0);
+  private cssH = 800; // Updated in setup
+
+  setup(canvas: HTMLCanvasElement): void {
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.width / dpr;
+    this.cssH = canvas.height / dpr;
+    const ppm = cssW / 8;
+
+    this.world.gravity = new Vector2(0, this.g);
+    this.world.pixelsPerMeter = ppm;
+    this.world.bounds = { width: cssW, height: this.cssH };
+
+    this.pivotPosition = new Vector2(cssW / ppm / 2, this.cssH / ppm * 0.18);
+
     this.controlValues.set('length', this.pendulumLength);
     this.controlValues.set('amplitude', this.angle * (180 / Math.PI));
     this.controlValues.set('numOscillations', this.totalOscillations);
 
-    // Renderer
-    this.renderer = new CanvasRenderer(canvas);
+    this.sprites.loadSprite({
+      id: 'retort_stand', src: '/assets/lab/sprites/pendulum/retort_stand.png',
+      widthMeters: 2.0, anchor: { x: 0.5, y: 0.08 },
+    });
+    this.sprites.loadSprite({
+      id: 'brass_bob', src: '/assets/lab/sprites/pendulum/brass_bob.png',
+      widthMeters: 0.5, anchor: { x: 0.5, y: 0.3 },
+    });
+    this.sprites.loadSprite({
+      id: 'meter_ruler', src: '/assets/lab/sprites/pendulum/meter_ruler.png',
+      widthMeters: 0.35, heightMeters: 2.8, anchor: { x: 0.5, y: 0.0 },
+    });
+    this.sprites.loadSprite({
+      id: 'stopwatch', src: '/assets/lab/sprites/pendulum/stopwatch.png',
+      widthMeters: 0.7, anchor: { x: 0.5, y: 0.5 },
+    });
+
+    this.renderer = new CanvasRenderer(canvas, { background: 'transparent' });
     this.renderer.setWorld(this.world);
     this.renderer.setCustomDraw((ctx, r) => this.draw(ctx, r));
 
-    // Physics step callback
     this.world.onStep((w) => {
       this.updatePendulum(this.world.timeStep, w.getTime());
     });
   }
 
-  /** Step the pendulum physics using exact SHM equation (not small-angle approx). */
   private updatePendulum(dt: number, simTime?: number): void {
+    if (this.isBobFalling) {
+      this.fallingBobVelocity = this.fallingBobVelocity.add(new Vector2(0, this.g * dt));
+      this.fallingBobPosition = this.fallingBobPosition.add(new Vector2(0, this.fallingBobVelocity.y * dt));
+      const groundY = this.world.bounds ? this.world.bounds.height / this.world.pixelsPerMeter : 10;
+      if (this.fallingBobPosition.y > groundY - this.bobRadius) {
+        this.fallingBobPosition = new Vector2(this.fallingBobPosition.x, groundY - this.bobRadius);
+        this.fallingBobVelocity = new Vector2(this.fallingBobVelocity.x, 0);
+      }
+      return;
+    }
+
+    if (!this.placedComponents.has('bob') || !this.placedComponents.has('string') || !this.placedComponents.has('retort_stand')) {
+      return; // Pendulum not fully assembled
+    }
+
     // Exact equation of motion: θ'' = -(g/L)sin(θ)
     const angularAcceleration = -(this.g / this.pendulumLength) * Math.sin(this.angle);
 
-    // Velocity Verlet for angular motion
     this.angle += this.angularVelocity * dt + 0.5 * angularAcceleration * dt * dt;
     const newAngularAcceleration = -(this.g / this.pendulumLength) * Math.sin(this.angle);
     this.angularVelocity += 0.5 * (angularAcceleration + newAngularAcceleration) * dt;
 
-    // Light damping (air resistance)
     this.angularVelocity *= 0.9999;
 
-    // Count oscillations (zero-crossing detection)
     const currentSign = Math.sign(this.angle);
     if (currentSign !== this.lastAngleSign && currentSign > 0) {
       this.oscillationCount++;
 
-      // Auto-timing: stop after target oscillations
       if (this.isTiming && this.oscillationCount >= this.totalOscillations) {
         this.stopwatch.stop(simTime ?? this.world.getTime());
         this.isTiming = false;
@@ -107,21 +153,109 @@ export class SimplePendulumKit extends ApparatusKit {
     this.lastAngleSign = currentSign;
   }
 
-  /** Get bob position in world coordinates. */
   private getBobPosition(): Vector2 {
+    if (this.isBobFalling || !this.placedComponents.has('retort_stand') || !this.placedComponents.has('string')) {
+      return this.fallingBobPosition;
+    }
     return new Vector2(
       this.pivotPosition.x + this.pendulumLength * Math.sin(this.angle),
       this.pivotPosition.y + this.pendulumLength * Math.cos(this.angle)
     );
   }
 
-  /** Start timing oscillations. */
   startTiming(): void {
+    if (!this.placedComponents.has('stopwatch')) return;
     this.oscillationCount = 0;
     this.isTiming = true;
     this.stopwatch.reset();
     this.stopwatch.start(this.world.getTime());
     this.timingStartTime = this.world.getTime();
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    if (this.placedComponents.has(id)) return false;
+
+    this.placedComponents.add(id);
+
+    if (id === 'bob') {
+      if (!this.placedComponents.has('retort_stand') || !this.placedComponents.has('string')) {
+        this.isBobFalling = true;
+        this.fallingBobPosition = position.clone();
+        this.fallingBobVelocity = new Vector2(0, 0);
+      } else {
+        this.isBobFalling = false;
+      }
+    } else if (id === 'retort_stand' || id === 'string') {
+      // If we placed the missing stand/string and the bob was already placed, attach it
+      if (this.placedComponents.has('bob') && this.placedComponents.has('retort_stand') && this.placedComponents.has('string')) {
+        this.isBobFalling = false;
+      }
+    }
+
+    // Spawn instruments when placed
+    if (id === 'meter_ruler') {
+      this.rulerPos = position.clone();
+      this.addInstrument(this.ruler);
+    }
+    if (id === 'stopwatch') {
+      this.stopwatchPos = position.clone();
+      this.addInstrument(this.stopwatch);
+    }
+
+    return true;
+  }
+
+  onPointerDown(x: number, y: number): void {
+    const ppm = this.world.pixelsPerMeter;
+    const worldX = x / ppm;
+    const worldY = (this.cssH - y) / ppm;
+    const clickPos = new Vector2(worldX, worldY);
+
+    if (this.placedComponents.has('stopwatch')) {
+      // Stopwatch is ~0.7m wide. Anchor is 0.5, 0.5
+      if (
+        clickPos.x >= this.stopwatchPos.x - 0.35 &&
+        clickPos.x <= this.stopwatchPos.x + 0.35 &&
+        clickPos.y >= this.stopwatchPos.y - 0.35 &&
+        clickPos.y <= this.stopwatchPos.y + 0.35
+      ) {
+        this.draggedComponent = 'stopwatch';
+        this.dragOffset = new Vector2(this.stopwatchPos.x - worldX, this.stopwatchPos.y - worldY);
+        return;
+      }
+    }
+
+    if (this.placedComponents.has('meter_ruler')) {
+      // Ruler is 0.35 wide, 2.8 high. Anchor is 0.5, 0.0 (bottom center)
+      if (
+        clickPos.x >= this.rulerPos.x - 0.175 &&
+        clickPos.x <= this.rulerPos.x + 0.175 &&
+        clickPos.y >= this.rulerPos.y &&
+        clickPos.y <= this.rulerPos.y + 2.8
+      ) {
+        this.draggedComponent = 'meter_ruler';
+        this.dragOffset = new Vector2(this.rulerPos.x - worldX, this.rulerPos.y - worldY);
+        return;
+      }
+    }
+  }
+
+  onPointerMove(x: number, y: number): void {
+    if (!this.draggedComponent) return;
+
+    const ppm = this.world.pixelsPerMeter;
+    const worldX = x / ppm;
+    const worldY = (this.cssH - y) / ppm;
+
+    if (this.draggedComponent === 'stopwatch') {
+      this.stopwatchPos = new Vector2(worldX + this.dragOffset.x, worldY + this.dragOffset.y);
+    } else if (this.draggedComponent === 'meter_ruler') {
+      this.rulerPos = new Vector2(worldX + this.dragOffset.x, worldY + this.dragOffset.y);
+    }
+  }
+
+  onPointerUp(): void {
+    this.draggedComponent = null;
   }
 
   getControls(): LabControl[] {
@@ -236,131 +370,103 @@ export class SimplePendulumKit extends ApparatusKit {
     const ppm = this.world.pixelsPerMeter;
     const pivot = this.pivotPosition;
     const bob = this.getBobPosition();
-
-    // --- Support stand ---
-    const standTop = renderer.worldToCanvas(new Vector2(pivot.x, pivot.y - 0.15));
-    const standBase = renderer.worldToCanvas(new Vector2(pivot.x, pivot.y - 0.15));
-
-    // Vertical pole
-    ctx.strokeStyle = '#64748b';
-    ctx.lineWidth = 6;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    const poleTop = renderer.worldToCanvas(new Vector2(pivot.x, 0.2));
-    const poleBottom = renderer.worldToCanvas(new Vector2(pivot.x, pivot.y));
-    ctx.moveTo(poleTop.x, poleTop.y);
-    ctx.lineTo(poleBottom.x, poleBottom.y);
-    ctx.stroke();
-
-    // Base
-    ctx.lineWidth = 8;
-    ctx.beginPath();
-    const baseLeft = renderer.worldToCanvas(new Vector2(pivot.x - 0.5, 0.2));
-    const baseRight = renderer.worldToCanvas(new Vector2(pivot.x + 0.5, 0.2));
-    ctx.moveTo(baseLeft.x, baseLeft.y);
-    ctx.lineTo(baseRight.x, baseRight.y);
-    ctx.stroke();
-
-    // --- String ---
     const pivotPx = renderer.worldToCanvas(pivot);
     const bobPx = renderer.worldToCanvas(bob);
 
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(pivotPx.x, pivotPx.y);
-    ctx.lineTo(bobPx.x, bobPx.y);
-    ctx.stroke();
+    // ── Retort stand sprite (static, at pivot) ──
+    if (this.placedComponents.has('retort_stand')) {
+      if (this.sprites.isLoaded('retort_stand')) {
+        const standPos = renderer.worldToCanvas(new Vector2(pivot.x, 0.05));
+        this.sprites.drawSpriteWithShadow(ctx, 'retort_stand', standPos.x, standPos.y, ppm, 0, 1, 6);
+      } else {
+        // Fallback: geometric stand
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        const poleTop = renderer.worldToCanvas(new Vector2(pivot.x, 0.2));
+        const poleBottom = renderer.worldToCanvas(new Vector2(pivot.x, pivot.y));
+        ctx.moveTo(poleTop.x, poleTop.y);
+        ctx.lineTo(poleBottom.x, poleBottom.y);
+        ctx.stroke();
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        const baseLeft = renderer.worldToCanvas(new Vector2(pivot.x - 0.5, 0.2));
+        const baseRight = renderer.worldToCanvas(new Vector2(pivot.x + 0.5, 0.2));
+        ctx.moveTo(baseLeft.x, baseLeft.y);
+        ctx.lineTo(baseRight.x, baseRight.y);
+        ctx.stroke();
+      }
+    }
 
-    // --- Pivot point ---
-    ctx.fillStyle = '#a855f7';
-    ctx.beginPath();
-    ctx.arc(pivotPx.x, pivotPx.y, 5, 0, Math.PI * 2);
-    ctx.fill();
+    // ── String (thin line from pivot to bob) ──
+    if (this.placedComponents.has('string') && !this.isBobFalling) {
+      ctx.strokeStyle = 'rgba(180, 180, 180, 0.6)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pivotPx.x, pivotPx.y);
+      ctx.lineTo(bobPx.x, bobPx.y);
+      ctx.stroke();
+    }
 
-    // --- Bob (with glow) ---
-    const bobR = this.bobRadius * ppm;
+    // ── Brass bob sprite (at physics-driven position) ──
+    if (this.placedComponents.has('bob')) {
+      if (this.sprites.isLoaded('brass_bob')) {
+        this.sprites.drawSpriteWithShadow(ctx, 'brass_bob', bobPx.x, bobPx.y, ppm, 0, 1, 5);
+      } else {
+        // Fallback: geometric bob
+        const bobR = this.bobRadius * ppm;
+        const bobGradient = ctx.createRadialGradient(
+          bobPx.x - bobR * 0.3, bobPx.y - bobR * 0.3, bobR * 0.1,
+          bobPx.x, bobPx.y, bobR
+        );
+        bobGradient.addColorStop(0, '#d4a853');
+        bobGradient.addColorStop(1, '#b8860b');
+        ctx.fillStyle = bobGradient;
+        ctx.beginPath();
+        ctx.arc(bobPx.x, bobPx.y, bobR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
 
-    // Glow
-    const glow = ctx.createRadialGradient(bobPx.x, bobPx.y, bobR * 0.3, bobPx.x, bobPx.y, bobR * 2);
-    glow.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
-    glow.addColorStop(1, 'transparent');
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(bobPx.x, bobPx.y, bobR * 2, 0, Math.PI * 2);
-    ctx.fill();
+    // ── Meter ruler sprite (draggable on the bench) ──
+    if (this.placedComponents.has('meter_ruler')) {
+      if (this.sprites.isLoaded('meter_ruler')) {
+        const rulerPx = renderer.worldToCanvas(this.rulerPos);
+        this.sprites.drawSpriteWithShadow(ctx, 'meter_ruler', rulerPx.x, rulerPx.y, ppm, 0, 1, 4);
+      }
+    }
 
-    // Bob body
-    const bobGradient = ctx.createRadialGradient(
-      bobPx.x - bobR * 0.3, bobPx.y - bobR * 0.3, bobR * 0.1,
-      bobPx.x, bobPx.y, bobR
-    );
-    bobGradient.addColorStop(0, '#60a5fa');
-    bobGradient.addColorStop(1, '#2563eb');
-    ctx.fillStyle = bobGradient;
-    ctx.beginPath();
-    ctx.arc(bobPx.x, bobPx.y, bobR, 0, Math.PI * 2);
-    ctx.fill();
+    // ── Stopwatch sprite (draggable on the bench) ──
+    if (this.placedComponents.has('stopwatch')) {
+      if (this.sprites.isLoaded('stopwatch')) {
+        const swPx = renderer.worldToCanvas(this.stopwatchPos);
+        this.sprites.drawSpriteWithShadow(ctx, 'stopwatch', swPx.x, swPx.y, ppm, 0, 1, 5);
+      }
+    }
 
-    ctx.strokeStyle = '#93c5fd';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(bobPx.x, bobPx.y, bobR, 0, Math.PI * 2);
-    ctx.stroke();
+    // ── Subtle physics overlays ──
 
-    // --- Angle arc ---
-    if (Math.abs(this.angle) > 0.01) {
-      const arcRadius = 0.15 * ppm;
-      ctx.strokeStyle = 'rgba(168, 85, 247, 0.6)';
+    // Angle arc (subtle cyan glow, only when angle is significant)
+    if (Math.abs(this.angle) > 0.02) {
+      const arcRadius = 0.18 * ppm;
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
       ctx.lineWidth = 1.5;
-      const startAngle = Math.PI / 2; // vertical down
+      const startAngle = Math.PI / 2;
       const endAngle = Math.PI / 2 + this.angle;
       ctx.beginPath();
       ctx.arc(pivotPx.x, pivotPx.y, arcRadius, Math.min(startAngle, endAngle), Math.max(startAngle, endAngle));
       ctx.stroke();
     }
 
-    // --- Length label ---
+    // Length label (small, near the string midpoint)
     const midPoint = pivot.lerp(bob, 0.5);
-    const labelOffset = new Vector2(0.15, 0);
+    const labelOffset = new Vector2(0.18, 0);
     renderer.drawText(
       `L = ${this.pendulumLength.toFixed(2)} m`,
       midPoint.add(labelOffset),
-      { color: '#22d3ee', fontSize: 13, bold: true }
+      { color: 'rgba(0, 255, 255, 0.7)', fontSize: 12, bold: true }
     );
-
-    // --- Equilibrium line (dashed) ---
-    renderer.drawLine(
-      pivot,
-      new Vector2(pivot.x, pivot.y + this.pendulumLength + 0.1),
-      { color: 'rgba(148, 163, 184, 0.3)', width: 1, dashed: true }
-    );
-
-    // --- HUD: timing info ---
-    ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
-    this.roundRect(ctx, 10, 10, 220, 95, 10);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
-    ctx.lineWidth = 1;
-    this.roundRect(ctx, 10, 10, 220, 95, 10);
-    ctx.stroke();
-
-    ctx.font = 'bold 11px Inter, system-ui, sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.textAlign = 'left';
-    ctx.fillText('SIMPLE PENDULUM', 20, 30);
-
-    ctx.font = '12px Inter, system-ui, sans-serif';
-    ctx.fillStyle = '#e2e8f0';
-
-    const elapsed = this.stopwatch.getElapsed();
-    ctx.fillText(`⏱ Time: ${Math.max(0, elapsed).toFixed(2)} s`, 20, 50);
-    ctx.fillText(`🔄 Oscillations: ${this.oscillationCount} / ${this.totalOscillations}`, 20, 68);
-
-    const theoreticalT = 2 * Math.PI * Math.sqrt(this.pendulumLength / this.g);
-    ctx.fillStyle = '#64748b';
-    ctx.font = '11px Inter, system-ui, sans-serif';
-    ctx.fillText(`T(theory) = ${theoreticalT.toFixed(4)} s`, 20, 90);
   }
 
   measure(): DataPoint {

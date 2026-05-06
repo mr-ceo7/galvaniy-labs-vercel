@@ -72,6 +72,10 @@ export class ProjectileMotionKit extends ApparatusKit {
     this.calculateTrajectory();
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [
       { id: 'speed', label: 'Launch Speed', min: 1, max: 15, value: 5, step: 0.5, unit: 'm/s' },

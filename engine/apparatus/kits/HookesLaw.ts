@@ -58,6 +58,10 @@ export class HookesLawKit extends ApparatusKit {
     }
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [
       { id: 'mass', label: 'Hanging Mass', min: 0, max: 500, value: 50, step: 10, unit: 'g' },

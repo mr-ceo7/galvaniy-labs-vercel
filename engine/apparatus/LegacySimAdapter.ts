@@ -1,3 +1,4 @@
+import { Vector2 } from '../core/Vector2.ts';
 import { ApparatusKit, DataPoint } from './ApparatusKit.ts';
 import { CanvasRenderer } from '../renderer/CanvasRenderer.ts';
 import type { LabControl, ProcedureStep, DataTableConfig, LabConfig } from '../core/types.ts';
@@ -44,6 +45,10 @@ export class LegacySimAdapter extends ApparatusKit {
     for (const control of this.controls) {
       this.controlValues.set(control.id, control.value);
     }
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   setup(canvas: HTMLCanvasElement): void {

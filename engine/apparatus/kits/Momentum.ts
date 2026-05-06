@@ -62,6 +62,10 @@ export class ConservationOfMomentumKit extends ApparatusKit {
     this.calculateCollision();
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [
       { id: 'm1', label: 'Mass 1', min: 100, max: 500, value: 200, step: 50, unit: 'g' },

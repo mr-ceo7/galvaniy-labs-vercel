@@ -106,11 +106,17 @@ export class CanvasRenderer {
     const ctx = this.ctx;
 
     // Clear
-    ctx.fillStyle = this.theme.background;
-    ctx.fillRect(0, 0, width, height);
+    if (this.theme.background === 'transparent') {
+      ctx.clearRect(0, 0, width, height);
+    } else {
+      ctx.fillStyle = this.theme.background;
+      ctx.fillRect(0, 0, width, height);
+    }
 
-    // Draw grid
-    this.drawGrid();
+    // Draw grid (skip for transparent backgrounds — bench image provides context)
+    if (this.theme.background !== 'transparent') {
+      this.drawGrid();
+    }
 
     if (this.world) {
       // Draw constraints (behind bodies)

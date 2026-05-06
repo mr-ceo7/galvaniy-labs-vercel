@@ -1,3 +1,4 @@
+import { Vector2 } from '../../core/Vector2.ts';
 /**
  * GalvaniyPhysics - Focal Length of Lenses Kit (Experiment E-17)
  * UoN Manual: Thin lens equation 1/f = 1/u + 1/v
@@ -46,6 +47,10 @@ export class FocalLengthKit extends ApparatusKit {
     if (id === 'objectDist') this.objectDist = val / 100;
     if (id === 'focalLength') this.focalLength = val / 100;
     this.calculateImage();
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   getControls(): LabControl[] {

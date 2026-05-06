@@ -22,7 +22,10 @@ import './LabBriefing.css';
 import { PhaseNavigator } from './PhaseNavigator';
 import type { LabPhase } from './PhaseNavigator';
 import { getKitDefinition } from '../engine/apparatus/definitions';
+import { Vector2 } from '../engine/core/Vector2';
+import { LabAssistant, LabAssistantHandle } from './LabAssistant';
 import './VirtualLab.css';
+import './Workbench.css';
 
 // Import all kits so they self-register
 import '../engine/index';
@@ -43,6 +46,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
   const replayTimerRef = useRef<number | null>(null);
   const kitRef = useRef<ApparatusKit | null>(null);
   const sessionStartRef = useRef<string>(new Date().toISOString());
+  const assistantRef = useRef<LabAssistantHandle>(null);
 
   const [isRunning, setIsRunning] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
@@ -53,6 +57,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
   const [procedure, setProcedure] = useState<ProcedureStep[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [activeTab, setActiveTab] = useState<LabTab>('simulation');
+  const [drawerTab, setDrawerTab] = useState<LabTab | null>(null);
   const [kitName, setKitName] = useState('');
   const [kitCode, setKitCode] = useState('');
   const [autoRunning, setAutoRunning] = useState(false);
@@ -187,8 +192,15 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
       if (canvasRef.current) {
         const canvas = canvasRef.current;
         const container = canvas.parentElement!;
-        canvas.width = Math.min(800, container.clientWidth);
-        canvas.height = Math.min(400, canvas.width * 0.55);
+        const dpr2 = window.devicePixelRatio || 1;
+        const cw2 = container.clientWidth || window.innerWidth;
+        const ch2 = container.clientHeight || Math.round(window.innerHeight * 0.75);
+        canvas.width = cw2 * dpr2;
+        canvas.height = ch2 * dpr2;
+        canvas.style.width = `${cw2}px`;
+        canvas.style.height = `${ch2}px`;
+        const ctx2 = canvas.getContext('2d');
+        if (ctx2) ctx2.scale(dpr2, dpr2);
         kit.setup(canvas);
         kit.renderFrame();
         setupKitIdRef.current = kit.kitId;
@@ -199,8 +211,15 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
       if (canvasRef.current && kitRef.current) {
         const canvas = canvasRef.current;
         const container = canvas.parentElement!;
-        canvas.width = Math.min(800, container.clientWidth);
-        canvas.height = Math.min(400, canvas.width * 0.55);
+        const dpr3 = window.devicePixelRatio || 1;
+        const cw3 = container.clientWidth || window.innerWidth;
+        const ch3 = container.clientHeight || Math.round(window.innerHeight * 0.75);
+        canvas.width = cw3 * dpr3;
+        canvas.height = ch3 * dpr3;
+        canvas.style.width = `${cw3}px`;
+        canvas.style.height = `${ch3}px`;
+        const ctx3 = canvas.getContext('2d');
+        if (ctx3) ctx3.scale(dpr3, dpr3);
         kitRef.current.renderFrame();
       }
     };
@@ -266,8 +285,16 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
       
       // We must check if the container has width yet. If it's animating in, it might be 0.
       // But typically it has width if it's block display.
-      canvas.width = Math.min(800, container.clientWidth || 800);
-      canvas.height = Math.min(400, canvas.width * 0.55);
+      // Full-viewport canvas — fill the container (bottom 75% of viewport)
+      const dpr = window.devicePixelRatio || 1;
+      const cw = container.clientWidth || window.innerWidth;
+      const ch = container.clientHeight || Math.round(window.innerHeight * 0.75);
+      canvas.width = cw * dpr;
+      canvas.height = ch * dpr;
+      canvas.style.width = `${cw}px`;
+      canvas.style.height = `${ch}px`;
+      const ctx = canvas.getContext('2d');
+      if (ctx) ctx.scale(dpr, dpr);
 
       if (setupKitIdRef.current !== kit.kitId) {
         // Initial setup for this kit
@@ -698,402 +725,345 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
         />
       )}
 
+      {/* ═══ IMMERSIVE WORKBENCH SCENE ═══ */}
       {currentPhase !== 'briefing' && (
-      <div className="vlab-header">
-        <div className="flex items-center gap-3">
-          <button onClick={onBack} className="vlab-btn-icon" title="Back">
-            <ArrowLeft size={18} />
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="vlab-badge">{kitCode}</span>
-              <h1 className="text-base md:text-lg font-bold text-white truncate">{kitName}</h1>
+        <div className="wb-scene">
+          {/* Single full-viewport lab environment background */}
+          <div className="wb-bg-env">
+            <img src="/assets/lab/backgrounds/lab_environment.png" alt="" />
+          </div>
+
+          {/* Vignette overlay */}
+          <div className="wb-vignette" />
+
+          {/* Layer 2: Physics canvas (transparent, full scene) */}
+          <div 
+            className="wb-canvas"
+            onDragOver={(e) => {
+              e.preventDefault(); // Allow drop
+              e.dataTransfer.dropEffect = 'copy';
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const componentId = e.dataTransfer.getData('text/plain');
+              if (!componentId || !kitRef.current || !canvasRef.current) return;
+              
+              // Get canvas relative coordinates
+              const rect = canvasRef.current.getBoundingClientRect();
+              const scaleX = canvasRef.current.width / rect.width;
+              const scaleY = canvasRef.current.height / rect.height;
+              
+              // Calculate logical pixel coordinates on canvas
+              const canvasX = (e.clientX - rect.left) * scaleX;
+              const canvasY = (e.clientY - rect.top) * scaleY;
+              
+              // Convert to world coordinates
+              const world = kitRef.current.getWorld();
+              const ppm = world.pixelsPerMeter;
+              
+              // CanvasRenderer worldToCanvas is: x = world.x * ppm, y = canvasHeight - (world.y * ppm)
+              // So canvasToWorld is: world.x = canvasX / ppm, world.y = (canvasHeight - canvasY) / ppm
+              const dpr = window.devicePixelRatio || 1;
+              const worldX = canvasX / ppm;
+              const worldY = (canvasRef.current.height - canvasY) / ppm;
+              
+              const success = kitRef.current.addApparatusComponent(componentId, new Vector2(worldX, worldY));
+              if (success) {
+                // Force a re-render
+                kitRef.current.renderFrame();
+              }
+            }}
+          >
+            <canvas
+              ref={handleCanvasRef}
+              onMouseDown={handleCanvasPointerDown}
+              onMouseMove={handleCanvasPointerMove}
+              onMouseUp={handleCanvasPointerUp}
+              onMouseLeave={handleCanvasPointerUp}
+              onTouchStart={handleCanvasPointerDown}
+              onTouchMove={handleCanvasPointerMove}
+              onTouchEnd={handleCanvasPointerUp}
+              style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
+            />
+          </div>
+
+          {/* Layer 3: Top navigation bar */}
+          <div className="wb-topbar">
+            <div className="wb-topbar-left">
+              <button onClick={onBack} className="wb-back-btn" title="Back">
+                <ArrowLeft size={16} />
+              </button>
+              <span className="wb-title-code">{kitCode}</span>
+              <span className="wb-title">{kitName}</span>
+            </div>
+            <div className="wb-topbar-right">
+              <button
+                onClick={handleSaveSession}
+                disabled={saving || collectedData.length === 0}
+                className="wb-icon-btn"
+              >
+                <Save size={13} /> {saving ? 'Saving...' : 'Save'}
+              </button>
+              <button onClick={handleAutoRun} disabled={autoRunning} className="wb-icon-btn">
+                <Zap size={13} /> {autoRunning ? 'Running...' : 'Auto'}
+              </button>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleSaveSession}
-            disabled={saving || collectedData.length === 0}
-            className="vlab-btn-auto"
-            title="Save session to cloud"
-            style={{ opacity: collectedData.length === 0 ? 0.4 : 1 }}
-          >
-            <Save size={14} />
-            <span className="hidden md:inline">{saving ? 'Saving...' : 'Save'}</span>
-          </button>
-          <button
-            onClick={handleAutoRun}
-            disabled={autoRunning}
-            className="vlab-btn-auto"
-            title="Auto-run experiment"
-          >
-            <Zap size={14} />
-            <span className="hidden md:inline">{autoRunning ? 'Running...' : 'Auto'}</span>
-          </button>
-        </div>
-      </div>
-      )}
 
-      {/* Phase Navigator — hidden during briefing */}
-      {currentPhase !== 'briefing' && (
-        <PhaseNavigator
-          currentPhase={currentPhase}
-          onPhaseChange={(phase) => setCurrentPhase(phase)}
-          completedPhases={completedPhases}
-          hasBriefing={!!kitDefinition}
-        />
-      )}
+          {/* Layer 4: Floating HUD panels */}
+          <div className="wb-hud-layer">
+            {/* ── Controls Panel (top-left) ── */}
+            <div className="wb-hud-controls">
+              <h4 className="wb-hud-title">Simulation Controls</h4>
+              <div className="wb-transport">
+                <button
+                  onClick={handlePlayPause}
+                  className={`wb-transport-btn ${!isRunning ? 'wb-transport-btn--primary' : ''}`}
+                >
+                  {isRunning ? <><Pause size={13} /> Pause</> : <><Play size={13} /> Run</>}
+                </button>
+                <button onClick={handleReset} className="wb-transport-btn">
+                  <RotateCcw size={13} /> Reset
+                </button>
+                <button onClick={handleMeasure} className="wb-transport-btn wb-transport-btn--record">
+                  <Ruler size={13} /> Record
+                </button>
+              </div>
 
-      {/* Experiment Phase (existing tabs + content) */}
-      {currentPhase !== 'briefing' && (
-      <>
-      <div className="vlab-tabs">
-        {([
-          { id: 'simulation' as LabTab, icon: FlaskConical, label: 'Lab' },
-          { id: 'data' as LabTab, icon: Table, label: 'Data' },
-          { id: 'graph' as LabTab, icon: BarChart3, label: 'Graph' },
-          { id: 'procedure' as LabTab, icon: BookOpen, label: 'Steps' },
-          { id: 'sessions' as LabTab, icon: HistoryIcon, label: 'Sessions' },
-        ]).map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`vlab-tab ${activeTab === tab.id ? 'vlab-tab-active' : ''}`}
-          >
-            <tab.icon size={14} />
-            <span>{tab.label}</span>
-            {tab.id === 'data' && collectedData.length > 0 && (
-              <span className="vlab-tab-badge">{collectedData.length}</span>
-            )}
-            {tab.id === 'sessions' && savedSessions.length > 0 && (
-              <span className="vlab-tab-badge">{savedSessions.length}</span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      <div className="vlab-content">
-        <AnimatePresence mode="wait">
-          {activeTab === 'simulation' && (
-            <motion.div
-              key="sim"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className="vlab-sim-panel"
-            >
-              <div className="vlab-canvas-wrapper">
-                <canvas
-                  ref={handleCanvasRef}
-                  className="vlab-canvas"
-                  onMouseDown={handleCanvasPointerDown}
-                  onMouseMove={handleCanvasPointerMove}
-                  onMouseUp={handleCanvasPointerUp}
-                  onMouseLeave={handleCanvasPointerUp}
-                  onTouchStart={handleCanvasPointerDown}
-                  onTouchMove={handleCanvasPointerMove}
-                  onTouchEnd={handleCanvasPointerUp}
-                  style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
-                />
-                {!isRunning && !hasStarted && (
-                  <div className="vlab-canvas-overlay" onClick={handlePlayPause}>
-                    <Play size={40} className="text-white/80" />
-                    <span className="text-white/60 text-sm mt-2">Click to start</span>
+              {/* Sliders from controls */}
+              {controls.map((control) => (
+                <div key={control.id} className="wb-slider-group">
+                  <div className="wb-slider-header">
+                    <span className="wb-slider-label">{control.label}</span>
+                    <span className="wb-slider-value">
+                      {(controlValues[control.id] ?? control.value).toFixed((control.step ?? 1) < 1 ? 2 : 0)}
+                      {control.unit ? ` ${control.unit}` : ''}
+                    </span>
                   </div>
-                )}
-              </div>
-
-              <div className="vlab-transport">
-                <button onClick={handlePlayPause} className="vlab-btn-play">
-                  {isRunning ? <Pause size={18} /> : <Play size={18} />}
-                </button>
-                <button onClick={handleReset} className="vlab-btn-icon" title="Reset">
-                  <RotateCcw size={16} />
-                </button>
-                <div className="flex-1" />
-                <button onClick={handleMeasure} className="vlab-btn-measure">
-                  <Ruler size={14} />
-                  <span>Measure</span>
-                </button>
-              </div>
-
-              <InstrumentPanel
-                controls={controls}
-                values={controlValues}
-                onChange={handleControlChange}
-              />
-            </motion.div>
-          )}
-
-          {activeTab === 'data' && (
-            <motion.div
-              key="data"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className="vlab-data-panel"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="vlab-section-title">
-                  <Table size={14} /> {dataTable?.title ?? 'Collected Data'}
-                </h3>
-                <div className="flex gap-2">
-                  {collectedData.length > 0 && (
-                    <>
-                      <button onClick={handleExportCSV} className="vlab-btn-sm" title="Export CSV">
-                        <Download size={12} /> CSV
-                      </button>
-                      <button onClick={handleClearData} className="vlab-btn-sm vlab-btn-danger">
-                        Clear
-                      </button>
-                    </>
-                  )}
+                  <input
+                    type="range"
+                    className="wb-slider"
+                    min={control.min}
+                    max={control.max}
+                    step={control.step ?? 1}
+                    value={controlValues[control.id] ?? control.value}
+                    onChange={(e) => handleControlChange(control.id, parseFloat(e.target.value))}
+                  />
                 </div>
+              ))}
+            </div>
+
+            {/* ── Live Data Panel (top-right) ── */}
+            <div className="wb-hud-data">
+              <h4 className="wb-hud-title">Live Data</h4>
+              <div className="wb-hud-row">
+                <span className="wb-hud-label">Time</span>
+                <span className="wb-hud-value wb-hud-value--large">
+                  {(() => {
+                    const kit = kitRef.current;
+                    if (!kit) return '0.00';
+                    const sw = kit.getInstrument('stopwatch');
+                    return sw ? Math.max(0, (sw as any).getElapsed?.() ?? 0).toFixed(2) : '0.00';
+                  })()}
+                  <span className="wb-hud-unit">s</span>
+                </span>
               </div>
-
-              {collectedData.length === 0 ? (
-                <div className="vlab-empty-state">
-                  <Table size={32} className="text-slate-600 mb-2" />
-                  <p className="text-slate-500 text-sm">No data yet.</p>
-                  <p className="text-slate-600 text-xs mt-1">
-                    Use <strong>Measure</strong> to record a point, or <strong>Auto</strong> to run the full experiment.
-                  </p>
+              <div className="wb-hud-row">
+                <span className="wb-hud-label">Data Points</span>
+                <span className="wb-hud-value">{collectedData.length}</span>
+              </div>
+              {collectedData.length > 0 && Object.entries(collectedData[collectedData.length - 1]).slice(0, 3).map(([key, val]) => (
+                <div key={key} className="wb-hud-row">
+                  <span className="wb-hud-label">{key}</span>
+                  <span className="wb-hud-value">
+                    {typeof val === 'number' ? val.toFixed(4) : String(val)}
+                  </span>
                 </div>
-              ) : (
-                <div className="vlab-table-wrapper">
-                  <table className="vlab-table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        {Object.keys(collectedData[0]).map((header) => (
-                          <th key={header}>{header}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {collectedData.map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                          <td className="vlab-td-num">{rowIndex + 1}</td>
-                          {Object.values(row).map((value, cellIndex) => (
-                            <td key={cellIndex}>{typeof value === 'number' ? value.toFixed(4) : String(value)}</td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </motion.div>
-          )}
+              ))}
+            </div>
 
-          {activeTab === 'procedure' && (
-            <motion.div
-              key="proc"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className="vlab-procedure-panel"
-            >
-              <h3 className="vlab-section-title mb-3">
-                <BookOpen size={14} /> Procedure
-              </h3>
-              <div className="vlab-steps">
-                {procedure.map((step, index) => (
-                  <div
-                    key={index}
-                    className={`vlab-step ${index === currentStep ? 'vlab-step-active' : ''} ${index < currentStep ? 'vlab-step-done' : ''}`}
-                    onClick={() => selectProcedureStep(index)}
+            {/* ── Component Tray (Equipment Inventory, bottom-center) ── */}
+            {kitDefinition?.apparatus && kitDefinition.apparatus.length > 0 && (
+              <div className="wb-hud-tray">
+                {kitDefinition.apparatus.map((item: any) => (
+                  <div 
+                    key={item.id} 
+                    className="wb-tray-item" 
+                    title={`Drag to bench · Click to ask Dr. Vance about ${item.name}`}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', item.id);
+                      e.dataTransfer.effectAllowed = 'copy';
+                    }}
+                    onClick={() => assistantRef.current?.askAbout(item.name)}
                   >
-                    <div className="vlab-step-num">{index + 1}</div>
-                    <div className="vlab-step-content">
-                      <p>{step.instruction}</p>
-                      {step.expectedAction && (
-                        <span className={`vlab-step-action vlab-action-${step.expectedAction}`}>
-                          {step.expectedAction}
-                        </span>
-                      )}
-                    </div>
-                    {index === currentStep && (
-                      <ChevronRight size={16} className="text-cyan-400 flex-shrink-0" />
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="wb-tray-icon" draggable={false} />
+                    ) : (
+                      <span style={{ fontSize: 24 }}>{item.icon}</span>
                     )}
+                    <span className="wb-tray-label">{item.name}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => selectProcedureStep(Math.max(0, currentStep - 1))}
-                  disabled={currentStep === 0}
-                  className="vlab-btn-secondary flex-1"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => selectProcedureStep(Math.min(procedure.length - 1, currentStep + 1))}
-                  disabled={currentStep >= procedure.length - 1}
-                  className="vlab-btn-primary flex-1"
-                >
-                  Next Step
-                </button>
-              </div>
-            </motion.div>
-          )}
+            )}
+          </div>
 
-          {activeTab === 'graph' && (
-            <motion.div
-              key="graph"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className="vlab-data-panel"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="vlab-section-title">
-                  <BarChart3 size={14} /> Live Graph
-                </h3>
-                {collectedData.length > 0 && (() => {
-                  const numKeys = Object.keys(collectedData[0]).filter(
-                    (key) => typeof collectedData[0][key] === 'number'
-                  );
-                  return (
-                    <div className="flex gap-2 items-center">
-                      <select
-                        value={graphXKey}
-                        onChange={(e) => setGraphXKey(e.target.value)}
-                        className="vlab-select"
-                      >
-                        {numKeys.map((key) => <option key={key} value={key}>{key}</option>)}
-                      </select>
-                      <span className="text-slate-500 text-xs">vs</span>
-                      <select
-                        value={graphYKey}
-                        onChange={(e) => setGraphYKey(e.target.value)}
-                        className="vlab-select"
-                      >
-                        {numKeys.map((key) => <option key={key} value={key}>{key}</option>)}
-                      </select>
-                    </div>
-                  );
-                })()}
-              </div>
+          {/* Layer 5: Drawer tabs (right edge) */}
+          <div className="wb-drawer-tabs">
+            {([
+              { id: 'data' as LabTab, icon: Table, label: 'Data' },
+              { id: 'graph' as LabTab, icon: BarChart3, label: 'Graph' },
+              { id: 'procedure' as LabTab, icon: BookOpen, label: 'Steps' },
+              { id: 'sessions' as LabTab, icon: HistoryIcon, label: 'History' },
+            ]).map((tab) => (
+              <button
+                key={tab.id}
+                className={`wb-drawer-tab ${drawerTab === tab.id ? 'wb-drawer-tab--active' : ''}`}
+                onClick={() => setDrawerTab(drawerTab === tab.id ? null : tab.id)}
+                title={tab.label}
+              >
+                <tab.icon size={14} />
+              </button>
+            ))}
+          </div>
 
-              {collectedData.length === 0 ? (
-                <div className="vlab-empty-state">
-                  <BarChart3 size={32} className="text-slate-600 mb-2" />
-                  <p className="text-slate-500 text-sm">No data to plot.</p>
-                  <p className="text-slate-600 text-xs mt-1">
-                    Collect data first using <strong>Measure</strong> or <strong>Auto</strong>.
-                  </p>
-                </div>
-              ) : (
-                <div className="vlab-canvas-wrapper" style={{ aspectRatio: '16/9' }}>
-                  <canvas
-                    ref={chartCanvasRef}
-                    width={600}
-                    height={340}
-                    className="vlab-canvas"
-                    style={{ cursor: 'default' }}
-                  />
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === 'sessions' && (
-            <motion.div
-              key="sessions"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className="vlab-data-panel"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="vlab-section-title">
-                    <HistoryIcon size={14} /> Session History
-                  </h3>
-                  <p className="text-slate-500 text-xs mt-1">
-                    Replay saved runs, reload captured data, or generate a report from a past session.
-                  </p>
-                </div>
-                <button onClick={loadSavedSessions} className="vlab-btn-sm">
-                  <RefreshCcw size={12} /> Refresh
-                </button>
-              </div>
-
-              {sessionMessage && (
-                <div className="vlab-session-message">{sessionMessage}</div>
+          {/* Layer 6: Slide-out drawer */}
+          {drawerTab && (
+            <div className="wb-drawer">
+              {drawerTab === 'data' && (
+                <>
+                  <h3 className="wb-drawer-title">{dataTable?.title ?? 'Collected Data'}</h3>
+                  {collectedData.length === 0 ? (
+                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                      No data yet. Use <strong>Record</strong> to capture a measurement.
+                    </p>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                        <button onClick={handleExportCSV} className="wb-icon-btn"><Download size={12} /> CSV</button>
+                        <button onClick={handleClearData} className="wb-icon-btn" style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }}>Clear</button>
+                      </div>
+                      <div className="vlab-table-wrapper">
+                        <table className="vlab-table">
+                          <thead>
+                            <tr>
+                              <th>#</th>
+                              {Object.keys(collectedData[0]).map((h) => <th key={h}>{h}</th>)}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {collectedData.map((row, i) => (
+                              <tr key={i}>
+                                <td className="vlab-td-num">{i + 1}</td>
+                                {Object.values(row).map((v, j) => (
+                                  <td key={j}>{typeof v === 'number' ? v.toFixed(4) : String(v)}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
+                </>
               )}
 
-              {loadingSessions ? (
-                <div className="vlab-empty-state">
-                  <Loader2 size={28} className="text-slate-500 mb-2 animate-spin" />
-                  <p className="text-slate-400 text-sm">Loading saved sessions...</p>
-                </div>
-              ) : visibleSessions.length === 0 ? (
-                <div className="vlab-empty-state">
-                  <HistoryIcon size={32} className="text-slate-600 mb-2" />
-                  <p className="text-slate-500 text-sm">No saved sessions yet.</p>
-                  <p className="text-slate-600 text-xs mt-1">
-                    Save your current run to enable replay and report generation from session data.
-                  </p>
-                </div>
-              ) : (
-                <div className="vlab-session-list">
-                  {visibleSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className={`vlab-session-card ${session.id === lastSavedSessionId ? 'vlab-session-card-active' : ''}`}
-                    >
-                      <div className="vlab-session-head">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="vlab-badge">{session.experimentCode}</span>
-                            <span className="text-sm font-semibold text-white">
-                              {session.mode === 'auto' ? 'Auto Run' : 'Manual Run'}
+              {drawerTab === 'graph' && (
+                <>
+                  <h3 className="wb-drawer-title">Live Graph</h3>
+                  {collectedData.length === 0 ? (
+                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No data to plot.</p>
+                  ) : (
+                    <>
+                      {(() => {
+                        const numKeys = Object.keys(collectedData[0]).filter(k => typeof collectedData[0][k] === 'number');
+                        return (
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+                            <select value={graphXKey} onChange={(e) => setGraphXKey(e.target.value)} className="vlab-select">{numKeys.map(k => <option key={k} value={k}>{k}</option>)}</select>
+                            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>vs</span>
+                            <select value={graphYKey} onChange={(e) => setGraphYKey(e.target.value)} className="vlab-select">{numKeys.map(k => <option key={k} value={k}>{k}</option>)}</select>
+                          </div>
+                        );
+                      })()}
+                      <div style={{ aspectRatio: '16/9', borderRadius: 8, overflow: 'hidden' }}>
+                        <canvas ref={chartCanvasRef} width={400} height={225} style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.3)' }} />
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {drawerTab === 'procedure' && (
+                <>
+                  <h3 className="wb-drawer-title">Procedure</h3>
+                  <div className="vlab-steps">
+                    {procedure.map((step, index) => (
+                      <div
+                        key={index}
+                        className={`vlab-step ${index === currentStep ? 'vlab-step-active' : ''} ${index < currentStep ? 'vlab-step-done' : ''}`}
+                        onClick={() => selectProcedureStep(index)}
+                      >
+                        <div className="vlab-step-num">{index + 1}</div>
+                        <div className="vlab-step-content">
+                          <p>{step.instruction}</p>
+                          {step.expectedAction && (
+                            <span className={`vlab-step-action vlab-action-${step.expectedAction}`}>{step.expectedAction}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {drawerTab === 'sessions' && (
+                <>
+                  <h3 className="wb-drawer-title">Session History</h3>
+                  {sessionMessage && <p style={{ color: '#10b981', fontSize: 12, marginBottom: 8 }}>{sessionMessage}</p>}
+                  <button onClick={loadSavedSessions} disabled={loadingSessions} className="wb-icon-btn" style={{ marginBottom: 12 }}>
+                    {loadingSessions ? <Loader2 size={12} className="animate-spin" /> : <RefreshCcw size={12} />} Refresh
+                  </button>
+                  {visibleSessions.length === 0 ? (
+                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No saved sessions.</p>
+                  ) : (
+                    <div className="vlab-sessions-list">
+                      {visibleSessions.map((session) => (
+                        <div key={session.id} className="vlab-session-card">
+                          <div className="vlab-session-header">
+                            <span className="vlab-badge" style={{ fontSize: 10 }}>{session.experimentCode}</span>
+                            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>
+                              {new Date(session.startedAt).toLocaleDateString()}
                             </span>
                           </div>
-                          <div className="vlab-session-meta">
-                            <span>{new Date(session.savedAt || session.completedAt || session.startedAt).toLocaleString()}</span>
-                            <span>{session.dataPointCount} points</span>
-                            <span>{session.eventCount} events</span>
+                          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: '4px 0' }}>
+                            {session.dataPointCount ?? 0} data points
+                          </div>
+                          <div className="vlab-session-actions">
+                            <button onClick={() => handleLoadSession(session.id)} className="vlab-btn-sm">
+                              <HistoryIcon size={12} /> Load
+                            </button>
+                            <button onClick={() => handleReplaySession(session.id)} className="vlab-btn-sm" disabled={replayingSessionId === session.id}>
+                              {replayingSessionId === session.id ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
+                              {replayingSessionId === session.id ? 'Replaying...' : 'Replay'}
+                            </button>
+                            <button onClick={() => handleGenerateReportFromSession(session.id)} className="vlab-btn-sm" disabled={generatingSessionId === session.id}>
+                              {generatingSessionId === session.id ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
+                              {generatingSessionId === session.id ? 'Generating...' : 'Report'}
+                            </button>
                           </div>
                         </div>
-                        {session.experimentCode === kitCode && (
-                          <span className="vlab-session-pill">Current Lab</span>
-                        )}
-                      </div>
-
-                      <div className="vlab-session-actions">
-                        <button onClick={() => handleLoadSession(session.id)} className="vlab-btn-sm">
-                          <HistoryIcon size={12} /> Load
-                        </button>
-                        <button
-                          onClick={() => handleReplaySession(session.id)}
-                          className="vlab-btn-sm"
-                          disabled={replayingSessionId === session.id}
-                        >
-                          {replayingSessionId === session.id ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
-                          {replayingSessionId === session.id ? 'Replaying...' : 'Replay'}
-                        </button>
-                        <button
-                          onClick={() => handleGenerateReportFromSession(session.id)}
-                          className="vlab-btn-sm"
-                          disabled={generatingSessionId === session.id}
-                        >
-                          {generatingSessionId === session.id ? <Loader2 size={12} className="animate-spin" /> : <FileText size={12} />}
-                          {generatingSessionId === session.id ? 'Generating...' : 'Generate Report'}
-                        </button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </div>
-      </>
+        </div>
+      )}
+      {currentPhase !== 'briefing' && (
+        <LabAssistant ref={assistantRef} experimentCode={kitCode} procedure={procedure} />
       )}
     </div>
   );

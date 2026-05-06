@@ -29,7 +29,7 @@ function warn(name: string, msg: string) {
   console.log(`  ⚠️  ${name}: ${msg}`);
 }
 
-function assert(condition: boolean, msg: string) {
+function assert(condition: boolean, msg: string): asserts condition {
   if (!condition) throw new Error(msg);
 }
 
@@ -337,10 +337,11 @@ test('CLI bridge: valid experiment code returns JSON', () => {
   const parsed = buildCliOutput('A-2');
   assert(parsed.available === true, `Expected available=true, got ${parsed.available}`);
   assert(parsed.experimentCode === 'A-2', `Wrong code: ${parsed.experimentCode}`);
-  assert(Array.isArray(parsed.tables), 'Missing tables array');
-  assert(parsed.tables.length > 0, 'Empty tables');
-  assert(parsed.tables[0].headers.length > 0, 'No headers in first table');
-  assert(parsed.tables[0].rows.length > 0, 'No rows in first table');
+  const p = parsed as any;
+  assert(Array.isArray(p.tables), 'Missing tables array');
+  assert(p.tables.length > 0, 'Empty tables');
+  assert(p.tables[0].headers.length > 0, 'No headers in first table');
+  assert(p.tables[0].rows.length > 0, 'No rows in first table');
 });
 
 test('CLI bridge: invalid code returns available=false', () => {
@@ -357,9 +358,10 @@ test('CLI bridge: all 20 codes produce valid JSON with tables', () => {
   for (const meta of allKits) {
     const parsed = buildCliOutput(meta.experimentCode);
     assert(parsed.available === true, `Not available for ${meta.experimentCode}`);
-    assert(Array.isArray(parsed.tables), `No tables for ${meta.experimentCode}`);
-    assert(parsed.tables.length > 0, `Empty tables for ${meta.experimentCode}`);
-    assert(parsed.dataPointCount > 0, `No data points for ${meta.experimentCode}`);
+    const p = parsed as any;
+    assert(Array.isArray(p.tables), `No tables for ${meta.experimentCode}`);
+    assert(p.tables.length > 0, `Empty tables for ${meta.experimentCode}`);
+    assert(p.dataPointCount > 0, `No data points for ${meta.experimentCode}`);
   }
 });
 

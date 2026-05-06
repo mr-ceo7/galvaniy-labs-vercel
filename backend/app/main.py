@@ -40,12 +40,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Include routers
+    from app.routers import health, auth, reports, admin, lab, assistant
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(reports.router)
     app.include_router(admin.router)
     app.include_router(lab.router)
+    app.include_router(assistant.router)
 
     return app
 

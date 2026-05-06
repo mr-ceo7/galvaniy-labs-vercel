@@ -1,6 +1,7 @@
 import { ApparatusKit, DataPoint } from './ApparatusKit.ts';
 import { CanvasRenderer } from '../renderer/CanvasRenderer.ts';
 import type { LabControl, ProcedureStep, DataTableConfig, LabConfig } from '../core/types.ts';
+import { Vector2 } from '../core/Vector2.ts';
 
 type KitCategory = ApparatusKit['category'];
 
@@ -54,6 +55,10 @@ export class ComposableKit extends ApparatusKit {
     this.renderer = new CanvasRenderer(canvas);
     this.renderer.setWorld(this.world);
     this.renderer.setCustomDraw((ctx, renderer) => this.draw(ctx, renderer));
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   getControls(): LabControl[] {

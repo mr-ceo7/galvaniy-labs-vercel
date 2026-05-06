@@ -72,6 +72,10 @@ export class FrictionKit extends ApparatusKit {
     if (id === 'blockMass') { this.blockMass = val / 1000; this.blockPosition = 0; this.blockVelocity = 0; this.isSliding = false; }
   }
 
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
+  }
+
   getControls(): LabControl[] {
     return [
       { id: 'appliedForce', label: 'Applied Force', min: 0, max: 5, value: 0, step: 0.1, unit: 'N' },

@@ -1,3 +1,4 @@
+import { Vector2 } from '../../core/Vector2.ts';
 /**
  * GalvaniyPhysics - Speed of Sound Kit (Experiment D-15)
  * UoN Manual: Resonance tube method - determine speed of sound.
@@ -54,6 +55,10 @@ export class SpeedOfSoundKit extends ApparatusKit {
     if (id === 'waterLevel') this.waterLevel = val / 100;
     if (id === 'frequency') this.frequency = val;
     this.updateAirColumn();
+  }
+
+  addApparatusComponent(id: string, position: Vector2): boolean {
+    return false;
   }
 
   getControls(): LabControl[] {
