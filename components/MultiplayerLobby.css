@@ -1,0 +1,232 @@
+/* MultiplayerLobby.css */
+
+.wb-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.wb-modal {
+  width: 90%;
+  max-width: 500px;
+  background: rgba(20, 25, 35, 0.95);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 30px;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wb-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.wb-modal-close:hover {
+  color: #fff;
+}
+
+.wb-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 15px;
+}
+
+.wb-modal-icon {
+  color: #00ffff;
+}
+
+.wb-modal-header h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  margin: 0;
+  font-size: 20px;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+/* Setup View */
+.wb-multiplayer-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wb-setup-card {
+  background: rgba(0, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  gap: 10px;
+}
+
+.wb-setup-card:hover {
+  background: rgba(0, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 255, 255, 0.1);
+}
+
+.wb-setup-card h3 {
+  margin: 0;
+  color: #00ffff;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.wb-setup-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+.wb-setup-divider {
+  text-align: center;
+  position: relative;
+}
+
+.wb-setup-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.wb-setup-divider span {
+  background: #141923;
+  padding: 0 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  position: relative;
+}
+
+.wb-setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wb-setup-form h3 {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  color: #fff;
+}
+
+.wb-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.wb-input-group input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 10px 15px;
+  color: #fff;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.wb-input-group input:focus {
+  border-color: #00ffff;
+}
+
+.wb-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Space Grotesk', sans-serif;
+  border: none;
+}
+
+.wb-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wb-btn-primary {
+  background: #00ffff;
+  color: #000;
+}
+
+.wb-btn-primary:hover:not(:disabled) {
+  background: #fff;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+.wb-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.wb-btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Active Room View */
+.wb-multiplayer-active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 15px;
+  padding: 20px 0;
+}
+
+.wb-multiplayer-active p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.wb-room-code {
+  font-size: 36px;
+  color: #00ffff;
+  font-family: 'Space Grotesk', monospace;
+  letter-spacing: 4px;
+  margin: 0;
+  padding: 15px 30px;
+  background: rgba(0, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px dashed rgba(0, 255, 255, 0.4);
+}
+
+.wb-room-help {
+  font-size: 13px;
+  max-width: 80%;
+}

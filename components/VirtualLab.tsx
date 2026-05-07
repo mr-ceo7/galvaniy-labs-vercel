@@ -23,8 +23,11 @@ import { PhaseNavigator } from './PhaseNavigator';
 import type { LabPhase } from './PhaseNavigator';
 import { getKitDefinition } from '../engine/apparatus/definitions';
 import { Vector2 } from '../engine/core/Vector2';
-import { LabAssistant, LabAssistantHandle } from './LabAssistant';
+import { LabAssistant, LabAssistantHandle, AgentAction } from './LabAssistant';
 import { DrVanceAvatar, AvatarState } from './DrVanceAvatar';
+import { MultiplayerLobby } from './MultiplayerLobby';
+import { useMultiplayer } from '../hooks/useMultiplayer';
+import { Users } from 'lucide-react';
 import './VirtualLab.css';
 import './Workbench.css';
 
@@ -81,7 +84,9 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
   const [highlightedTrayItems, setHighlightedTrayItems] = useState<Set<string>>(new Set());
   const [placedComponentIds, setPlacedComponentIds] = useState<Set<string>>(new Set());
   const [avatarState, setAvatarState] = useState<AvatarState>('idle');
-  const [avatarPosition, setAvatarPosition] = useState({ x: 85, y: 100 }); // Bottom right default
+  // Multiplayer state
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [showMultiplayerLobby, setShowMultiplayerLobby] = useState(false);
 
   // Phase navigation state
   const kitDefinition = useMemo(() => getKitDefinition(experimentCode), [experimentCode]);
@@ -334,14 +339,22 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     animFrameRef.current = requestAnimationFrame(tick);
   }, []);
 
-  const handlePlayPause = () => {
+  const handleExecuteActionRef = useRef<(action: AgentAction, isRemote?: boolean) => void>(() => {});
+
+  const { broadcastAction } = useMultiplayer(roomId, (action) => {
+    handleExecuteActionRef.current(action, true);
+  });
+
+  const handlePlayPause = (isRemote = false) => {
     if (isRunning) {
       stopLoop();
       recordSessionEvent('pause');
+      if (!isRemote) broadcastAction({ type: 'stop_simulation' });
     } else {
       startLoop();
       if (!hasStarted) setHasStarted(true);
       recordSessionEvent('play');
+      if (!isRemote) broadcastAction({ type: 'start_simulation' });
     }
     setIsRunning(!isRunning);
   };
@@ -358,7 +371,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     recordSessionEvent('reset');
   };
 
-  const handleControlChange = (id: string, value: number) => {
+  const handleControlChange = (id: string, value: number, isRemote = false) => {
     const kit = kitRef.current;
     if (!kit) return;
 
@@ -366,10 +379,11 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     setControlValues((prev) => ({ ...prev, [id]: value }));
     kit.setControl(id, value);
     recordSessionEvent('control_change', { id, value });
+    if (!isRemote) broadcastAction({ type: 'set_control', target: id, value });
     if (!isRunning) kit.renderFrame();
   };
 
-  const handleMeasure = () => {
+  const handleMeasure = (isRemote = false) => {
     const kit = kitRef.current;
     if (!kit) return;
 
@@ -377,6 +391,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     const point = kit.measure();
     setCollectedData((prev) => [...prev, point]);
     recordSessionEvent('measurement', { point });
+    if (!isRemote) broadcastAction({ type: 'record_data' });
   };
 
   const handleAutoRun = () => {
@@ -722,6 +737,76 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     ...savedSessions.filter((session) => session.experimentCode !== kitCode),
   ];
 
+  const handleExecuteAction = useCallback((action: AgentAction, isRemote = false) => {
+    const kit = kitRef.current;
+    if (!kit) return;
+
+    // Echo to multiplayer if Dr. Vance (not a remote player) triggers it
+    if (!isRemote) {
+      broadcastAction(action);
+    }
+
+    switch (action.type) {
+      case 'highlight_tray':
+        setHighlightedTrayItems(prev => new Set([...prev, action.target!]));
+        setAvatarState('explain');
+        setAvatarPosition({ x: 20, y: 90 }); 
+        setTimeout(() => {
+          setHighlightedTrayItems(prev => {
+            const next = new Set(prev); next.delete(action.target!); return next;
+          });
+          setAvatarState('idle');
+          setAvatarPosition({ x: 85, y: 100 }); 
+        }, 5000);
+        break;
+      case 'highlight_canvas':
+        kit.setHighlight(action.target!, true);
+        setAvatarState('point_left');
+        setAvatarPosition({ x: 70, y: 80 }); 
+        setTimeout(() => {
+          kit.setHighlight(action.target!, false);
+          setAvatarState('idle');
+          setAvatarPosition({ x: 85, y: 100 });
+        }, 5000);
+        break;
+      case 'set_control':
+        if (action.target && action.value !== undefined) {
+          handleControlChange(action.target, action.value, true);
+        }
+        break;
+      case 'place_apparatus':
+        if (action.target && canvasRef.current) {
+          const world = kit.getWorld();
+          const ppm = world.pixelsPerMeter;
+          const bounds = world.bounds;
+          const cx = (bounds?.width ?? 400) / 2 / ppm;
+          const cy = (bounds?.height ?? 400) / 2 / ppm;
+          const success = kit.addApparatusComponent(action.target, new Vector2(cx, cy));
+          if (success) {
+            setPlacedComponentIds(prev => new Set([...prev, action.target!]));
+            kit.renderFrame();
+          }
+        }
+        break;
+      case 'start_simulation':
+        if (!isRunning) handlePlayPause(true);
+        break;
+      case 'stop_simulation':
+        if (isRunning) handlePlayPause(true);
+        break;
+      case 'record_data':
+        handleMeasure(true);
+        break;
+      case 'open_drawer':
+        if (action.target) setDrawerTab(action.target as LabTab);
+        break;
+    }
+  }, [isRunning, broadcastAction]);
+
+  useEffect(() => {
+    handleExecuteActionRef.current = handleExecuteAction;
+  }, [handleExecuteAction]);
+
   return (
     <div className="vlab-container">
       {/* Briefing Phase — full-viewport overlay, rendered outside normal flow */}
@@ -777,6 +862,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
               const success = kitRef.current.addApparatusComponent(componentId, new Vector2(worldX, worldY));
               if (success) {
                 setPlacedComponentIds(prev => new Set([...prev, componentId]));
+                broadcastAction({ type: 'place_apparatus', target: componentId });
                 // Force a re-render
                 kitRef.current.renderFrame();
               }
@@ -814,6 +900,13 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
               </button>
               <button onClick={handleAutoRun} disabled={autoRunning} className="wb-icon-btn">
                 <Zap size={13} /> {autoRunning ? 'Running...' : 'Auto'}
+              </button>
+              <button 
+                className="wb-btn wb-btn-secondary" 
+                style={{ marginLeft: '15px' }}
+                onClick={() => setShowMultiplayerLobby(true)}
+              >
+                <Users size={16} /> Collaborate
               </button>
             </div>
           </div>
@@ -1088,65 +1181,17 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
             dataCount: collectedData.length,
             isRunning,
           }}
-          onExecuteAction={(action) => {
-            const kit = kitRef.current;
-            if (!kit) return;
-            switch (action.type) {
-              case 'highlight_tray':
-                setHighlightedTrayItems(prev => new Set([...prev, action.target!]));
-                setAvatarState('explain');
-                setAvatarPosition({ x: 20, y: 90 }); // Move near tray (bottom left)
-                setTimeout(() => {
-                  setHighlightedTrayItems(prev => {
-                    const next = new Set(prev); next.delete(action.target!); return next;
-                  });
-                  setAvatarState('idle');
-                  setAvatarPosition({ x: 85, y: 100 }); // Return to bottom right
-                }, 5000);
-                break;
-              case 'highlight_canvas':
-                kit.setHighlight(action.target!, true);
-                setAvatarState('point_left');
-                // Calculate approximate center of canvas for pointing
-                setAvatarPosition({ x: 70, y: 80 }); 
-                setTimeout(() => {
-                  kit.setHighlight(action.target!, false);
-                  setAvatarState('idle');
-                  setAvatarPosition({ x: 85, y: 100 });
-                }, 5000);
-                break;
-              case 'set_control':
-                if (action.target && action.value !== undefined) {
-                  handleControlChange(action.target, action.value);
-                }
-                break;
-              case 'place_apparatus':
-                if (action.target && canvasRef.current) {
-                  const world = kit.getWorld();
-                  const ppm = world.pixelsPerMeter;
-                  const bounds = world.bounds;
-                  const cx = (bounds?.width ?? 400) / 2 / ppm;
-                  const cy = (bounds?.height ?? 400) / 2 / ppm;
-                  const success = kit.addApparatusComponent(action.target, new Vector2(cx, cy));
-                  if (success) {
-                    setPlacedComponentIds(prev => new Set([...prev, action.target!]));
-                    kit.renderFrame();
-                  }
-                }
-                break;
-              case 'start_simulation':
-                if (!isRunning) handlePlayPause();
-                break;
-              case 'stop_simulation':
-                if (isRunning) handlePlayPause();
-                break;
-              case 'record_data':
-                handleMeasure();
-                break;
-              case 'open_drawer':
-                if (action.target) setDrawerTab(action.target as LabTab);
-                break;
-            }
+          onExecuteAction={handleExecuteAction}
+        />
+      )}
+
+      {showMultiplayerLobby && (
+        <MultiplayerLobby
+          currentRoomId={roomId}
+          onClose={() => setShowMultiplayerLobby(false)}
+          onJoinRoom={(newRoomId) => {
+            setRoomId(newRoomId || null);
+            if (newRoomId) setShowMultiplayerLobby(false);
           }}
         />
       )}

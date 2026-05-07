@@ -4,11 +4,7 @@ import { logService } from '../services/logService';
 import { backendService, BackendStats, BackendSettings } from '../services/backendService';
 import { User, Theme, ManualPage, AdminLabSession } from '../types';
 import { Shield, RefreshCcw, Users, FileText, Trash2, Upload, AlertTriangle, Loader2, Search, Settings, Download, CheckCircle2, FlaskConical, Bot, Clock3 } from 'lucide-react';
-import * as pdfjsLib from 'pdfjs-dist';
 import JSZip from 'jszip';
-
-// Configure the worker to match the library version
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs`;
 
 interface AdminProps {
   theme?: Theme;

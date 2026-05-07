@@ -40,13 +40,14 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    from app.routers import health, auth, reports, admin, lab, assistant
+    from app.routers import health, auth, reports, admin, lab, assistant, multiplayer
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(reports.router)
     app.include_router(admin.router)
     app.include_router(lab.router)
     app.include_router(assistant.router)
+    app.include_router(multiplayer.router)
 
     return app
 
