@@ -31,6 +31,9 @@ const BASE_URL = resolveBaseUrl();
  * Get the current user's Firebase ID token.
  */
 const getAuthToken = async (): Promise<string> => {
+  const googleToken = typeof window !== 'undefined' ? localStorage.getItem('google_auth_token') : null;
+  if (googleToken) return googleToken;
+
   const auth = getAuth();
   const user = auth.currentUser;
   if (!user) throw new Error('Not authenticated. Please sign in.');

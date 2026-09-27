@@ -20,7 +20,10 @@ import { firebaseConfig } from '../config/firebaseConfig';
 import { ADMIN_CONFIG } from '../config/adminConfig';
 import { logService } from './logService';
 import { backendService } from './backendService';
+import { storageService } from './storageService';
 import { User } from '../types';
+
+export const GOOGLE_CLIENT_ID = "664033502342-9sijfg71v3c0i0riah1hhhgdufalfvk5.apps.googleusercontent.com";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -190,9 +193,56 @@ export const authService = {
     }
   },
 
+  // Sign in using Google OAuth ID token credential (Global Orators GIS flow)
+  signInWithGoogleCredential: async (credential: string): Promise<User> => {
+    try {
+      logService.log('[Auth Service] Authenticating with Google OAuth credential...');
+      localStorage.setItem('google_auth_token', credential);
+
+      // Call backend directly with Google credential
+      const response = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${credential}`,
+        },
+        body: JSON.stringify({ credential }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to authenticate with Google');
+      }
+
+      const backendProfile = await response.json();
+      const user: User = {
+        email: backendProfile.email,
+        role: backendProfile.role,
+        registeredAt: backendProfile.created_at || new Date().toISOString(),
+        isRevoked: backendProfile.is_revoked || false,
+        reportsGenerated: backendProfile.reports_generated || 0,
+        customLimit: backendProfile.custom_limit,
+        uid: backendProfile.uid,
+        displayName: backendProfile.display_name,
+        emailVerified: true,
+        photoURL: backendProfile.photo_url,
+      };
+
+      storageService.setSession(user);
+      logService.log('[Auth Service] Google GIS login succeeded for:', user.email);
+      return user;
+    } catch (err: any) {
+      localStorage.removeItem('google_auth_token');
+      logService.error('[Auth Service] Google GIS login failed:', err);
+      throw err;
+    }
+  },
+
   // Sign out
   logout: async (): Promise<void> => {
     try {
+      localStorage.removeItem('google_auth_token');
+      storageService.clearSession();
       await signOut(auth);
     } catch (error: any) {
       throw new Error('Failed to sign out. Please try again.');
@@ -225,6 +275,13 @@ export const authService = {
 
   // Auth state listener
   onAuthStateChange: (callback: (user: User | null) => void) => {
+    // Check if user has an active session from Google GIS
+    const sessionUser = storageService.getSession();
+    const googleToken = localStorage.getItem('google_auth_token');
+    if (sessionUser && googleToken && !auth.currentUser) {
+      callback(sessionUser);
+    }
+
     return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // Fetch user profile from backend to get latest customLimit, reportsGenerated, etc.
@@ -260,10 +317,17 @@ export const authService = {
           callback(user);
         }
       } else {
-        callback(null);
+        const activeGoogleToken = localStorage.getItem('google_auth_token');
+        const activeSession = storageService.getSession();
+        if (activeGoogleToken && activeSession) {
+          callback(activeSession);
+        } else {
+          callback(null);
+        }
       }
     });
   },
+
 
   // Validate password strength
   validatePassword: (password: string): { valid: boolean; message: string; strength: number } => {

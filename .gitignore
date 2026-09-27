@@ -43,3 +43,4 @@ __pycache__/
 **/serviceAccountKey*.json
 **/firebase-adminsdk*.json
 
+.env*.local

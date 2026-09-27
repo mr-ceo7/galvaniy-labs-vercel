@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { authService } from '../services/authService';
+import React, { useState, useEffect } from 'react';
+import { authService, GOOGLE_CLIENT_ID } from '../services/authService';
 import { logService } from '../services/logService';
 import { User } from '../types';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -15,6 +15,36 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
 
+  useEffect(() => {
+    const initGsi = () => {
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
+        try {
+          (window as any).google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: async (response: any) => {
+              if (response.credential) {
+                setLoading(true);
+                try {
+                  const user = await authService.signInWithGoogleCredential(response.credential);
+                  onLogin(user);
+                } catch (err: any) {
+                  setError(err.message || 'Google sign-in failed');
+                  setLoading(false);
+                }
+              }
+            },
+          });
+        } catch (err) {
+          logService.warn('[Auth] GIS init failed:', err);
+        }
+      }
+    };
+
+    initGsi();
+    const timer = setTimeout(initGsi, 1000);
+    return () => clearTimeout(timer);
+  }, [onLogin]);
+
   const handleGoogleSignIn = async (isRetry = false) => {
     if (!isRetry) {
       setRetryCount(0);
@@ -25,6 +55,20 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
     try {
       logService.log('[Auth] Attempting Google Sign-In...');
+      // If Google Identity Services is available, prompt GIS
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
+        (window as any).google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // Fall back to popup if prompt is not displayed
+            authService.signInWithGoogle().then(onLogin).catch((err: any) => {
+              setError(err.message || 'Sign in failed');
+              setLoading(false);
+            });
+          }
+        });
+        return;
+      }
+
       const user = await authService.signInWithGoogle();
       logService.log('[Auth] Sign-in successful, logging in user');
       

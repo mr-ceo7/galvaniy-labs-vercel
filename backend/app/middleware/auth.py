@@ -63,14 +63,36 @@ async def get_current_user(
         init_firebase()
 
         token = credentials.credentials
-        try:
-            decoded_token = firebase_auth.verify_id_token(token)
-        except Exception as auth_ex:
-            # When Google Application Default Credentials are not configured in development,
-            # decode the Firebase JWT token directly.
-            logger.warning(f"Firebase Admin verify_id_token failed ({auth_ex}); falling back to JWT decode.")
+        settings = get_settings()
+        decoded_token = None
+
+        # 1. Try Google OAuth ID token verification using Global Orators Client ID
+        if settings.google_client_id:
+            try:
+                from google.oauth2 import id_token
+                from google.auth.transport import requests as google_requests
+                idinfo = id_token.verify_oauth2_token(
+                    token,
+                    google_requests.Request(),
+                    settings.google_client_id
+                )
+                if idinfo and idinfo.get("email"):
+                    decoded_token = idinfo
+            except Exception:
+                pass
+
+        # 2. Try Firebase ID token verification
+        if not decoded_token:
+            try:
+                decoded_token = firebase_auth.verify_id_token(token)
+            except Exception as auth_ex:
+                logger.debug(f"Firebase Admin verify_id_token skipped/failed ({auth_ex}); attempting JWT decode.")
+
+        # 3. Fallback: decode JWT claims directly
+        if not decoded_token:
             import jwt
             decoded_token = jwt.decode(token, options={"verify_signature": False})
+
 
         # Role defaults to 'student' if not set in custom claims
         role = decoded_token.get("role", "student")
