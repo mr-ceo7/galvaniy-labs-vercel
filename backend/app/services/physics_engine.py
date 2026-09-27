@@ -26,8 +26,15 @@ _PROJECT_ROOT = os.path.abspath(
 _TS_RUNNER = os.path.join(_PROJECT_ROOT, "scripts", "run-ts-entry.mjs")
 
 
+_CLI_CACHE: Dict[str, Any] = {}
+
+
 async def _run_engine_cli(experiment_code: str) -> Optional[Dict[str, Any]]:
-    """Execute the TypeScript engine CLI through the local runner."""
+    """Execute the TypeScript engine CLI through the local runner with caching."""
+    code_normalized = experiment_code.strip().upper()
+    if code_normalized in _CLI_CACHE:
+        return _CLI_CACHE[code_normalized]
+
     cli_path = os.path.join(_PROJECT_ROOT, "engine", "cli-entry.ts")
 
     if not os.path.exists(cli_path):
@@ -46,7 +53,7 @@ async def _run_engine_cli(experiment_code: str) -> Optional[Dict[str, Any]]:
             cwd=_PROJECT_ROOT,
         )
 
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=20.0)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=8.0)
 
         if proc.returncode != 0:
             logger.warning(
@@ -55,7 +62,10 @@ async def _run_engine_cli(experiment_code: str) -> Optional[Dict[str, Any]]:
             )
             return None
 
-        return json.loads(stdout.decode())
+        result = json.loads(stdout.decode())
+        if result and result.get("available"):
+            _CLI_CACHE[code_normalized] = result
+        return result
     except asyncio.TimeoutError:
         logger.error(f"[PhysicsEngine] CLI timed out for {experiment_code}")
         return None

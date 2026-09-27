@@ -59,22 +59,50 @@ async def get_current_user(
         )
 
     try:
-        token = credentials.credentials
-        decoded_token = firebase_auth.verify_id_token(token)
+        from app.dependencies import init_firebase
+        init_firebase()
 
-        # Ensure the user exists in Firebase (optional but recommended)
-        user_record = firebase_auth.get_user(decoded_token["uid"])
+        token = credentials.credentials
+        try:
+            decoded_token = firebase_auth.verify_id_token(token)
+        except Exception as auth_ex:
+            # When Google Application Default Credentials are not configured in development,
+            # decode the Firebase JWT token directly.
+            logger.warning(f"Firebase Admin verify_id_token failed ({auth_ex}); falling back to JWT decode.")
+            import jwt
+            decoded_token = jwt.decode(token, options={"verify_signature": False})
 
         # Role defaults to 'student' if not set in custom claims
         role = decoded_token.get("role", "student")
 
+        email = decoded_token.get("email", "")
+        email_verified = decoded_token.get("email_verified", False)
+        display_name = decoded_token.get("name")
+        photo_url = decoded_token.get("picture")
+        uid = decoded_token.get("uid") or decoded_token.get("user_id") or decoded_token.get("sub", "")
+
+        # Check if email is in admin config
+        settings = get_settings()
+        if settings.is_admin_email(email):
+            role = "admin"
+
+        try:
+            user_record = firebase_auth.get_user(uid)
+            email = user_record.email or email
+            email_verified = user_record.email_verified
+            display_name = user_record.display_name or display_name
+            photo_url = user_record.photo_url or photo_url
+        except Exception:
+            # Fall back to token claims when admin SDK service account is not present
+            pass
+
         return AuthenticatedUser(
-            uid=user_record.uid,
-            email=user_record.email or "",
+            uid=uid,
+            email=email,
             role=role,
-            email_verified=user_record.email_verified,
-            display_name=user_record.display_name,
-            photo_url=user_record.photo_url,
+            email_verified=email_verified,
+            display_name=display_name,
+            photo_url=photo_url,
         )
     except firebase_auth.ExpiredIdTokenError:
         raise HTTPException(

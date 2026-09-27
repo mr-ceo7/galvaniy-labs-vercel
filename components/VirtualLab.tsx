@@ -84,6 +84,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
   const [highlightedTrayItems, setHighlightedTrayItems] = useState<Set<string>>(new Set());
   const [placedComponentIds, setPlacedComponentIds] = useState<Set<string>>(new Set());
   const [avatarState, setAvatarState] = useState<AvatarState>('idle');
+  const [avatarPosition, setAvatarPosition] = useState<{ x: number; y: number }>({ x: 85, y: 100 });
   // Multiplayer state
   const [roomId, setRoomId] = useState<string | null>(null);
   const [showMultiplayerLobby, setShowMultiplayerLobby] = useState(false);
@@ -237,6 +238,17 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     };
 
     const loadKit = async () => {
+      // 1. Instant local resolve for built-in kits (0ms latency)
+      const instantKit = KitRegistry.resolve(experimentCode);
+      if (instantKit) {
+        applyKit(instantKit);
+        if (!cancelled) {
+          setLoadingLabSetup(false);
+        }
+        return;
+      }
+
+      // 2. Fetch backend configuration for custom/AI-generated labs
       try {
         const setup = await backendService.getLabSetup(experimentCode);
         const rawConfig = (setup.lab_config || {}) as Partial<LabConfig> & { category?: string };
@@ -709,29 +721,6 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     }
   }, [activeTab, collectedData, graphXKey, graphYKey]);
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-        <FlaskConical size={48} className="text-red-400 mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">Kit Not Found</h2>
-        <p className="text-slate-400 mb-6">{error}</p>
-        <button onClick={onBack} className="vlab-btn-secondary flex items-center gap-2">
-          <ArrowLeft size={16} /> Back to Labs
-        </button>
-      </div>
-    );
-  }
-
-  if (loadingLabSetup) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-        <Loader2 size={36} className="text-cyan-300 mb-4 animate-spin" />
-        <h2 className="text-lg font-bold text-white mb-2">Preparing Virtual Lab</h2>
-        <p className="text-slate-400">Loading the best available lab configuration for {experimentCode}.</p>
-      </div>
-    );
-  }
-
   const visibleSessions = [
     ...savedSessions.filter((session) => session.experimentCode === kitCode),
     ...savedSessions.filter((session) => session.experimentCode !== kitCode),
@@ -806,6 +795,29 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
   useEffect(() => {
     handleExecuteActionRef.current = handleExecuteAction;
   }, [handleExecuteAction]);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+        <FlaskConical size={48} className="text-red-400 mb-4" />
+        <h2 className="text-xl font-bold text-white mb-2">Kit Not Found</h2>
+        <p className="text-slate-400 mb-6">{error}</p>
+        <button onClick={onBack} className="vlab-btn-secondary flex items-center gap-2">
+          <ArrowLeft size={16} /> Back to Labs
+        </button>
+      </div>
+    );
+  }
+
+  if (loadingLabSetup) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+        <Loader2 size={36} className="text-cyan-300 mb-4 animate-spin" />
+        <h2 className="text-lg font-bold text-white mb-2">Preparing Virtual Lab</h2>
+        <p className="text-slate-400">Loading the best available lab configuration for {experimentCode}.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="vlab-container">

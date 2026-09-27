@@ -14,11 +14,13 @@ _gemini_client = None
 _firebase_app = None
 
 
+import os
+
 def init_firebase() -> None:
     """Initialize Firebase Admin SDK (idempotent).
     
     Tries to use GOOGLE_APPLICATION_CREDENTIALS env var for the
-    service account JSON. Falls back to Application Default Credentials.
+    service account JSON. Falls back to project ID configuration.
     """
     global _firebase_app
     if _firebase_app is not None:
@@ -27,12 +29,12 @@ def init_firebase() -> None:
     settings = get_settings()
 
     try:
-        if settings.google_application_credentials:
+        if settings.google_application_credentials and os.path.exists(settings.google_application_credentials):
             cred = credentials.Certificate(settings.google_application_credentials)
             _firebase_app = firebase_admin.initialize_app(cred)
         else:
-            # Use Application Default Credentials or fall back
-            _firebase_app = firebase_admin.initialize_app()
+            # Use project ID configuration
+            _firebase_app = firebase_admin.initialize_app(options={"projectId": "galvaniy-labs"})
     except ValueError:
         # Already initialized (e.g., in tests)
         _firebase_app = firebase_admin.get_app()

@@ -34,6 +34,12 @@ backend/**/*.pyc
 *.pyc
 __pycache__/
 
+# Environment
+.env
+.env.*
+!.env.example
+
 # Firebase service account key (NEVER commit)
 **/serviceAccountKey*.json
 **/firebase-adminsdk*.json
+
