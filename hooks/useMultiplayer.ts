@@ -2,7 +2,23 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { AgentAction } from '../components/LabAssistant';
 import { logService } from '../services/logService';
 
-const WS_URL = import.meta.env.VITE_API_URL?.replace('http', 'ws') || 'ws://localhost:8001';
+const getWebSocketUrl = (): string => {
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/^http/, 'ws');
+  }
+
+  // In production (Vercel HTTPS), connect directly to the VPS tunnel to avoid local network probes
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'wss://unheard-revoke-goofiness.ngrok-free.dev';
+  }
+
+  return 'ws://localhost:8001';
+};
+
+const WS_URL = getWebSocketUrl();
 
 export function useMultiplayer(roomId: string | null, onRemoteAction: (action: AgentAction) => void) {
   const [isConnected, setIsConnected] = useState(false);
