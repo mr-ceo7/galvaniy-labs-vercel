@@ -56,6 +56,8 @@ const apiFetch = async (
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'ngrok-skip-browser-warning': '1',
       Authorization: `Bearer ${token}`,
       ...(options.headers || {}),
     },

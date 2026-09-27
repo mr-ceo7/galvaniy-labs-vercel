@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://photographer-requiring-promotion-theft.trycloudflare.com/api/:path*"
+      "destination": "https://unheard-revoke-goofiness.ngrok-free.dev/api/:path*"
     }
   ]
 }
