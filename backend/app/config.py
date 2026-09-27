@@ -28,8 +28,8 @@ class Settings(BaseSettings):
     custom_api_url: str = ""
     ai_priority: str = "gemini"  # "gemini" or "custom"
 
-    # Google OAuth (Global Orators project credentials)
-    google_client_id: str = "664033502342-9sijfg71v3c0i0riah1hhhgdufalfvk5.apps.googleusercontent.com"
+    # Google OAuth (Galvaniy Labs client credentials)
+    google_client_id: str = "467388117626-9f7jn0pv042ok9u89kltomn0igavg5qo.apps.googleusercontent.com"
     google_client_secret: str = "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"
 
     # Firebase

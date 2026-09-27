@@ -23,7 +23,7 @@ import { backendService } from './backendService';
 import { storageService } from './storageService';
 import { User } from '../types';
 
-export const GOOGLE_CLIENT_ID = "664033502342-9sijfg71v3c0i0riah1hhhgdufalfvk5.apps.googleusercontent.com";
+export const GOOGLE_CLIENT_ID = "467388117626-9f7jn0pv042ok9u89kltomn0igavg5qo.apps.googleusercontent.com";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
