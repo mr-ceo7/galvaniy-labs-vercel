@@ -70,6 +70,33 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: {
+        chunkSizeWarningLimit: 800,
+        rollupOptions: {
+          output: {
+            manualChunks(id) {
+              if (id.includes('node_modules')) {
+                if (id.includes('pdfjs-dist') || id.includes('jspdf') || id.includes('html2canvas') || id.includes('pdf-lib') || id.includes('jszip')) {
+                  return 'vendor-pdf';
+                }
+                if (id.includes('matter-js')) {
+                  return 'vendor-physics';
+                }
+                if (id.includes('framer-motion') || id.includes('motion-dom')) {
+                  return 'vendor-motion';
+                }
+                if (id.includes('firebase')) {
+                  return 'vendor-firebase';
+                }
+                if (id.includes('lucide-react')) {
+                  return 'vendor-icons';
+                }
+                return 'vendor';
+              }
+            }
+          }
+        }
       }
     };
 });

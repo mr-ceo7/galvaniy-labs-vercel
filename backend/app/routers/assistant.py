@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.middleware.auth import get_current_user, AuthenticatedUser
+from app.middleware.auth import get_optional_user, AuthenticatedUser
 from app.services.gemini_service import chat_with_assistant
 from app.dependencies import get_gemini_client
 
@@ -32,7 +32,7 @@ class ChatRequest(BaseModel):
 @router.post("/chat")
 async def assistant_chat(
     request: ChatRequest,
-    user: AuthenticatedUser = Depends(get_current_user),
+    user: Optional[AuthenticatedUser] = Depends(get_optional_user),
 ):
     """Handle chat messages for the Lab Assistant. Returns structured JSON with actions."""
     try:

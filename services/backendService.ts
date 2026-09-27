@@ -28,39 +28,70 @@ const BASE_URL = resolveBaseUrl();
 // ==================== HTTP Helpers ====================
 
 /**
- * Get the current user's Firebase ID token.
+ * Get the current user's Firebase or Google ID token, falling back to session token.
  */
-const getAuthToken = async (): Promise<string> => {
+const getAuthToken = async (required: boolean = true): Promise<string | null> => {
   const googleToken = typeof window !== 'undefined' ? localStorage.getItem('google_auth_token') : null;
   if (googleToken) return googleToken;
 
-  const auth = getAuth();
-  const user = auth.currentUser;
-  if (!user) throw new Error('Not authenticated. Please sign in.');
-  return user.getIdToken();
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (user) {
+      return await user.getIdToken();
+    }
+  } catch (e) {
+    // Auth not initialized yet or in SSR
+  }
+
+  // Check stored session in localStorage
+  if (typeof window !== 'undefined') {
+    const session = localStorage.getItem('physics_labs_session');
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        if (parsed?.email) {
+          return `guest_${btoa(parsed.email)}`;
+        }
+      } catch (e) {
+        // Invalid session JSON
+      }
+    }
+  }
+
+  if (required) {
+    throw new Error('Not authenticated. Please sign in.');
+  }
+  return null;
 };
 
 /**
- * Authenticated fetch wrapper.
+ * Authenticated fetch wrapper with optional auth support.
  */
 const apiFetch = async (
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  requireAuth: boolean = true
 ): Promise<Response> => {
-  const token = await getAuthToken();
+  const token = await getAuthToken(requireAuth);
   const url = `${BASE_URL}${path}`;
 
   logService.log(`[Backend] ${options.method || 'GET'} ${path}`);
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'ngrok-skip-browser-warning': '1',
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'ngrok-skip-browser-warning': '1',
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -419,7 +450,7 @@ const chatWithAssistant = async (experimentCode: string, message: string, chatHi
       chat_history: chatHistory,
       lab_state: labState || null,
     }),
-  });
+  }, false);
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
