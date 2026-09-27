@@ -43,4 +43,10 @@ __pycache__/
 **/serviceAccountKey*.json
 **/firebase-adminsdk*.json
 
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
 .env*.local
+

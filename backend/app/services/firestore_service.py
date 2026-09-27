@@ -525,5 +525,22 @@ class FirestoreService:
             return AdminStats()
 
 
-# Module-level singleton (lazily initialized)
-firestore_service = FirestoreService()
+import os
+from app.services.sqlite_service import sqlite_service
+from app.config import get_settings
+
+
+def _resolve_storage_engine():
+    """Select Firestore when service account credentials exist; otherwise use SQLite."""
+    settings = get_settings()
+    cred_path = settings.google_application_credentials
+    if cred_path and os.path.exists(cred_path):
+        logger.info("[Storage] Using Firestore Cloud Database.")
+        return FirestoreService()
+    logger.info("[Storage] Google Cloud ADC not present; using local SQLite database engine.")
+    return sqlite_service
+
+
+# Module-level singleton
+firestore_service = _resolve_storage_engine()
+
