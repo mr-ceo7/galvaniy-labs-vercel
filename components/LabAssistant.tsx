@@ -209,16 +209,27 @@ export const LabAssistant = forwardRef<LabAssistantHandle, LabAssistantProps>(
           <div className="wb-assistant-chat-panel glass-panel">
             <div className="wb-chat-header">
               <span className="wb-chat-title">Dr. Vance (AI Agent)</span>
-              <button 
-                className="wb-mute-btn" 
-                onClick={() => {
-                  setIsMuted(!isMuted);
-                  if (!isMuted) window.speechSynthesis?.cancel();
-                }}
-                title={isMuted ? "Unmute Voice" : "Mute Voice"}
-              >
-                {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-              </button>
+              <div className="wb-chat-header-actions">
+                <button 
+                  className="wb-mute-btn" 
+                  onClick={() => {
+                    setIsMuted(!isMuted);
+                    if (!isMuted) window.speechSynthesis?.cancel();
+                  }}
+                  title={isMuted ? "Unmute Voice" : "Mute Voice"}
+                  aria-label={isMuted ? "Unmute Voice" : "Mute Voice"}
+                >
+                  {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                </button>
+                <button
+                  className="wb-close-chat-btn"
+                  onClick={() => setIsOpen(false)}
+                  title="Close Assistant"
+                  aria-label="Close Assistant"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Quick Action Buttons */}

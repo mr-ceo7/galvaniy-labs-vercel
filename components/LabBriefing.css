@@ -452,8 +452,12 @@
     flex: none !important;
   }
 
+  .mb-panel-right {
+    order: -1; /* Display proceed action at top on mobile screens */
+  }
+
   .mb-panel-center {
-    min-height: 350px;
+    min-height: auto;
   }
 
   .mb-apparatus-grid {
@@ -467,7 +471,7 @@
   }
 
   .mb-proceed-body {
-    padding: 16px 0;
+    padding: 12px 0;
   }
 }
 

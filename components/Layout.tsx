@@ -27,20 +27,23 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         })}
       </main>
 
-      {/* Floating Support Button */}
-      <a
-        href="https://www.instagram.com/it.exper7"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 p-3.5 bg-gradient-to-tr from-yellow-500 via-red-500 to-purple-600 rounded-full shadow-lg shadow-purple-500/30 hover:scale-110 hover:shadow-purple-500/50 transition-all duration-300 group"
-        title="Contact Support"
-      >
-        <Instagram className="text-white w-6 h-6 group-hover:rotate-12 transition-transform" />
-      </a>
-      
-      <footer className="w-full p-4 text-center text-white/40 text-sm border-t border-white/5 backdrop-blur-md">
-        <p>&copy; {new Date().getFullYear()} Galvaniy Technologies. All rights reserved.</p>
-        <p className="text-xs mt-1">University of Nairobi Physics Lab Companion</p>
+      <footer className="w-full p-4 border-t border-white/5 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-white/50 text-xs">
+          <div>
+            <p className="font-medium text-slate-300">&copy; {new Date().getFullYear()} Galvaniy Technologies. All rights reserved.</p>
+            <p className="text-slate-500 mt-0.5">University of Nairobi Physics Lab Companion</p>
+          </div>
+          <a
+            href="https://www.instagram.com/it.exper7"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors border border-white/10"
+            title="Contact Support"
+          >
+            <Instagram size={14} className="text-rose-400" />
+            <span className="font-mono text-[11px] tracking-wide">SUPPORT @IT.EXPER7</span>
+          </a>
+        </div>
       </footer>
     </div>
   );

@@ -123,6 +123,30 @@
   color: #fff;
 }
 
+.wb-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wb-close-chat-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.wb-close-chat-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
 /* ── Quick Action Buttons (Guide Me / Show Me) ── */
 .wb-agent-quick-actions {
   display: flex;
@@ -346,4 +370,70 @@
 @keyframes typing-pulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════
+ * RESPONSIVE — Mobile Lab Assistant
+ * ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .wb-assistant-container {
+    padding: 8px;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .wb-assistant-instructions {
+    display: none; /* Hide instructions panel on mobile; instructions exist in Procedure drawer tab */
+  }
+
+  .wb-assistant-chat-panel {
+    width: 100%;
+    max-width: 100%;
+    height: 75vh;
+    transform: translateY(115%);
+    border-radius: 16px 16px 8px 8px;
+  }
+
+  .wb-assistant-container.active .wb-assistant-chat-panel {
+    transform: translateY(0);
+  }
+
+  .wb-summon-assistant {
+    bottom: 68px; /* Position safely above bottom drawer tabs */
+    right: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+  }
+
+  .wb-summon-assistant.active {
+    display: none !important; /* Hide floating button when chat is open on mobile to eliminate overlap with input area */
+  }
+
+  .wb-summon-assistant svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .wb-chat-header {
+    padding: 10px 12px;
+  }
+
+  .wb-agent-quick-actions {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .wb-agent-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .wb-chat-history {
+    padding: 10px;
+  }
+
+  .wb-chat-input-area {
+    padding: 8px;
+  }
 }

@@ -317,9 +317,8 @@ export const authService = {
           callback(user);
         }
       } else {
-        const activeGoogleToken = localStorage.getItem('google_auth_token');
         const activeSession = storageService.getSession();
-        if (activeGoogleToken && activeSession) {
+        if (activeSession) {
           callback(activeSession);
         } else {
           callback(null);

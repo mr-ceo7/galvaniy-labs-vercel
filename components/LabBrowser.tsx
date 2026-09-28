@@ -128,8 +128,17 @@ export const LabBrowser: React.FC<LabBrowserProps> = ({ onSelectExperiment }) =>
                 {items.map((kit) => (
                   <div
                     key={kit.experimentCode}
-                    className="vlab-kit-card group"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open experiment ${kit.experimentCode}: ${kit.experimentTitle}`}
+                    className="vlab-kit-card group cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-400 select-none"
                     onClick={() => onSelectExperiment(kit.experimentCode)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelectExperiment(kit.experimentCode);
+                      }
+                    }}
                   >
                     <div className={`vlab-kit-icon ${cat}`}>
                       <Icon size={24} strokeWidth={1.5} />

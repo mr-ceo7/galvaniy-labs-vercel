@@ -144,10 +144,11 @@ const App: React.FC = () => {
               <button
                 onClick={() => { setView(view === 'labs' ? 'generator' : 'labs'); setLabExperiment(null); }}
                 className={`px-3 md:px-4 py-2 min-h-[44px] ${view === 'labs' ? 'bg-cyan-600 shadow-cyan-500/30 shadow-lg' : 'bg-cyan-600/30 hover:bg-cyan-600/50'} text-white rounded-lg text-xs md:text-sm transition-all flex items-center gap-1.5`}
+                aria-label={view === 'labs' ? 'Switch to Reports Generator' : 'Switch to Virtual Labs'}
               >
                 <FlaskConical size={14} />
                 <span className="hidden md:inline">{view === 'labs' ? 'Reports' : 'Virtual Labs'}</span>
-                <span className="md:hidden">{view === 'labs' ? '📝' : '🧪'}</span>
+                <span className="md:hidden font-mono text-[11px] tracking-wider uppercase">{view === 'labs' ? 'Reports' : 'Labs'}</span>
               </button>
               {user.role === 'admin' && (
                 <button
@@ -161,6 +162,7 @@ const App: React.FC = () => {
                 onClick={handleLogout}
                 className="p-2 min-h-[44px] min-w-[44px] hover:bg-red-500/20 text-slate-300 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center"
                 title="Logout"
+                aria-label="Logout from account"
               >
                 <LogOut size={20} />
               </button>
@@ -189,14 +191,14 @@ const App: React.FC = () => {
                 {view === 'generator' ? (
                   <>
                     <div className="text-center mb-4 md:mb-8">
-                      <h1 className="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-2">
+                      <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-2">
                         Galvaniy Labs
                       </h1>
-                      <p className="text-sm md:text-base text-slate-300 px-4">
-                        Enter your experiment code to instantly generate a comprehensive report.
+                      <p className="text-sm md:text-base text-slate-300 px-4 font-normal">
+                        Enter your experiment code to instantly generate an authenticated laboratory report.
                       </p>
-                      <p className="text-slate-400 text-xs md:text-sm mt-1 italic">
-                        "your lab companion"
+                      <p className="text-slate-400 text-xs md:text-sm mt-1 font-mono tracking-widest uppercase">
+                        University of Nairobi Physics Companion
                       </p>
                     </div>
                     <Generator user={user} onReportGenerated={handleReportGenerated} />
@@ -230,7 +232,7 @@ const App: React.FC = () => {
           />
         </div>
       )}
-      <InstallPrompt />
+      {!labExperiment && <InstallPrompt />}
       <Analytics />
     </Layout>
   );
