@@ -13,13 +13,18 @@ import { Report, User, ManualPage, LabSession, LabSessionEvent, AdminLabSession 
 
 // ==================== Configuration ====================
 
-// Resolve base URL: Vite env → relative (for Vercel proxy)
+// Resolve base URL: In production (Vercel), ALWAYS use relative path so the rewrite proxy handles routing
 const resolveBaseUrl = (): string => {
+  // If running in browser on production domain, always use relative path
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return '';
+  }
+
+  // In local development, allow VITE_BACKEND_URL or default to localhost:8001
   // @ts-ignore - Vite injects import.meta.env
   const envUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL;
   if (envUrl) return envUrl.replace(/\/$/, '');
 
-  // In production (Vercel), use relative path - the rewrite proxy handles routing
   return '';
 };
 
