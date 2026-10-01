@@ -17,15 +17,49 @@ import { backendService } from './services/backendService';
 import { logService } from './services/logService';
 import { LogOut, User as UserIcon, FlaskConical, Zap } from 'lucide-react';
 
+const getInitialLabFromUrl = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('lab') || params.get('exp') || params.get('experiment');
+  if (raw) {
+    const cleaned = raw.trim().toUpperCase().replace(/\s+/g, '');
+    return cleaned.replace(/^([A-Z])(\d+)$/, '$1-$2');
+  }
+  const match = window.location.pathname.match(/\/lab\/([A-Za-z0-9_-]+)/i);
+  if (match && match[1]) {
+    const cleaned = match[1].trim().toUpperCase().replace(/\s+/g, '');
+    return cleaned.replace(/^([A-Z])(\d+)$/, '$1-$2');
+  }
+  return null;
+};
+
 const App: React.FC = () => {
+  const initialLab = getInitialLabFromUrl();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<'generator' | 'admin' | 'labs'>('generator');
+  const [view, setView] = useState<'generator' | 'admin' | 'labs'>(initialLab ? 'labs' : 'generator');
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [labExperiment, setLabExperiment] = useState<string | null>(null);
+  const [labExperiment, setLabExperiment] = useState<string | null>(initialLab);
 
-  logService.log('[App] Render - loading:', loading, 'user:', user?.email || 'none');
+  logService.log('[App] Render - loading:', loading, 'user:', user?.email || 'none', 'lab:', labExperiment);
+
+  // Sync current experiment with browser URL query parameter
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (labExperiment) {
+      url.searchParams.set('lab', labExperiment);
+      window.history.replaceState({}, '', url.toString());
+    } else {
+      if (url.searchParams.has('lab') || url.searchParams.has('exp') || url.searchParams.has('experiment')) {
+        url.searchParams.delete('lab');
+        url.searchParams.delete('exp');
+        url.searchParams.delete('experiment');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      }
+    }
+  }, [labExperiment]);
 
   useEffect(() => {
     logService.log('[App] Component mounted, setting up auth listener...');
@@ -38,9 +72,26 @@ const App: React.FC = () => {
         loadReports(user.email);
         storageService.setSession(user); // Sync to localStorage
       } else {
-        logService.log('[App] Auth state: No user');
-        setUser(null);
-        setReports([]);
+        const stored = storageService.getSession();
+        if (stored) {
+          logService.log('[App] Auth state: Restoring stored session:', stored.email);
+          setUser(stored);
+          loadReports(stored.email);
+        } else if (initialLab) {
+          // Direct lab link: grant immediate guest access to explore experiment
+          const guestUser: User = {
+            email: 'guest@galvaniy.local',
+            name: 'Guest Comrade',
+            role: 'student',
+          };
+          logService.log('[App] Direct lab link: providing guest access');
+          setUser(guestUser);
+          storageService.setSession(guestUser);
+        } else {
+          logService.log('[App] Auth state: No user');
+          setUser(null);
+          setReports([]);
+        }
       }
       setLoading(false);
     });

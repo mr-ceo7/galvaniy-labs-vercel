@@ -28,9 +28,9 @@ class Settings(BaseSettings):
     custom_api_url: str = ""
     ai_priority: str = "gemini"  # "gemini" or "custom"
 
-    # Google OAuth (Galvaniy Labs client credentials)
-    google_client_id: str = "467388117626-9f7jn0pv042ok9u89kltomn0igavg5qo.apps.googleusercontent.com"
-    google_client_secret: str = "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"
+    # Google OAuth (Galvaniy Labs client credentials - loaded from .env)
+    google_client_id: str = ""
+    google_client_secret: str = ""
 
     # Firebase
     google_application_credentials: str = ""

@@ -34,19 +34,35 @@ backend/**/*.pyc
 *.pyc
 __pycache__/
 
-# Environment
+# Environment & Secrets (NEVER commit)
 .env
 .env.*
+.env*.local
+*.local
 !.env.example
 
-# Firebase service account key (NEVER commit)
+# Credentials, Certificates & Keys
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+id_rsa*
+id_ed25519*
+*credentials*.json
+*client_secret*.json
 **/serviceAccountKey*.json
 **/firebase-adminsdk*.json
+*.token
+*.auth
 
 # Databases
 *.db
 *.sqlite
 *.sqlite3
 
-.env*.local
+# Scratch & Temporary
+scratch_*.py
+test_cutout.png
 

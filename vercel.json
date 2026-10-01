@@ -2,7 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://unheard-revoke-goofiness.ngrok-free.dev/api/:path*"
+      "destination": "https://api.trackomgroup.com/galvaniy/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

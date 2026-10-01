@@ -10,9 +10,9 @@ const getWebSocketUrl = (): string => {
     return import.meta.env.VITE_API_URL.replace(/^http/, 'ws');
   }
 
-  // In production (Vercel HTTPS), connect directly to the VPS tunnel to avoid local network probes
+  // In production (Vercel HTTPS), connect directly to the VPS backend over secure WSS
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'wss://unheard-revoke-goofiness.ngrok-free.dev';
+    return 'wss://api.trackomgroup.com/galvaniy';
   }
 
   return 'ws://localhost:8001';
