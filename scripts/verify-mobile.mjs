@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer-core';
 import path from 'path';
 
-const BASE_URL = 'http://localhost:4173';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:4173';
 const OUT_DIR = '/home/qassim/codex/galvaniy-labs-vercel/screenshots';
 
 const MOBILE_DEVICE = {
