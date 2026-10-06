@@ -91,6 +91,15 @@ async function verify() {
   });
   console.log('Workbench Metrics (Closed State):', JSON.stringify(workbenchMetrics, null, 2));
 
+  // 3b. Verify expanding simulation parameters
+  console.log('3b. Auditing Parameters Toggle...');
+  const paramsBtn = await page.waitForSelector('.wb-transport-btn--params', { visible: true, timeout: 5000 });
+  await paramsBtn.click();
+  await new Promise(r => setTimeout(r, 600));
+  await page.screenshot({ path: path.join(OUT_DIR, 'verified_03b_params_open.png') });
+  await paramsBtn.click(); // Collapse back
+  await new Promise(r => setTimeout(r, 600));
+
   // 4. Verify Dr. Vance Open State as a sleek bottom sheet
   console.log('4. Auditing Dr. Vance Open State...');
   const summonBtn = await page.waitForSelector('.wb-summon-assistant', { visible: true, timeout: 8000 });

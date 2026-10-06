@@ -9,7 +9,7 @@ import type { LabControl, ProcedureStep, DataTableConfig, LabConfig, KitDefiniti
 import {
   Play, Pause, RotateCcw, Zap, ChevronRight, Download, Save,
   FlaskConical, Ruler, Table, BookOpen, ArrowLeft, BarChart3,
-  History as HistoryIcon, FileText, Loader2, RefreshCcw
+  History as HistoryIcon, FileText, Loader2, RefreshCcw, Sliders, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logService } from '../services/logService';
@@ -83,6 +83,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
   // AI Agent state
   const [highlightedTrayItems, setHighlightedTrayItems] = useState<Set<string>>(new Set());
   const [placedComponentIds, setPlacedComponentIds] = useState<Set<string>>(new Set());
+  const [mobileControlsExpanded, setMobileControlsExpanded] = useState(false);
   const [avatarState, setAvatarState] = useState<AvatarState>('idle');
   const [avatarPosition, setAvatarPosition] = useState<{ x: number; y: number }>({ x: 85, y: 100 });
   // Multiplayer state
@@ -215,6 +216,10 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
         const ctx2 = canvas.getContext('2d');
         if (ctx2) ctx2.scale(dpr2, dpr2);
         kit.setup(canvas);
+        const initialPlaced = kit.getPlacedComponents?.() || [];
+        if (initialPlaced.length > 0) {
+          setPlacedComponentIds(new Set(initialPlaced));
+        }
         kit.renderFrame();
         setupKitIdRef.current = kit.kitId;
       }
@@ -323,6 +328,10 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
       if (setupKitIdRef.current !== kit.kitId) {
         // Initial setup for this kit
         kit.setup(canvas);
+        const initialPlaced = kit.getPlacedComponents?.() || [];
+        if (initialPlaced.length > 0) {
+          setPlacedComponentIds(new Set(initialPlaced));
+        }
         kit.renderFrame();
         setupKitIdRef.current = kit.kitId;
       } else {
@@ -796,6 +805,28 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
     handleExecuteActionRef.current = handleExecuteAction;
   }, [handleExecuteAction]);
 
+  const handleTrayItemClick = (item: any) => {
+    if (!kitRef.current || !canvasRef.current) return;
+    const kit = kitRef.current;
+
+    if (!placedComponentIds.has(item.id)) {
+      const world = kit.getWorld();
+      const ppm = world.pixelsPerMeter || 50;
+      const bounds = world.bounds;
+      const cx = (bounds?.width ?? 400) / 2 / ppm;
+      const cy = (bounds?.height ?? 400) / 2 / ppm;
+      const success = kit.addApparatusComponent(item.id, new Vector2(cx, cy));
+      if (success) {
+        setPlacedComponentIds(prev => new Set([...prev, item.id]));
+        broadcastAction({ type: 'place_apparatus', target: item.id });
+        kit.renderFrame();
+        return;
+      }
+    }
+
+    assistantRef.current?.askAbout(item.name);
+  };
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
@@ -948,29 +979,38 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
                 <button onClick={handleMeasure} className="wb-transport-btn wb-transport-btn--record">
                   <Ruler size={13} /> Record
                 </button>
+                <button
+                  onClick={() => setMobileControlsExpanded((prev) => !prev)}
+                  className={`wb-transport-btn wb-transport-btn--params ${mobileControlsExpanded ? 'wb-transport-btn--active' : ''}`}
+                  title="Simulation Parameters"
+                >
+                  <Sliders size={13} /> {mobileControlsExpanded ? 'Hide' : 'Params'}
+                </button>
               </div>
 
-              {/* Sliders from controls */}
-              {controls.map((control) => (
-                <div key={control.id} className="wb-slider-group">
-                  <div className="wb-slider-header">
-                    <span className="wb-slider-label">{control.label}</span>
-                    <span className="wb-slider-value">
-                      {(controlValues[control.id] ?? control.value).toFixed((control.step ?? 1) < 1 ? 2 : 0)}
-                      {control.unit ? ` ${control.unit}` : ''}
-                    </span>
+              {/* Sliders from controls (collapsible on mobile) */}
+              <div className={`wb-sliders-container ${mobileControlsExpanded ? 'wb-sliders-container--expanded' : ''}`}>
+                {controls.map((control) => (
+                  <div key={control.id} className="wb-slider-group">
+                    <div className="wb-slider-header">
+                      <span className="wb-slider-label">{control.label}</span>
+                      <span className="wb-slider-value">
+                        {(controlValues[control.id] ?? control.value).toFixed((control.step ?? 1) < 1 ? 2 : 0)}
+                        {control.unit ? ` ${control.unit}` : ''}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      className="wb-slider"
+                      min={control.min}
+                      max={control.max}
+                      step={control.step ?? 1}
+                      value={controlValues[control.id] ?? control.value}
+                      onChange={(e) => handleControlChange(control.id, parseFloat(e.target.value))}
+                    />
                   </div>
-                  <input
-                    type="range"
-                    className="wb-slider"
-                    min={control.min}
-                    max={control.max}
-                    step={control.step ?? 1}
-                    value={controlValues[control.id] ?? control.value}
-                    onChange={(e) => handleControlChange(control.id, parseFloat(e.target.value))}
-                  />
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* ── Live Data Panel (top-right) ── */}
@@ -1005,26 +1045,34 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
             {/* ── Component Tray (Equipment Inventory, bottom-center) ── */}
             {kitDefinition?.apparatus && kitDefinition.apparatus.length > 0 && (
               <div className="wb-hud-tray">
-                {kitDefinition.apparatus.map((item: any) => (
-                  <div 
-                    key={item.id} 
-                    className={`wb-tray-item ${highlightedTrayItems.has(item.id) ? 'wb-tray-item--highlighted' : ''}`}
-                    title={`Drag to bench · Click to ask Dr. Vance about ${item.name}`}
-                    draggable={true}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', item.id);
-                      e.dataTransfer.effectAllowed = 'copy';
-                    }}
-                    onClick={() => assistantRef.current?.askAbout(item.name)}
-                  >
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="wb-tray-icon" draggable={false} />
-                    ) : (
-                      <span style={{ fontSize: 24 }}>{item.icon}</span>
-                    )}
-                    <span className="wb-tray-label">{item.name}</span>
-                  </div>
-                ))}
+                {kitDefinition.apparatus.map((item: any) => {
+                  const isPlaced = placedComponentIds.has(item.id);
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`wb-tray-item ${highlightedTrayItems.has(item.id) ? 'wb-tray-item--highlighted' : ''} ${isPlaced ? 'wb-tray-item--placed' : ''}`}
+                      title={isPlaced ? `${item.name} is placed on bench · Tap for info` : `Tap to place ${item.name} on bench`}
+                      draggable={true}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', item.id);
+                        e.dataTransfer.effectAllowed = 'copy';
+                      }}
+                      onClick={() => handleTrayItemClick(item)}
+                    >
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="wb-tray-icon" draggable={false} />
+                      ) : (
+                        <span style={{ fontSize: 24 }}>{item.icon}</span>
+                      )}
+                      <span className="wb-tray-label">{item.name}</span>
+                      {isPlaced && (
+                        <span className="wb-tray-placed-badge" title="Placed on bench">
+                          <Check size={10} />
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

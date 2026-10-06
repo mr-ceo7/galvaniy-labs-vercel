@@ -33,3 +33,10 @@
   50% { transform: translateY(-8px) scale(1.01); }
   100% { transform: translateY(0) scale(1); }
 }
+
+/* Hide large standing cutout avatar on mobile to prevent blocking bench apparatus and shelf */
+@media (max-width: 768px) {
+  .wb-mobile-avatar {
+    display: none !important;
+  }
+}

@@ -410,11 +410,12 @@
   }
 
   .wb-summon-assistant {
-    bottom: 64px; /* Position safely above bottom drawer tabs */
+    position: fixed;
+    bottom: 145px; /* Safely above equipment shelf and drawer tabs */
     right: 16px;
-    width: 50px;
-    height: 50px;
-    border-radius: 25px;
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
     z-index: 80;
   }
 

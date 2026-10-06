@@ -34,6 +34,11 @@ interface LoadedSprite {
 export class SpriteRenderer {
   private sprites: Map<string, LoadedSprite> = new Map();
   private loadPromises: Promise<void>[] = [];
+  private onSpriteLoaded?: () => void;
+
+  setOnSpriteLoaded(callback: () => void): void {
+    this.onSpriteLoaded = callback;
+  }
 
   /**
    * Register and preload a sprite image.
@@ -60,6 +65,9 @@ export class SpriteRenderer {
           sprite.heightMeters = config.widthMeters * aspectRatio;
         }
         sprite.loaded = true;
+        if (this.onSpriteLoaded) {
+          this.onSpriteLoaded();
+        }
         resolve();
       };
       img.onerror = () => {

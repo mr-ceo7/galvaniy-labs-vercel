@@ -78,13 +78,14 @@ export class SimplePendulumKit extends ApparatusKit {
     const dpr = window.devicePixelRatio || 1;
     const cssW = canvas.width / dpr;
     this.cssH = canvas.height / dpr;
-    const ppm = cssW / 8;
+    const isMobile = cssW < 600;
+    const ppm = isMobile ? (cssW / 3.4) : (cssW / 8);
 
     this.world.gravity = new Vector2(0, this.g);
     this.world.pixelsPerMeter = ppm;
     this.world.bounds = { width: cssW, height: this.cssH };
 
-    this.pivotPosition = new Vector2(cssW / ppm / 2, this.cssH / ppm * 0.18);
+    this.pivotPosition = new Vector2(cssW / ppm / 2, isMobile ? (this.cssH / ppm * 0.28) : (this.cssH / ppm * 0.18));
 
     this.controlValues.set('length', this.pendulumLength);
     this.controlValues.set('amplitude', this.angle * (180 / Math.PI));
@@ -92,28 +93,43 @@ export class SimplePendulumKit extends ApparatusKit {
 
     this.sprites.loadSprite({
       id: 'retort_stand', src: '/assets/lab/sprites/pendulum/retort_stand.png',
-      widthMeters: 2.0, anchor: { x: 0.5, y: 0.08 },
+      widthMeters: isMobile ? 1.8 : 2.0, anchor: { x: 0.5, y: 0.08 },
     });
     this.sprites.loadSprite({
       id: 'brass_bob', src: '/assets/lab/sprites/pendulum/brass_bob.png',
-      widthMeters: 0.5, anchor: { x: 0.5, y: 0.3 },
+      widthMeters: isMobile ? 0.4 : 0.5, anchor: { x: 0.5, y: 0.3 },
     });
     this.sprites.loadSprite({
       id: 'meter_ruler', src: '/assets/lab/sprites/pendulum/meter_ruler.png',
-      widthMeters: 0.35, heightMeters: 2.8, anchor: { x: 0.5, y: 0.0 },
+      widthMeters: isMobile ? 0.38 : 0.45, anchor: { x: 0.5, y: 0.05 },
     });
     this.sprites.loadSprite({
       id: 'stopwatch', src: '/assets/lab/sprites/pendulum/stopwatch.png',
-      widthMeters: 0.7, anchor: { x: 0.5, y: 0.5 },
+      widthMeters: isMobile ? 0.55 : 0.7, anchor: { x: 0.5, y: 0.5 },
     });
 
     this.renderer = new CanvasRenderer(canvas, { background: 'transparent' });
     this.renderer.setWorld(this.world);
     this.renderer.setCustomDraw((ctx, r) => this.draw(ctx, r));
 
+    this.sprites.setOnSpriteLoaded(() => {
+      this.renderFrame();
+    });
+
     this.world.onStep((w) => {
       this.updatePendulum(this.world.timeStep, w.getTime());
     });
+
+    // Pre-place core apparatus components so the lab is immediately ready for experimentation
+    this.addApparatusComponent('retort_stand', this.pivotPosition);
+    this.addApparatusComponent('string', this.pivotPosition);
+    this.addApparatusComponent('bob', this.getBobPosition());
+    this.addApparatusComponent('meter_ruler', new Vector2(this.pivotPosition.x - (isMobile ? 0.38 : 0.45), this.pivotPosition.y));
+    this.addApparatusComponent('stopwatch', new Vector2(Math.max(0.5, (cssW / ppm) - (isMobile ? 0.55 : 0.8)), Math.max(0.5, (this.cssH / ppm) * (isMobile ? 0.68 : 0.75))));
+  }
+
+  override getPlacedComponents(): string[] {
+    return Array.from(this.placedComponents);
   }
 
   private updatePendulum(dt: number, simTime?: number): void {
@@ -379,10 +395,10 @@ export class SimplePendulumKit extends ApparatusKit {
     // ── Retort stand sprite (static, at pivot) ──
     if (this.placedComponents.has('retort_stand')) {
       if (this.sprites.isLoaded('retort_stand')) {
-        const standPos = renderer.worldToCanvas(new Vector2(pivot.x, 0.05));
+        const standPos = renderer.worldToCanvas(pivot);
         this.sprites.drawSpriteWithShadow(ctx, 'retort_stand', standPos.x, standPos.y, ppm, 0, 1, 6);
         if (this.highlightedComponents.has('retort_stand')) {
-          this.drawHighlightGlow(ctx, standPos.x, standPos.y - 80, 90, 200, highlightAlpha);
+          this.drawHighlightGlow(ctx, standPos.x, standPos.y + 40, 90, 200, highlightAlpha);
         }
       } else {
         // Fallback: geometric stand
@@ -390,15 +406,15 @@ export class SimplePendulumKit extends ApparatusKit {
         ctx.lineWidth = 6;
         ctx.lineCap = 'round';
         ctx.beginPath();
-        const poleTop = renderer.worldToCanvas(new Vector2(pivot.x, 0.2));
-        const poleBottom = renderer.worldToCanvas(new Vector2(pivot.x, pivot.y));
+        const poleTop = renderer.worldToCanvas(new Vector2(pivot.x, pivot.y - 0.1));
+        const poleBottom = renderer.worldToCanvas(new Vector2(pivot.x, pivot.y + 1.8));
         ctx.moveTo(poleTop.x, poleTop.y);
         ctx.lineTo(poleBottom.x, poleBottom.y);
         ctx.stroke();
         ctx.lineWidth = 8;
         ctx.beginPath();
-        const baseLeft = renderer.worldToCanvas(new Vector2(pivot.x - 0.5, 0.2));
-        const baseRight = renderer.worldToCanvas(new Vector2(pivot.x + 0.5, 0.2));
+        const baseLeft = renderer.worldToCanvas(new Vector2(pivot.x - 0.4, pivot.y + 1.8));
+        const baseRight = renderer.worldToCanvas(new Vector2(pivot.x + 0.4, pivot.y + 1.8));
         ctx.moveTo(baseLeft.x, baseLeft.y);
         ctx.lineTo(baseRight.x, baseRight.y);
         ctx.stroke();

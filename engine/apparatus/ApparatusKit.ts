@@ -92,6 +92,11 @@ export abstract class ApparatusKit {
   /** Spawn an apparatus component at the specified world position. Returns true if successful. */
   abstract addApparatusComponent(id: string, position: Vector2): boolean;
 
+  /** Get list of currently placed apparatus component IDs. */
+  getPlacedComponents(): string[] {
+    return [];
+  }
+
   /** Get the controls (sliders, inputs) for this experiment. */
   abstract getControls(): LabControl[];
 
