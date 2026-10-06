@@ -114,12 +114,12 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-3">
-            Hello! Comrade
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">
+            Galvaniy Labs
           </h1>
-          <h2 className="text-xl font-semibold text-white mb-2">Welcome Back</h2>
+          <h2 className="text-lg font-semibold text-slate-200 mb-2">Welcome Back</h2>
           <p className="text-slate-400 text-sm">
-            Sign in with your student account 
+            Sign in with your student account to access simulations & reports
           </p>
         </div>
 
@@ -158,8 +158,23 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           )}
         </button>
 
+        {/* Guest Exploration Option */}
+        <div className="mt-4 pt-4 border-t border-slate-700/40 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => onLogin({
+              email: 'guest@galvaniy.local',
+              name: 'Guest Comrade',
+              role: 'student',
+            })}
+            className="w-full py-3 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all active:scale-95 min-h-[44px]"
+          >
+            Explore Virtual Labs as Guest
+          </button>
+        </div>
+
         {/* Info */}
-        <div className="mt-6 text-center">
+        <div className="mt-4 text-center">
           <p className="text-xs text-slate-500">
             Your account will be created automatically on first sign-in
           </p>

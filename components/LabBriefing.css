@@ -433,31 +433,35 @@
  * RESPONSIVE — Mobile
  * ═══════════════════════════════════════ */
 @media (max-width: 900px) {
+  .mb-root {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .mb-title {
     padding: 20px 16px 12px;
   }
 
   .mb-grid {
     flex-direction: column;
-    overflow-y: auto;
+    overflow-y: visible;
     height: auto;
-    min-height: calc(100vh - 80px);
+    min-height: auto;
     padding: 0 12px 32px;
     gap: 12px;
-    scrollbar-width: none;
   }
-  .mb-grid::-webkit-scrollbar { display: none; }
 
   .mb-panel {
     flex: none !important;
   }
 
-  .mb-panel-right {
-    order: -1; /* Display proceed action at top on mobile screens */
-  }
-
   .mb-panel-center {
     min-height: auto;
+  }
+
+  .mb-panel-right {
+    order: 3;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
   }
 
   .mb-apparatus-grid {

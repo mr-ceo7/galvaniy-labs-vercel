@@ -465,10 +465,7 @@ function generateInteractiveHTML(data: any, code: string, engineCode: string = '
         .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-start), var(--primary-end));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #ffffff;
         }
         
         /* MOBILE OPTIMIZATIONS */
@@ -1036,12 +1033,8 @@ function generateInteractiveHTML(data: any, code: string, engineCode: string = '
         .splash-text.galvaniy {
             opacity: 0;
             font-size: 2.5rem;
-            background: linear-gradient(135deg, #b6aeaeff 0%, #3b82f6 50%, #8b5cf6 100%);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: fadeInGalvaniy 3s ease-out, shimmer 4s ease-in-out infinite;
+            color: #ffffff;
+            animation: fadeInGalvaniy 3s ease-out;
             animation-fill-mode: forwards;
             letter-spacing: 0.15em;
         }
@@ -1267,7 +1260,7 @@ function generateInteractiveHTML(data: any, code: string, engineCode: string = '
         <header class="glass rounded-2xl p-8 text-center relative overflow-hidden">
             <div class="absolute inset-0 opacity-10 blur-3xl" style="background: var(--accent);"></div>
             <p class="text-xs text-slate-500 uppercase tracking-wider relative z-10 mb-1"></p>
-            <h1 class="text-4xl font-bold text-transparent bg-clip-text relative z-10" style="background: linear-gradient(to right, var(--primary-start), var(--primary-end)); -webkit-background-clip: text; background-clip: text;">${data.title}</h1>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight relative z-10">${data.title}</h1>
             
             <div class="mt-6 space-y-2 text-sm relative z-10">
                 <p class="text-slate-400">

@@ -65,4 +65,6 @@ id_ed25519*
 # Scratch & Temporary
 scratch_*.py
 test_cutout.png
+dr_vance_prod_test.png
+screenshots/
 

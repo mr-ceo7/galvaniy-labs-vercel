@@ -607,10 +607,8 @@
 .vlab-browser-title {
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(135deg, #22d3ee, #a855f7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
+  letter-spacing: -0.02em;
 }
 
 .vlab-browser-subtitle {
