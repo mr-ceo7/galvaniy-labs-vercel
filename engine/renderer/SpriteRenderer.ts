@@ -45,6 +45,22 @@ export class SpriteRenderer {
    * Call this during kit setup(), before the first render.
    */
   loadSprite(config: SpriteConfig): void {
+    if (typeof window === 'undefined' || typeof Image === 'undefined') {
+      return;
+    }
+
+    const existing = this.sprites.get(config.id);
+    if (existing && existing.loaded) {
+      existing.widthMeters = config.widthMeters;
+      if (config.heightMeters) {
+        existing.heightMeters = config.heightMeters;
+      } else if (existing.image.naturalWidth > 0) {
+        existing.heightMeters = config.widthMeters * (existing.image.naturalHeight / existing.image.naturalWidth);
+      }
+      if (config.anchor) existing.anchor = config.anchor;
+      return;
+    }
+
     const img = new Image();
     if (typeof window !== 'undefined' && config.src.startsWith('http') && !config.src.startsWith(window.location.origin)) {
       img.crossOrigin = 'anonymous';
@@ -60,9 +76,8 @@ export class SpriteRenderer {
     };
 
     const promise = new Promise<void>((resolve) => {
-      img.onload = () => {
-        // Compute height from aspect ratio if not specified
-        if (!config.heightMeters) {
+      const handleLoad = () => {
+        if (!config.heightMeters && img.naturalWidth > 0) {
           const aspectRatio = img.naturalHeight / img.naturalWidth;
           sprite.heightMeters = config.widthMeters * aspectRatio;
         }
@@ -72,14 +87,21 @@ export class SpriteRenderer {
         }
         resolve();
       };
+
+      img.onload = handleLoad;
       img.onerror = () => {
         console.warn(`[SpriteRenderer] Failed to load sprite: ${config.src}`);
-        resolve(); // Don't block other loads
+        resolve();
       };
+
+      img.src = config.src;
+
+      if (img.complete && img.naturalWidth > 0) {
+        handleLoad();
+      }
     });
 
     this.loadPromises.push(promise);
-    img.src = config.src;
     this.sprites.set(config.id, sprite);
   }
 

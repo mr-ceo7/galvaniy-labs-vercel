@@ -60,6 +60,24 @@ export class SimplePendulumKit extends ApparatusKit {
     this.ruler = new Ruler({ precision: 3, noise: 0.001 });
     this.addInstrument(this.stopwatch);
     this.addInstrument(this.ruler);
+
+    // Preload apparatus sprites early (while on briefing or loading screen)
+    this.sprites.loadSprite({
+      id: 'retort_stand', src: '/assets/lab/sprites/pendulum/retort_stand.webp',
+      widthMeters: 1.8, anchor: { x: 0.5, y: 0.08 },
+    });
+    this.sprites.loadSprite({
+      id: 'brass_bob', src: '/assets/lab/sprites/pendulum/brass_bob.webp',
+      widthMeters: 0.4, anchor: { x: 0.5, y: 0.3 },
+    });
+    this.sprites.loadSprite({
+      id: 'meter_ruler', src: '/assets/lab/sprites/pendulum/meter_ruler.webp',
+      widthMeters: 0.38, anchor: { x: 0.5, y: 0.05 },
+    });
+    this.sprites.loadSprite({
+      id: 'stopwatch', src: '/assets/lab/sprites/pendulum/stopwatch.webp',
+      widthMeters: 0.55, anchor: { x: 0.5, y: 0.5 },
+    });
   }
 
   private placedComponents = new Set<string>();

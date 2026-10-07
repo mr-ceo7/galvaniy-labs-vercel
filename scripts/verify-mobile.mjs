@@ -49,7 +49,8 @@ async function verify() {
   console.log('3. Auditing Clean Workbench...');
   const proceedBtn = await page.waitForSelector('.mb-proceed-btn', { timeout: 10000 });
   await proceedBtn.click();
-  await new Promise(r => setTimeout(r, 1500));
+  // Allow live production network assets (WebP sprites & environment) to finish decoding
+  await new Promise(r => setTimeout(r, 3500));
   await page.screenshot({ path: path.join(OUT_DIR, 'verified_03_workbench_clean.png') });
 
   // Check element positions and visibility

@@ -342,6 +342,10 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
   }, [activeTab]);
 
   useEffect(() => {
+    // Preload lab environment background early so it's instant when entering experiment
+    const bgImg = new Image();
+    bgImg.src = '/assets/lab/backgrounds/lab_environment.webp';
+
     loadSavedSessions();
     return () => stopReplay();
   }, [loadSavedSessions, stopReplay]);
@@ -865,10 +869,11 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
         <div className="wb-scene">
           {/* Single full-viewport lab environment background */}
           <div className="wb-bg-env">
-            <picture className="wb-bg-picture">
-              <source srcSet="/assets/lab/backgrounds/lab_environment.webp" type="image/webp" />
-              <img src="/assets/lab/backgrounds/lab_environment.jpg" alt="Physics Laboratory Workbench" />
-            </picture>
+            <img
+              src="/assets/lab/backgrounds/lab_environment.webp"
+              alt="Physics Laboratory Workbench"
+              loading="eager"
+            />
           </div>
 
           {/* Vignette overlay */}
