@@ -9,6 +9,7 @@
   inset: 0;
   z-index: 50;
   overflow: hidden;
+  background-color: #0b0f17;
   font-family: var(--hud-font-body, 'Inter', system-ui, sans-serif);
   color: #fff;
   display: flex;
@@ -22,9 +23,11 @@
   z-index: 0;
 }
 
+.wb-bg-env picture,
 .wb-bg-env img {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
   object-position: center center;
 }

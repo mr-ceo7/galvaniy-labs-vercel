@@ -173,6 +173,16 @@ const App: React.FC = () => {
     }} />;
   }
 
+  if (user && view === 'labs' && labExperiment) {
+    return (
+      <VirtualLab
+        experimentCode={labExperiment}
+        onBack={() => setLabExperiment(null)}
+        onReportGenerated={handleReportGenerated}
+      />
+    );
+  }
+
   return (
     <Layout>
       {!user ? (

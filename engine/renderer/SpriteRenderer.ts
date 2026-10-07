@@ -46,7 +46,9 @@ export class SpriteRenderer {
    */
   loadSprite(config: SpriteConfig): void {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    if (typeof window !== 'undefined' && config.src.startsWith('http') && !config.src.startsWith(window.location.origin)) {
+      img.crossOrigin = 'anonymous';
+    }
 
     const sprite: LoadedSprite = {
       id: config.id,

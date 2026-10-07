@@ -92,19 +92,19 @@ export class SimplePendulumKit extends ApparatusKit {
     this.controlValues.set('numOscillations', this.totalOscillations);
 
     this.sprites.loadSprite({
-      id: 'retort_stand', src: '/assets/lab/sprites/pendulum/retort_stand.png',
+      id: 'retort_stand', src: '/assets/lab/sprites/pendulum/retort_stand.webp',
       widthMeters: isMobile ? 1.8 : 2.0, anchor: { x: 0.5, y: 0.08 },
     });
     this.sprites.loadSprite({
-      id: 'brass_bob', src: '/assets/lab/sprites/pendulum/brass_bob.png',
+      id: 'brass_bob', src: '/assets/lab/sprites/pendulum/brass_bob.webp',
       widthMeters: isMobile ? 0.4 : 0.5, anchor: { x: 0.5, y: 0.3 },
     });
     this.sprites.loadSprite({
-      id: 'meter_ruler', src: '/assets/lab/sprites/pendulum/meter_ruler.png',
+      id: 'meter_ruler', src: '/assets/lab/sprites/pendulum/meter_ruler.webp',
       widthMeters: isMobile ? 0.38 : 0.45, anchor: { x: 0.5, y: 0.05 },
     });
     this.sprites.loadSprite({
-      id: 'stopwatch', src: '/assets/lab/sprites/pendulum/stopwatch.png',
+      id: 'stopwatch', src: '/assets/lab/sprites/pendulum/stopwatch.webp',
       widthMeters: isMobile ? 0.55 : 0.7, anchor: { x: 0.5, y: 0.5 },
     });
 

@@ -865,7 +865,10 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ experimentCode, onBack, 
         <div className="wb-scene">
           {/* Single full-viewport lab environment background */}
           <div className="wb-bg-env">
-            <img src="/assets/lab/backgrounds/lab_environment.png" alt="" />
+            <picture className="wb-bg-picture">
+              <source srcSet="/assets/lab/backgrounds/lab_environment.webp" type="image/webp" />
+              <img src="/assets/lab/backgrounds/lab_environment.jpg" alt="Physics Laboratory Workbench" />
+            </picture>
           </div>
 
           {/* Vignette overlay */}
